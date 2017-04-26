@@ -11,7 +11,7 @@ services:
     volumes:
       - ./persistence/database:/var/lib/mysql
     ports:
-      - 3306
+      - 3306:3306
     networks:
       planet4_network:
         ipv4_address: 172.18.0.3
@@ -25,6 +25,8 @@ services:
       - DBPASS=test_develop
       - DBNAME=planet4
       - DBHOST=172.18.0.3
+    ports:
+      - 80:80
     networks:
       planet4_network:
         ipv4_address: 172.18.0.2
