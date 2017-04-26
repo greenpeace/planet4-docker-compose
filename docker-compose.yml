@@ -25,6 +25,8 @@ services:
       - DBPASS=test_develop
       - DBNAME=planet4
       - DBHOST=172.18.0.3
+    volumes:
+      - ./persistence/code:/var/www/html
     ports:
       - 80:80
     networks:
