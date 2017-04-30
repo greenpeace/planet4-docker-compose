@@ -14,24 +14,38 @@ services:
       - 3306:3306
     networks:
       planet4_network:
-        ipv4_address: 172.18.0.3
+        ipv4_address: 172.18.0.2
 
   planet4:
     image: diegol/planet4:latest
+    user: 1000:100
     depends_on:
       - db
     environment:
       - DBUSER=develop
       - DBPASS=test_develop
       - DBNAME=planet4
-      - DBHOST=172.18.0.3
+      - DBHOST=db
+    volumes:
+      - ./persistence/code:/var/www/html
+    ports:
+      - 9000
+    networks:
+      planet4_network:
+        ipv4_address: 172.18.0.3
+
+  nginx:
+    image: diegol/nginx:alpine
+    depends_on:
+      - db
+      - planet4
     volumes:
       - ./persistence/code:/var/www/html
     ports:
       - 80:80
     networks:
       planet4_network:
-        ipv4_address: 172.18.0.2
+        ipv4_address: 172.18.0.4
 
 networks:
   planet4_network:
