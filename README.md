@@ -37,6 +37,7 @@ Recommended setup is to clone [planet4-base](https://github.com/greenpeace/plane
 
 ```bash
  $ ln -s your_path_to_planet4-base planet4-docker-compose/persistence/code
+```
 
 Edit docker-compose.yml to set your host userid and usergid to avoid permissions problems between host and container. On MacOS and GNU/Linux you can obtain this data executing the command `id`.
 
