@@ -61,7 +61,7 @@ Launch docker-compose
 
 It should work right away. Point your browser to: http://172.18.0.4 (only GNU/Linux platforms) or http://localhost and you are all set.
 
-###Troubleshooting
+### Troubleshooting
 
 CSS is not loading!
 This is because wordpress needs hostnames to load the proper files. In GNU/Linux and MacOS platforms fix is to edit /etc/hosts and add the following line at the end of the file:
