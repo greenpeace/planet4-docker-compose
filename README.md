@@ -10,10 +10,15 @@ Planet4 is the NEW Greenpeace web platform
 
 This repository contains needed files to set up a docker development environment that consists on:
 
- * Planet4 nginx+php-fpm container serving [planet4-base](https://github.com/greenpeace/planet4-base)
+ * Planet4 php-fpm container serving [planet4-base](https://github.com/greenpeace/planet4-base)
  * MySQL container as a database engine
+ * nginx container to proxy requests to php-fpm
 
 ## How to set up the docker environment
+
+###WARNING WINDOWS USERS
+
+Note this repository has not yet been tested on windows platforms yet, any feedback will be welcome!
 
 ### Requirements
 
@@ -28,19 +33,41 @@ GNU/Linux users have to install docker-compose separately:
 
 ### Running planet4 development environment
 
-Recommended setup is to link your code workspace to:
+Recommended setup is to clone [planet4-base](https://github.com/greenpeace/planet4-base) and link it to the persistence/code directory of this repo
 
 ```bash
- $ ln -s your_code_directory planet4-docker-compose/persistence/code
+ $ ln -s your_path_to_planet4-base planet4-docker-compose/persistence/code
+
+Edit docker-compose.yml to set your host userid and usergid to avoid permissions problems between host and container. On MacOS and GNU/Linux you can obtain this data executing the command `id`.
+
+```bash
+  $ id
+uid=501(username) gid=20(groupname) groups=20(staff), [...]
 ```
-Launce docker-compose
+
+On this example line 21 of docker-compose.yml should look like:
+
+```
+  user: "501:20"
+```
+
+Launch docker-compose
 
 ```bash
   $ cd planet4-docker-compose
   $ docker-compose up
 ```
 
-It should work right away. Point your browser to: http://172.18.0.2 and you are all set.
+It should work right away. Point your browser to: http://172.18.0.4 (only GNU/Linux platforms) or http://localhost and you are all set.
+
+###Troubleshooting
+
+CSS is not loading!
+This is because wordpress needs hostnames to load the proper files. In GNU/Linux and MacOS platforms fix is to edit /etc/hosts and add the following line at the end of the file:
+
+```
+127.0.0.1 test.planet4.dev
+```
 
 ## Environment variables
 
@@ -65,12 +92,12 @@ Planet4 container variables:
   * DBUSER=develop
   * DBPASS=test_develop
   * DBNAME=planet4
-  * DBHOST=172.18.0.3
+  * DBHOST=db
 
 ## Notes
 
-For the sake of the easy of use containers are bounded to fixed ip addresses. From the host machine
-you can access containers on the following ips and ports
+For the sake of the easy of use containers are bounded to fixed ip addresses and a custom docker network is created to avoid conflicts with other containers users might be running.
 
-  * mysql container ip: 172.18.0.3 port 3306
-  * planet4 container ip: 172.18.0.2 port 80
+  * mysql container ip: 172.18.0.2 port 3306
+  * planet4 container ip: 172.18.0.3 port 9000
+  * nginx container ip: 172.18.0.4 port 80
