@@ -16,7 +16,7 @@ This repository contains needed files to set up a docker development environment
 
 ## How to set up the docker environment
 
-###WARNING WINDOWS USERS
+### WARNING WINDOWS USERS
 
 Note this repository has not yet been tested on windows platforms yet, any feedback will be welcome!
 
