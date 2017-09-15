@@ -1,54 +1,25 @@
 version: '3'
 services:
-
-  db:
-    image: mysql:latest
-    environment:
-      - MYSQL_ROOT_PASSWORD=test
-      - MYSQL_DATABASE=planet4
-      - MYSQL_USER=develop
-      - MYSQL_PASSWORD=test_develop
-    volumes:
-      - ./persistence/database:/var/lib/mysql
+  app:
+    image: gcr.io/planet-4-151612/p4-app-gpi:develop
+    # Modify container DNS if behind a corporate firewall which restricts dns
+    # Resolves timeouts accessing remote API
+    # dns:
+    #   - 192.168.2.1
+    #   - 8.8.8.8
+    #   - 8.8.4.4
     ports:
-      - 3306:3306
-    networks:
-      planet4_network:
-        ipv4_address: 172.18.0.2
-
-  planet4:
-    image: diegol/planet4:latest
-    user: 1000:100
+      - "80:80"
+    volumes:
+      - ./persistence/app:/app/source/public:cached
+    env_file:
+      - ./app.env
+      - ./db.env
     depends_on:
-      - db
-    environment:
-      - DBUSER=develop
-      - DBPASS=test_develop
-      - DBNAME=planet4
-      - DBHOST=db
+      - mysql
+  mysql:
+    image: mysql
+    env_file:
+      - ./db.env
     volumes:
-      - ./persistence/code:/var/www/html
-    ports:
-      - 9000
-    networks:
-      planet4_network:
-        ipv4_address: 172.18.0.3
-
-  nginx:
-    image: diegol/nginx:alpine
-    depends_on:
-      - db
-      - planet4
-    volumes:
-      - ./persistence/code:/var/www/html
-    ports:
-      - 80:80
-    networks:
-      planet4_network:
-        ipv4_address: 172.18.0.4
-
-networks:
-  planet4_network:
-    ipam:
-      config:
-        - subnet: 172.18.0.0/24
+      - ./persistence/mysql:/var/lib/mysql:cached
