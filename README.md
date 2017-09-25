@@ -11,10 +11,11 @@ Planet4 is the NEW Greenpeace web platform
 
 This repository contains needed files to set up a docker development environment that consists of:
 
-*   MySQL container as a database engine
+*   [MySQL](https://hub.docker.com/_/mysql/) container as database engine
 *   Combined nginx + php-fpm container serving [planet4-base](https://github.com/greenpeace/planet4-base)
+*   [PHPmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) container for database administration
 
-## How to set up the docker environment
+## Quickstart
 
 ```
 Note this repository has not yet been tested on windows platforms yet, any feedback will be welcome!
@@ -29,7 +30,7 @@ First things first, requirements for running this development environment:
 For MacOS and Windows users docker installation already includes docker-compose
 GNU/Linux users have to install docker-compose separately:
 
-*   [install docker compose](https://docs.docker.com/compose/install/)
+*   [install docker compose](https://github.com/docker/compose/releases)
 
 ### Running the planet4 development environment
 
@@ -41,7 +42,7 @@ Edit your [hosts](https://www.howtogeek.com/howto/27350/beginner-geek-how-to-edi
 
 As the test Wordpress install is configured to use `test.planet4.dev`, adding this line ensures media files and navigation between pages works as expected.
 
-Launch docker-compose:
+Clone the repository and then launch `docker-compose`:
 
 ```bash
 # Clone the repository
@@ -56,6 +57,9 @@ docker-compose up
 
 The first time this is run on your local environment, the container bootstraps the installation via composer, and after around 30 seconds the nginx and php-fpm services will be ready. When you see the line `Starting nginx service` you can navigate to: [http://test.planet4.dev](http://test.planet4.dev) and edit repository files directly in `./persistence/app/wp-content/plugins` or `./persistence/app/wp-content/themes`
 
+### Database access with phpmyadmin
+
+Browsing to [http://localhost:8080](http://localhost:8080) shows a [phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login interface.  Enter the user values from `db.env` to login and view or edit database contents as required.
 
 ## Environment variables
 
@@ -67,6 +71,14 @@ For this environment to run just database parameters such as hostname, database 
 database users and passwords are required. Initial values for this environment variables
 are dummy but are good to go for a development purpose and can be changed via the provided `app.env` and `db.env` files, or directly in the docker-compose.yml file via the  [environment](https://docs.docker.com/compose/compose-file/#environment) configuration
 file provided.
+
+### Development mode
+
+*@todo:
+Document some useful builtin configuration options available in upstream docker images for debugging, including:
+-   XDebug
+-   Smarthost email delivery and interception
+-   exec function limits*
 
 ## Notes
 
@@ -84,8 +96,9 @@ To ensure you're running the latest version of the application, both the infrast
 
 Also, be aware that if you've only recently pushed new code to the repository there may be a delay of up to 30 minutes before the composer registry is updated.  You can always enter the relevant code directory and perform a `git pull` within the appropriate branch to speed things up.
 
+Copypasta instructions for upgrading the local environment:
 ```
-docker-compose stop && \
+docker-compose stop
 git pull && \
 rm -fr ./persistence && \
 docker pull gcr.io/planet4-151612/p4-app-gpi && \
@@ -98,9 +111,11 @@ If you are running any other services on your local device which respond on port
 
 ```yml
     ports:
-      - "8080:80"
+      - "8000:80"
 ```
 
-The first number is the port number on your host, the second number is mapped to port 80 on the nginx service container.  Now you can access the site at  [http://test.planet4.dev:8080](http://test.planet4.dev:8080) instead.
+The first number is the port number on your host, the second number is mapped to port 80 on the nginx service container.  Now you can access the site at  [http://test.planet4.dev:8000](http://test.planet4.dev:8000) instead.
 
-A more robust solution for hosting multiple services on port 80 is to install a reverse proxy such as [jwilder/nginx-proxy](https://github.com/jwilder/nginx-proxy) and set the environment variable `VIRTUAL_HOST=test.planet4.dev` in `app.env` as well as any other containers which use this port.
+A more robust solution for hosting multiple services on port 80 is to install a reverse proxy such as [jwilder/nginx-proxy](https://github.com/jwilder/nginx-proxy) and set the variable `VIRTUAL_HOST=test.planet4.dev` in the environment file `app.env` and any other containers which use this port, and use [Docker named networking](https://docs.docker.com/compose/networking/) features to isolate virtual networks.
+
+To be continued...
