@@ -1,7 +1,7 @@
 version: '3'
 services:
   app:
-    image: gcr.io/planet-4-151612/p4-gpi-app:develop
+    image: gcr.io/planet-4-151612/p4-gpi-app:${BUILD_TAG:-develop}
     # Modify container DNS if behind a corporate firewall which restricts dns
     # Resolves timeouts accessing remote API
     # dns:
