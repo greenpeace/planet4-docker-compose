@@ -17,13 +17,32 @@ This repository contains needed files to set up a docker development environment
 
 ## Quickstart
 
+*Note this repository has not yet been tested on Windows, any feedback will be welcome!*
+
 ```
-Note this repository has not yet been tested on windows platforms yet, any feedback will be welcome!
+# Clone the repository
+git clone https://github.com/greenpeace/planet4-docker-compose
+
+# Navigate to new directory
+cd planet4-docker-compose
+
+# Mac and Linux only
+sudo echo "127.0.0.1  test.planet4.dev planet.dev" >> /etc/hosts
+
+# Windows add the following to: \Windows\System32\drivers\etc\hosts
+# 127.0.0.1   test.planet4.dev planet4.dev
+
+# Start the application
+docker-compose up
 ```
+
+On first launch, the container bootstraps the installation with composer then after a short time (30 seconds to 1 minute) the nginx and php-fpm services will be ready.
+
+When you see the line `Starting service: nginx` you can navigate to: [http://test.planet4.dev](http://test.planet4.dev)
 
 ### Requirements
 
-First things first, requirements for running this development environment:
+Firstly, requirements for running this development environment:
 
 *   [install docker](https://docs.docker.com/engine/installation/)
 
@@ -32,59 +51,52 @@ GNU/Linux users have to install docker-compose separately:
 
 *   [install docker compose](https://github.com/docker/compose/releases)
 
-### Running the planet4 development environment
+---
 
-Edit your [hosts](https://www.howtogeek.com/howto/27350/beginner-geek-how-to-edit-your-hosts-file/) file to include the line:
+## Editing source code
 
-```
-127.0.0.1  planet4.dev
-```
+Wordpress plugins and themes directories are bind-mounted at:
+-   `./persistence/app/wp-content/plugins`
+-   `./persistence/app/wp-content/themes`
 
-As the test Wordpress install is configured to use `test.planet4.dev`, adding this line ensures media files and navigation between pages works as expected.
+### Database access with phpMyAdmin
 
-Clone the repository and then launch `docker-compose`:
+[phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [http://localhost:8080](http://localhost:8080)
 
-```bash
-# Clone the repository
-git clone https://github.com/greenpeace/planet4-docker-compose
-
-# Navigate to new directory
-cd planet4-docker-compose
-
-# Run the application
-docker-compose up
-```
-
-The first time this is run on your local environment, the container bootstraps the installation via composer, and after around 30 seconds the nginx and php-fpm services will be ready. When you see the line `Starting nginx service` you can navigate to: [http://test.planet4.dev](http://test.planet4.dev) and edit repository files directly in `./persistence/app/wp-content/plugins` or `./persistence/app/wp-content/themes`
-
-### Database access with phpmyadmin
-
-Browsing to [http://localhost:8080](http://localhost:8080) shows a [phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login interface.  Enter the user values from `db.env` to login and view or edit database contents as required.
+Enter the user values from `db.env` to login
 
 ## Environment variables
 
 This docker environment relies on the mysql official image as well as on the
-[planet4-docker](https://github.com/greenpeace/planet4-docker) application image.
+[planet4-base](https://github.com/greenpeace/planet4-base) application image.
 
-Both images provide environment variables which adjust aspects of the runtime configuration.
-For this environment to run just database parameters such as hostname, database name,
-database users and passwords are required. Initial values for this environment variables
-are dummy but are good to go for a development purpose and can be changed via the provided `app.env` and `db.env` files, or directly in the docker-compose.yml file via the  [environment](https://docs.docker.com/compose/compose-file/#environment) configuration
-file provided.
+Both images provide environment variables which adjust aspects of the runtime configuration. For this environment to run only the database parameters such as hostname, database name, database users and passwords are required.
+
+Initial values for this environment variables are dummy but are good to go for development porpoises. They can be changed in the provided `app.env` and `db.env` files, or directly in the [docker-compose.yml](https://docs.docker.com/compose/compose-file/#environment) file itself.
+
+### Some useful variables
+See [nginx-php-exim](https://github.com/greenpeace/planet4-docker/tree/develop/source/planet-4-151612/nginx-php-exim)
+
+-   `NEWRELIC_LICENSE` set to the license key in your NewRelic dashboard to automatically receive server and application metrics
+-   `PHP_MEMORY_LIMIT` maximum memory each PHP process can consume before being termminated and restarted by the scheduler
+-   `PHP_XDEBUG_REMOTE_HOST` in development mode enables remote [XDebug](https://xdebug.org/) debugging, tracing and profiling
 
 ### Development mode
 
 *@todo:
-Document some useful builtin configuration options available in upstream docker images for debugging, including:
--   XDebug
+Document some of the useful builtin configuration options available in upstream docker images for debugging, including:*
+-   XDebug remote debugging
 -   Smarthost email delivery and interception
--   exec function limits*
+-   exec function limits
+-   Memory and performance tweaks
+
+---
 
 ## Notes
 
 ### Updating
 
-To ensure you're running the latest version of the application, both the infrastructure and the application:
+To ensure you're running the latest version of both the infrastructure and the application:
 
 *   stop the services
 *   update the repository
@@ -101,7 +113,7 @@ Copypasta instructions for upgrading the local environment:
 docker-compose stop
 git pull && \
 rm -fr ./persistence && \
-docker pull gcr.io/planet4-151612/p4-app-gpi && \
+docker pull gcr.io/planet4-151612/p4-app-gpi:develop && \
 docker-compose up
 ```
 
@@ -109,7 +121,7 @@ docker-compose up
 
 If you are running any other services on your local device which respond on port 80, you may experience errors attempting to start the environment.  In this case you can opt to change the port number that the service responds by editing the `docker-compose.yml` file port number as below:
 
-```yml
+```yaml
     ports:
       - "8000:80"
 ```
