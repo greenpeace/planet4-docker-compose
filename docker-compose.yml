@@ -17,6 +17,9 @@ services:
       - ./db.env
     depends_on:
       - db
+    # To force reinstalling Wordpress from composer on container start
+    # environment:
+    #   - OVERWRITE_FILES=true
   db:
     image: mysql
     env_file:
