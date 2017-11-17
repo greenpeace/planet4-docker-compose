@@ -1,15 +1,24 @@
 version: '3'
 services:
+
+  db:
+    image: mysql:5.6
+    env_file:
+      - ./db.env
+    volumes:
+      - ./persistence/mysql:/var/lib/mysql:cached
+    networks:
+      - db
+
   app:
-    image: gcr.io/planet-4-151612/p4-gpi-app-dev:${BUILD_TAG:-develop}
+    image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}
     # Modify container DNS if behind a corporate firewall which restricts dns
     # Resolves timeouts accessing remote API
-    # dns:
-    #   - 192.168.2.1
-    #   - 8.8.8.8
-    #   - 8.8.4.4
-    ports:
-      - "80:80"
+    networks:
+      - local
+      - db
+    dns:
+      - ${DNS_RESOLVER:-8.8.8.8}
     volumes:
       - ./persistence/app:/app/source/public:cached
     env_file:
@@ -20,14 +29,28 @@ services:
     # To force reinstalling Wordpress from composer on container start
     # environment:
     #   - OVERWRITE_FILES=true
-  db:
-    image: mysql
-    env_file:
-      - ./db.env
+
+  nginx:
+    image: gcr.io/planet-4-151612/nginx-pagespeed:${NGINX_BUILD_TAG:-develop}
+    networks:
+      - local
+    ports:
+      - "80:80"
     volumes:
-      - ./persistence/mysql:/var/lib/mysql:cached
+      - ./persistence/app:/app/www:cached
+    env_file:
+      - ./app.env
+    environment:
+      - NGINX_FASTCGI_BACKEND=${NGINX_FASTCGI_BACKEND:-app:9000}
+      - PHP_ENABLED=true
+      - SSL_ENABLED=false
+    depends_on:
+      - app
+
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin
+    image: phpmyadmin/phpmyadmin:latest
+    networks:
+      - db
     depends_on:
       - db
     ports:
@@ -36,3 +59,7 @@ services:
       - ./db.env
     volumes:
       - ./persistence/pma:/sessions
+
+networks:
+  local:
+  db:
