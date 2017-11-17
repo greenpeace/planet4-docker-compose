@@ -1,5 +1,17 @@
 version: '3'
 services:
+  traefik:
+    image: traefik:latest
+    command: --web --docker --docker.domain=planet4.dev --docker.watch --logLevel=DEBUG
+    networks:
+      - proxy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/traefik.toml
 
   db:
     image: mysql:5.6
@@ -12,8 +24,6 @@ services:
 
   app:
     image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}
-    # Modify container DNS if behind a corporate firewall which restricts dns
-    # Resolves timeouts accessing remote API
     networks:
       - local
       - db
@@ -34,8 +44,7 @@ services:
     image: gcr.io/planet-4-151612/nginx-pagespeed:${NGINX_BUILD_TAG:-develop}
     networks:
       - local
-    ports:
-      - "80:80"
+      - proxy
     volumes:
       - ./persistence/app:/app/www:cached
     env_file:
@@ -44,22 +53,36 @@ services:
       - NGINX_FASTCGI_BACKEND=${NGINX_FASTCGI_BACKEND:-app:9000}
       - PHP_ENABLED=true
       - SSL_ENABLED=false
+    labels:
+      traefik.backend: "test"
+      traefik.frontend.rule: "Host:test.planet4.dev"
+      traefik.docker.network: "planet4dockercompose_proxy"
+      traefik.enable: "true"
     depends_on:
       - app
+      - traefik
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
-    networks:
-      - db
     depends_on:
       - db
-    ports:
-      - "8080:80"
+      - traefik
     env_file:
       - ./db.env
     volumes:
       - ./persistence/pma:/sessions
+    networks:
+      - db
+      - proxy
+    labels:
+      traefik.backend: "pma"
+      traefik.frontend.rule: "Host:pma.planet4.dev"
+      traefik.docker.network: "planet4dockercompose_proxy"
+      traefik.enable: "true"
+
 
 networks:
   local:
   db:
+  proxy:
+    driver: bridge
