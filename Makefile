@@ -1,3 +1,6 @@
+SCALE_NGINX?=2
+SCALE_APP?=3
+
 .DEFAULT_GOAL := all
 
 all : test clean pull run
@@ -16,4 +19,4 @@ pull:
 
 .PHONY : run
 run:
-		docker-compose up -d --scale nginx=2 --scale app=3
+		docker-compose up -d --scale nginx=$(SCALE_NGINX) --scale app=$(SCALE_APP)
