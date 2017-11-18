@@ -31,14 +31,24 @@ services:
       - ${DNS_RESOLVER:-8.8.8.8}
     volumes:
       - ./persistence/app:/app/source/public:cached
+    environment:
+      - OVERWRITE_FILES=${OVERWRITE_FILES:-false}
     env_file:
       - ./app.env
       - ./db.env
     depends_on:
       - db
+      - redis
     # To force reinstalling Wordpress from composer on container start
     # environment:
     #   - OVERWRITE_FILES=true
+
+  redis:
+    image: redis:4-alpine
+    networks:
+      - local
+    volumes:
+      - ./persistence/redis:/data
 
   nginx:
     image: gcr.io/planet-4-151612/nginx-pagespeed:${NGINX_BUILD_TAG:-latest}
@@ -61,6 +71,8 @@ services:
     depends_on:
       - app
       - traefik
+      - redis
+
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:4.7
