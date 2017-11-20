@@ -1,6 +1,10 @@
 SCALE_OPENRESTY?=2
 SCALE_APP?=3
 
+MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
+MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
+ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
+
 .DEFAULT_GOAL := all
 
 all : test clean pull run
@@ -27,8 +31,12 @@ stateless:
 
 .PHONY : wppass
 wppass:
+		@echo "admin"
 		@docker-compose logs app | grep Admin | cut -d':' -f2 | xargs
 
 .PHONY : pmapass
 pmapass:
-		@grep MYSQL_PASSWORD db.env | cut -d'=' -f2
+		@printf "User:  %s\n" $(MYSQL_USER)
+		@printf "Pass:  %s\n---\n" $(MYSQL_PASS)
+		@printf "User:  root\n"
+		@printf "Pass:  %s\n" $(ROOT_PASS)
