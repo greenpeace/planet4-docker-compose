@@ -18,13 +18,14 @@ This repository contains needed files to set up a docker development environment
 *   [Redis](https://redis.io/) key-value store caching FastCGI, object and session data
 *   [PHPmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) for database administration
 
-By default, the quickstart command `make` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application from the comfort of your own office.
+By default, the quickstart command `make` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
 
 *   Traefik listens on Port 80, load balancing requests to:
 *   Two OpenResty reverse proxy servers, which cache FastCGI requests from
 *   Three PHP-FPM application nodes, all backed by
 *   A single Redis instance and
 *   MySQL database server.
+*   Self-signed SSL certificates, with HTTP > HTTPS redirection
 
 ## Quickstart
 
@@ -49,7 +50,7 @@ docker-compose logs -f
 
 On first launch, the container bootstraps the installation with composer then after a short time (30 seconds to 1 minute) all services will be ready and responding to requests.
 
-When you see the line `Starting service: openresty` you can navigate to: [http://test.planet4.dev](http://test.planet4.dev)
+When you see the line `Starting service: openresty` you can navigate to: [https://test.planet4.dev](https://test.planet4.dev)
 
 ### Requirements
 
@@ -80,7 +81,7 @@ By default, the Wordpress application is bind-mounted at
 
 ### Administrator login
 
-Backend administrator login is available at [http://test.planet4.dev/wp-admin/](http://test.planet4.dev/wp-admin/). An administrator user is created during first install with a randomly assigned password.
+Backend administrator login is available at [https://test.planet4.dev/wp-admin/](https://test.planet4.dev/wp-admin/). An administrator user is created during first install with a randomly assigned password.
 
 Login username is `admin`. To find the password enter the following in the project root (where docker-compose.yml lives):
 
@@ -90,7 +91,7 @@ make wppass
 
 ### Database access via phpMyAdmin
 
-[phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [http://pma.planet4.dev](http://pma.planet4.dev)
+[phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [https://pma.planet4.dev](https://pma.planet4.dev)
 
 Enter the user values from `db.env` to login, or from bash prompt:
 
@@ -99,11 +100,11 @@ make pmapass
 ```
 ---
 
-## configuration
+## Configuration
 
 ### Configuring WP-Stateless GCS bucket storage
 
-[WP-Stateless](https://github.com/wpCloud/wp-stateless/) is installed and activated, however images will be stored locally until remote GCS storage is enabled in the administrator backend. [Log in](http://test.planet4.dev/wp-login.php) with details gathered [from here](#login) and navigate to [Media > Stateless Setup](http://test.planet4.dev/wp-admin/upload.php?page=stateless-setup).
+[WP-Stateless](https://github.com/wpCloud/wp-stateless/) is installed and activated, however images will be stored locally until remote GCS storage is enabled in the administrator backend. [Log in](https://test.planet4.dev/wp-login.php) with details gathered [from here](#login) and navigate to [Media > Stateless Setup](https://test.planet4.dev/wp-admin/upload.php?page=stateless-setup).
 
 You will need a Google account with access to GCS buckets to continue.
 
@@ -121,12 +122,11 @@ Congratulations, you're now serving media files directly from GCS buckets!
 
 ### Configuring FastCGI cache purges
 
-The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/) is installed to enable FastCGI cache purges. Log in to the backend as above, navigate to [Settings > Nginx Helper](http://test.planet4.dev/wp-admin/options-general.php?page=nginx) and click:
+The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/) is installed to enable FastCGI cache purges. Log in to the backend as above, navigate to [Settings > Nginx Helper](https://test.planet4.dev/wp-admin/options-general.php?page=nginx) and click:
 *   Enable Purge
 *   Redis Cache
-*   All checkboxes under 'Purging Conditions'
-
-
+*   Enter `redis` in the Hostname field
+*   Tick all checkboxes under 'Purging Conditions'
 
 ## Environment variables
 
@@ -157,8 +157,6 @@ Document some of the useful builtin configuration options available in upstream 
 
 ## Notes
 
-
-
 ### Updating
 
 To ensure you're running the latest version of both the infrastructure and the application:
@@ -185,8 +183,7 @@ make pull
 make run
 ```
 
-
-### Port 80 conflicts
+### Port conflicts
 
 If you are running any other services on your local device which respond on port 80, you may experience errors attempting to start the environment. Traefik is configured to respond on port 80 in this application, but you can change it by editing the docker-compose.yml file as below:
 
@@ -196,11 +193,15 @@ If you are running any other services on your local device which respond on port
       - "8000:80"
 ```
 
-The first number is the port number on your host, the second number is mapped to port 80 on the openresty service container.  Now you can access the site at  [http://test.planet4.dev:8000](http://test.planet4.dev:8000) instead.
+The first number is the port number on your host, the second number is mapped to port 80 on the openresty service container.  Now you can access the site at  [https://test.planet4.dev:8000](https://test.planet4.dev:8000) instead.
 
 A more robust solution for hosting multiple services on port 80 is to use a reverse proxy  such as Traefik or [jwilder/openresty-proxy](https://github.com/jwilder/openresty-proxy) in a separate project, and use [Docker named networking](https://docs.docker.com/compose/networking/) features to isolate virtual networks.
 
-## performance
+## Traefik administration interface
+
+Traefik comes with a simple admin interface accessible at [http://localhost:8080](http://localhost:8080).
+
+## Performance
 
 On a 2015 Macbook Pro, with a primed cache, this stack delivers 50 concurrent connections under siege with an average response time of 0.28 seconds and near-zero load on the php-fpm backend.
 
@@ -208,17 +209,18 @@ On a 2015 Macbook Pro, with a primed cache, this stack delivers 50 concurrent co
 $ siege -c 50 -t 20s -b test.planet4.dev
 
 Lifting the server siege...
-Transactions:		        3374 hits
-Availability:		      100.00 %
-Elapsed time:		       19.39 secs
-Data transferred:	       51.58 MB
+Transactions:		          3374 hits
+Availability:		          100.00 %
+Elapsed time:		          19.39 secs
+Data transferred:	        51.58 MB
 Response time:		        0.28 secs
-Transaction rate:	      174.01 trans/sec
-Throughput:		        2.66 MB/sec
-Concurrency:		       49.13
-Successful transactions:        3374
-Failed transactions:	           0
-Longest transaction:	        2.31
-Shortest transaction:	        0.00
+Transaction rate:	        174.01 trans/sec
+Throughput:		            2.66 MB/sec
+Concurrency:		          49.13
+Successful transactions:  3374
+Failed transactions:	    0
+Longest transaction:	    2.31
+Shortest transaction:	    0.00
 ```
+
 To be continued...
