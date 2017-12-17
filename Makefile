@@ -28,15 +28,23 @@ run:
 .PHONY : stateless
 stateless:
 		docker-compose -f docker-compose.stateless.yml up -d  --scale openresty=$(SCALE_OPENRESTY) --scale app=$(SCALE_APP)
+.PHONY : pass
+pass:
+		@make pmapass
+		@make wppass
 
 .PHONY : wppass
 wppass:
-		@echo "admin"
+		@printf "Wordpress credentials:\n"
+		@printf "User:  admin\n"
+		@printf "Pass:  "
 		@docker-compose logs app | grep Admin | cut -d':' -f2 | xargs
+		@printf "\n"
 
 .PHONY : pmapass
 pmapass:
+		@printf "Database credentials:\n"
 		@printf "User:  %s\n" $(MYSQL_USER)
-		@printf "Pass:  %s\n---\n" $(MYSQL_PASS)
+		@printf "Pass:  %s\n----\n" $(MYSQL_PASS)
 		@printf "User:  root\n"
-		@printf "Pass:  %s\n" $(ROOT_PASS)
+		@printf "Pass:  %s\n----\n" $(ROOT_PASS)
