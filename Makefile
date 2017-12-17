@@ -1,13 +1,22 @@
 SCALE_OPENRESTY?=2
 SCALE_APP?=2
 
+APP_ENV?=development
+
+DOCKER_COMPOSE_FILE?=docker-compose.yml
+
+EXIM_ADMIN_EMAIL?=raymond.walker@greenpeace.org
+EXIM_SMARTHOST?=smtp.gmail.com::587
+EXIM_SMARTHOST_AUTH_USERNAME?=
+EXIM_SMARTHOST_AUTH_PASSWORD?=
+
 MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
 ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 
 .DEFAULT_GOAL := all
 
-all : test clean pull run
+all : test clean run
 .PHONY : all
 
 .PHONY : test
@@ -15,19 +24,34 @@ test:
 
 .PHONY : clean
 clean:
-		docker-compose stop; docker-compose rm -f; rm -fr persistence
+		docker-compose -f $(DOCKER_COMPOSE_FILE) down
+		rm -fr persistence
+
+.PHONY : update
+update:
+		./update
 
 .PHONY : pull
 pull:
-		docker-compose pull
+		docker-compose -f $(DOCKER_COMPOSE_FILE) pull --parallel
 
 .PHONY : run
 run:
-		docker-compose up -d --scale openresty=$(SCALE_OPENRESTY) --scale app=$(SCALE_APP)
+		EXIM_ADMIN_EMAIL=$(EXIM_ADMIN_EMAIL) \
+		EXIM_SMARTHOST_AUTH_PASSWORD=$(EXIM_SMARTHOST_AUTH_PASSWORD) \
+		EXIM_SMARTHOST_AUTH_USERNAME=$(EXIM_SMARTHOST_AUTH_USERNAME) \
+		EXIM_SMARTHOST=$(EXIM_SMARTHOST) \
+		SCALE_APP=$(SCALE_APP) \
+		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
+		./go
 
 .PHONY : stateless
 stateless:
-		docker-compose -f docker-compose.stateless.yml up -d  --scale openresty=$(SCALE_OPENRESTY) --scale app=$(SCALE_APP)
+		DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
+		SCALE_APP=$(SCALE_APP) \
+		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
+		./go
+
 .PHONY : pass
 pass:
 		@make pmapass
