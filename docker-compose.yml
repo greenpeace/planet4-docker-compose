@@ -20,6 +20,13 @@ services:
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
 
+  redis:
+    image: redis:4-alpine
+    networks:
+      - local
+    volumes:
+      - ./persistence/redis:/data
+
   db:
     image: mysql:5.7
     env_file:
