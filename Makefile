@@ -1,5 +1,5 @@
 SCALE_OPENRESTY?=2
-SCALE_APP?=3
+SCALE_APP?=2
 
 MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
