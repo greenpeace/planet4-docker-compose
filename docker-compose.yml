@@ -38,6 +38,9 @@ services:
 
   app:
     image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}
+    depends_on:
+      - db
+      - redis
     networks:
       - local
       - db
@@ -47,26 +50,21 @@ services:
       - ./persistence/app:/app/source/public:cached
       - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
-      - OVERWRITE_FILES=${OVERWRITE_FILES:-false}
+      - APP_ENV=${APP_ENV:-develop}
+      - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-}
+      - WP_SITE_HOME=${APP_HOSTNAME:-test.planet4.dev}
+      - WP_SITE_URL=${APP_HOSTNAME:-test.planet4.dev}
     env_file:
       - ./app.env
       - ./db.env
-    depends_on:
-      - db
-      - redis
-    # To force reinstalling Wordpress from composer on container start
-    # environment:
-    #   - OVERWRITE_FILES=true
-
-  redis:
-    image: redis:4-alpine
-    networks:
-      - local
-    volumes:
-      - ./persistence/redis:/data
 
   openresty:
     image: gcr.io/planet-4-151612/openresty:${OPENRESTY_BUILD_TAG:-develop}
+    depends_on:
+      - app
+      - traefik
+      - redis
     networks:
       - local
       - proxy
@@ -75,18 +73,16 @@ services:
     env_file:
       - ./app.env
     environment:
+      - APP_ENV=develop
       - OPENRESTY_FASTCGI_BACKEND=${OPENRESTY_FASTCGI_BACKEND:-app:9000}
+      - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
       - PHP_ENABLED=true
-      - SSL_ENABLED=false
+      - APP_HOSTNAME=test.planet4.dev
     labels:
       traefik.backend: "test"
       traefik.frontend.rule: "Host:test.planet4.dev"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
-    depends_on:
-      - app
-      - traefik
-      - redis
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:4.7
