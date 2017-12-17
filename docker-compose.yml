@@ -37,7 +37,7 @@ services:
       - db
 
   app:
-    image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-dev-feature-gitrepositories}
+    image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}
     networks:
       - local
       - db
