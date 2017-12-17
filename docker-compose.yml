@@ -45,6 +45,7 @@ services:
       - ${DNS_RESOLVER:-8.8.8.8}
     volumes:
       - ./persistence/app:/app/source/public:cached
+      - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
       - OVERWRITE_FILES=${OVERWRITE_FILES:-false}
     env_file:
