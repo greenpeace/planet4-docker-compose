@@ -14,7 +14,7 @@ services:
       - ./traefik.toml:/traefik.toml
 
   db:
-    image: mysql:5.6
+    image: mysql:5.7
     env_file:
       - ./db.env
     volumes:
