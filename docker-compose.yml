@@ -60,7 +60,7 @@ services:
       - ./db.env
 
   openresty:
-    image: gcr.io/planet-4-151612/openresty:${OPENRESTY_BUILD_TAG:-develop}
+    image: gcr.io/planet-4-151612/p4-gpi-openresty-dev:${OPENRESTY_BUILD_TAG:-develop}
     depends_on:
       - app
       - traefik
