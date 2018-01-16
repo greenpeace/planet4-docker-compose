@@ -62,7 +62,7 @@ wppass:
 		@printf "Wordpress credentials:\n"
 		@printf "User:  admin\n"
 		@printf "Pass:  "
-		@docker-compose logs app | grep Admin | cut -d':' -f2 | xargs
+		@docker-compose logs php-fpm | grep Admin | cut -d':' -f2 | xargs
 		@printf "\n"
 
 .PHONY : pmapass
