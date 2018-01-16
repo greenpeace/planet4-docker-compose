@@ -36,7 +36,7 @@ services:
     networks:
       - db
 
-  app:
+  php-fpm:
     image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}
     depends_on:
       - db
@@ -62,7 +62,7 @@ services:
   openresty:
     image: gcr.io/planet-4-151612/p4-gpi-openresty-dev:${OPENRESTY_BUILD_TAG:-develop}
     depends_on:
-      - app
+      - php-fpm
       - traefik
       - redis
     networks:
