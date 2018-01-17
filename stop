@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-docker-compose -f ${DOCKER_COMPOSE_FILE:-docker-compose.yml} stop
-docker-compose -f ${DOCKER_COMPOSE_FILE:-docker-compose.yml} rm -f
+docker-compose -f ${DOCKER_COMPOSE_FILE:-docker-compose.yml} down
 
 if [[ $1 = "delete"  ]]
 then
+  set -x
   sudo rm -fr persistence
+  set +x
 fi
