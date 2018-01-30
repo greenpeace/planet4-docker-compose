@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 SCALE_OPENRESTY?=2
 SCALE_APP?=2
 
