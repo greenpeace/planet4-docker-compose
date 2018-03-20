@@ -50,7 +50,7 @@ docker-compose logs -f
 
 On first launch, the container bootstraps the installation with composer then after a short time (30 seconds to 1 minute) all services will be ready and responding to requests.
 
-When you see the line `Starting service: openresty` you can navigate to: [https://test.planet4.dev](https://test.planet4.dev)
+When you see the line `Starting service: php-fpm <php-version-number>` you can navigate to: [https://test.planet4.dev](https://test.planet4.dev)
 
 ### Requirements
 

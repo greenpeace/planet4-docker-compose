@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -e
+
+docker pull "gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}"
+
+./stop
+./go
+
+sleep 5
+
+docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" exec app composer site-update

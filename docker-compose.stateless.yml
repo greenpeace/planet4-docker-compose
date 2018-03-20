@@ -1,8 +1,8 @@
 version: '3'
 services:
   traefik:
-    image: traefik:1.4-alpine
-    command: --web --docker --docker.domain=planet4.dev --docker.watch --logLevel=DEBUG
+    image: traefik:1.4
+    command: --web --docker --docker.domain=planet4.dev --docker.watch
     networks:
       - proxy
     ports:
@@ -12,67 +12,79 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
+      - ./acme.json:/acme.json
+    labels:
+      traefik.backend: "traefik"
+      traefik.frontend.rule: "Host:traefik.${APP_HOSTNAME:-test.planet4.dev}"
+      traefik.docker.network: "planet4dockercompose_proxy"
+      traefik.enable: "true"
+
+  redis:
+    image: redis:4-alpine
+    networks:
+      - local
+    labels:
+      traefik.enable: "false"
 
   db:
-    image: mysql:5.6
+    image: mysql:5.7
     env_file:
       - ./db.env
     volumes:
       - ./persistence/mysql:/var/lib/mysql:cached
     networks:
       - db
+    labels:
+      traefik.enable: "false"
 
-  app:
-    image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-latest}
+  php-fpm:
+    image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}
+    depends_on:
+      - db
+      - redis
     networks:
       - local
       - db
     dns:
       - ${DNS_RESOLVER:-8.8.8.8}
     volumes:
-      - data:/app/source/public:cached
+      - data:/app/www:cached
+      - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
-      - OVERWRITE_FILES=${OVERWRITE_FILES:-false}
+      - APP_ENV=${APP_ENV:-develop}
+      - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
+      - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
+      - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-test-planet4-dev}
+      - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
+      - WP_SITE_HOME=${APP_HOSTNAME:-test.planet4.dev}
+      - WP_SITE_URL=${APP_HOSTNAME:-test.planet4.dev}
     env_file:
       - ./app.env
       - ./db.env
-    depends_on:
-      - db
-      - redis
-    # To force reinstalling Wordpress from composer on container start
-    # environment:
-    #   - OVERWRITE_FILES=true
-
-  redis:
-    image: redis:4-alpine
-    networks:
-      - local
-    volumes:
-      - ./persistence/redis:/data
+    labels:
+      traefik.enable: "false"
 
   openresty:
-    image: gcr.io/planet-4-151612/openresty:${OPENRESTY_BUILD_TAG:-latest}
+    image: gcr.io/planet-4-151612/p4-gpi-openresty-dev:${OPENRESTY_BUILD_TAG:-develop}
+    depends_on:
+      - php-fpm
+      - traefik
+      - redis
     networks:
       - local
       - proxy
     volumes:
-      - data:/app/www:cached
-    env_file:
-      - ./app.env
+      - data:/app/www:cached:ro
     environment:
-      - OPENRESTY_FASTCGI_BACKEND=${OPENRESTY_FASTCGI_BACKEND:-app:9000}
-      - PHP_ENABLED=true
-      - SSL_ENABLED=false
+      - APP_ENV=${APP_ENV:-develop}
+      - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
+      - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
     labels:
-      traefik.backend: "test"
-      traefik.frontend.rule: "Host:test.planet4.dev"
+      traefik.backend: "openresty"
+      traefik.frontend.rule: "Host:${APP_HOSTNAME:-test.planet4.dev}"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
-    depends_on:
-      - app
-      - traefik
-      - redis
-
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:4.7
@@ -81,16 +93,21 @@ services:
       - traefik
     env_file:
       - ./db.env
-    volumes:
-      - ./persistence/pma:/sessions
     networks:
       - db
       - proxy
     labels:
       traefik.backend: "pma"
-      traefik.frontend.rule: "Host:pma.planet4.dev"
+      traefik.frontend.rule: "Host:pma.${APP_HOSTNAME:-test.planet4.dev}"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
+
+  smtp:
+    image: gcr.io/planet-4-151612/exim:${SMTP_BUILD_TAG:-develop}
+    networks:
+      - local
+    labels:
+      traefik.enable: "false"
 
 volumes:
   data:
