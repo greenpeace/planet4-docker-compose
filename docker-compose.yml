@@ -59,8 +59,8 @@ services:
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
       - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-test-planet4-dev}
       - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
-      - WP_SITE_HOME=${APP_HOSTNAME:-test.planet4.dev}
-      - WP_SITE_URL=${APP_HOSTNAME:-test.planet4.dev}
+      - WP_SITE_HOME=test.planet4.dev/international
+      - WP_SITE_URL=test.planet4.dev/international
     env_file:
       - ./app.env
       - ./db.env
