@@ -3,6 +3,7 @@ SHELL := /bin/bash
 SCALE_OPENRESTY?=2
 SCALE_APP?=2
 
+FOLLOW?=php-fpm
 APP_ENV?=development
 
 DOCKER_COMPOSE_FILE?=docker-compose.yml
@@ -45,14 +46,14 @@ run:
 		EXIM_SMARTHOST=$(EXIM_SMARTHOST) \
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
-		./go
+		./go -f $(FOLLOW)
 
 .PHONY : stateless
 stateless:
 		DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
-		./go
+		./go -f $(FOLLOW)
 
 .PHONY : pass
 pass:
