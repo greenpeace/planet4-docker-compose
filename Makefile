@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
-SCALE_OPENRESTY?=2
-SCALE_APP?=2
+SCALE_OPENRESTY?=1
+SCALE_APP?=1
 
 FOLLOW?=php-fpm
 APP_ENV?=development
