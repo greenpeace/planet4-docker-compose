@@ -73,7 +73,6 @@ GNU/Linux users have to install docker-compose separately:
 
 By default, the Wordpress application is bind-mounted at
 -   `./persistence/app/`
--   `./persistence/app/`
 
 ---
 
@@ -81,7 +80,7 @@ By default, the Wordpress application is bind-mounted at
 
 ### Administrator login
 
-Backend administrator login is available at [https://test.planet4.dev/wp-admin/](https://test.planet4.dev/wp-admin/). An administrator user is created during first install with a randomly assigned password.
+Backend administrator login is available at [https://test.planet4.dev/wp-login.php](https://test.planet4.dev/wp-login.php). An administrator user is created during first install with a randomly assigned password.
 
 Login username is `admin`. To find the password enter the following in the project root (where docker-compose.yml lives):
 
