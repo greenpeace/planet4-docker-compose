@@ -35,7 +35,7 @@ update:
 
 .PHONY : pull
 pull:
-		docker-compose -f $(DOCKER_COMPOSE_FILE) pull --parallel
+		docker-compose -f $(DOCKER_COMPOSE_FILE) pull
 
 .PHONY : run
 run:
