@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
-docker pull "gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}"
+docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" pull --parallel
 
-./stop
+# ./stop
 ./go
 
 sleep 5
 
-docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" exec app composer site-update
+docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" exec php-fpm composer site-update
+
+docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" exec redis redis-cli flushdb
