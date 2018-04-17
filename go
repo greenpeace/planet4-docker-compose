@@ -13,3 +13,5 @@ docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" up -d \
   --scale php-fpm=$SCALE_APP
 
 [[ "$1" = "-f" ]] && docker-compose logs -f ${2:-php-fpm}
+
+exit 0

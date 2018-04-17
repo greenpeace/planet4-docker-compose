@@ -40,7 +40,7 @@ services:
       traefik.enable: "false"
 
   php-fpm:
-    image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}
+    image: gcr.io/planet-4-151612/wordpress:${APP_BUILD_TAG:-develop}
     depends_on:
       - db
       - redis
@@ -50,17 +50,20 @@ services:
     dns:
       - ${DNS_RESOLVER:-8.8.8.8}
     volumes:
-      - ./persistence/app:/app/source/public:cached
+      - ./persistence/app:/app/source:cached
       - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - GIT_REF=develop
+      - GIT_SOURCE=https://github.com/greenpeace/planet4-base
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
+      - WP_DEFAULT_CONTENT=${WP_DEFAULT_CONTENT:-false}
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
+      - WP_SITE_HOME=${APP_HOSTNAME:-test.planet4.dev}
+      - WP_SITE_URL=${APP_HOSTNAME:-test.planet4.dev}
       - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-test-planet4-dev}
       - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
-      - WP_SITE_HOME=test.planet4.dev/international
-      - WP_SITE_URL=test.planet4.dev/international
     env_file:
       - ./app.env
       - ./db.env
@@ -68,7 +71,7 @@ services:
       traefik.enable: "false"
 
   openresty:
-    image: gcr.io/planet-4-151612/p4-gpi-openresty-dev:${OPENRESTY_BUILD_TAG:-develop}
+    image: gcr.io/planet-4-151612/openresty:${OPENRESTY_BUILD_TAG:-develop}
     depends_on:
       - php-fpm
       - traefik
@@ -77,11 +80,12 @@ services:
       - local
       - proxy
     volumes:
-      - ./persistence/app:/app/www:cached
+      - ./persistence/app:/app/source:cached
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
       - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - PHP_ENABLED=true
     labels:
       traefik.backend: "openresty"
       traefik.frontend.rule: "Host:${APP_HOSTNAME:-test.planet4.dev}"

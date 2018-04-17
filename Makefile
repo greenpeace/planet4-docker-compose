@@ -4,7 +4,6 @@ SCALE_OPENRESTY?=1
 SCALE_APP?=1
 
 FOLLOW?=php-fpm
-APP_ENV?=development
 
 DOCKER_COMPOSE_FILE?=docker-compose.yml
 
@@ -19,7 +18,7 @@ ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 
 .DEFAULT_GOAL := all
 
-all : test clean run
+all : clean test pull run
 .PHONY : all
 
 .PHONY : test
@@ -75,3 +74,7 @@ pmapass:
 		@printf "Pass:  %s\n----\n" $(MYSQL_PASS)
 		@printf "User:  root\n"
 		@printf "Pass:  %s\n----\n" $(ROOT_PASS)
+
+.PHONY: flush
+flush:
+	  docker-compose exec redis redis-cli flushdb
