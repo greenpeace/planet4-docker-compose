@@ -74,3 +74,7 @@ pmapass:
 		@printf "Pass:  %s\n----\n" $(MYSQL_PASS)
 		@printf "User:  root\n"
 		@printf "Pass:  %s\n----\n" $(ROOT_PASS)
+
+.PHONY: flush
+flush:
+	  docker-compose exec redis redis-cli flushdb
