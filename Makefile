@@ -18,7 +18,7 @@ ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 
 .DEFAULT_GOAL := all
 
-all : clean test pull run
+all : clean test run
 .PHONY : all
 
 .PHONY : test
