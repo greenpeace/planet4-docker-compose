@@ -38,7 +38,7 @@ services:
       traefik.enable: "false"
 
   php-fpm:
-    image: gcr.io/planet-4-151612/p4-gpi-app-dev:${APP_BUILD_TAG:-develop}
+    image: gcr.io/planet-4-151612/planet4-gpi-app:${APP_BUILD_TAG:-develop}
     depends_on:
       - db
       - redis
@@ -46,19 +46,18 @@ services:
       - local
       - db
     dns:
-      - ${DNS_RESOLVER:-8.8.8.8}
-    volumes:
-      - data:/app/www:cached
+      - ${DNS_RESOLVER:-1.1.1.1}
       - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
+      - WP_SET_OPTIONS_ON_BOOT=true
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
-      - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-test-planet4-dev}
-      - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
       - WP_SITE_HOME=${APP_HOSTNAME:-test.planet4.dev}
       - WP_SITE_URL=${APP_HOSTNAME:-test.planet4.dev}
+      - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-test-planet4-dev}
+      - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
     env_file:
       - ./app.env
       - ./db.env
@@ -66,7 +65,7 @@ services:
       traefik.enable: "false"
 
   openresty:
-    image: gcr.io/planet-4-151612/p4-gpi-openresty-dev:${OPENRESTY_BUILD_TAG:-develop}
+    image: gcr.io/planet-4-151612/planet4-gpi-openresty:${OPENRESTY_BUILD_TAG:-develop}
     depends_on:
       - php-fpm
       - traefik
@@ -74,8 +73,6 @@ services:
     networks:
       - local
       - proxy
-    volumes:
-      - data:/app/www:cached:ro
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
@@ -109,8 +106,6 @@ services:
     labels:
       traefik.enable: "false"
 
-volumes:
-  data:
 
 networks:
   local:
