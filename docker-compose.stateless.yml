@@ -38,7 +38,7 @@ services:
       traefik.enable: "false"
 
   php-fpm:
-    image: gcr.io/planet-4-151612/planet4-gpi-app:${APP_BUILD_TAG:-develop}
+    image: gcr.io/planet-4-151612/planet4-scratch-app:${APP_BUILD_TAG:-develop}
     depends_on:
       - db
       - redis
@@ -65,7 +65,7 @@ services:
       traefik.enable: "false"
 
   openresty:
-    image: gcr.io/planet-4-151612/planet4-gpi-openresty:${OPENRESTY_BUILD_TAG:-develop}
+    image: gcr.io/planet-4-151612/planet4-scratch-openresty:${OPENRESTY_BUILD_TAG:-develop}
     depends_on:
       - php-fpm
       - traefik
