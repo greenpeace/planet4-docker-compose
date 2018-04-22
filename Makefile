@@ -1,24 +1,28 @@
 SHELL := /bin/bash
 
-SCALE_OPENRESTY?=1
-SCALE_APP?=1
+SCALE_OPENRESTY ?=1
+SCALE_APP ?=1
 
-FOLLOW?=php-fpm
+FOLLOW ?=php-fpm
 
-DOCKER_COMPOSE_FILE?=docker-compose.yml
+DOCKER_COMPOSE_FILE ?=docker-compose.yml
 
-EXIM_ADMIN_EMAIL?=raymond.walker@greenpeace.org
-EXIM_SMARTHOST?=smtp.gmail.com::587
-EXIM_SMARTHOST_AUTH_USERNAME?=
-EXIM_SMARTHOST_AUTH_PASSWORD?=
+EXIM_ADMIN_EMAIL ?=raymond.walker@greenpeace.org
+EXIM_SMARTHOST ?=smtp.gmail.com::587
+
+EXIM_SMARTHOST_AUTH_USERNAME ?=
+EXIM_SMARTHOST_AUTH_PASSWORD ?=
 
 MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
 ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 
+APP_BUILD_TAG ?= develop
+OPENRESTY_BUILD_TAG ?= develop
+
 .DEFAULT_GOAL := all
 
-all : clean test pull run
+all : clean test run
 .PHONY : all
 
 .PHONY : test
@@ -26,7 +30,7 @@ test:
 
 .PHONY : clean
 clean:
-		docker-compose -f $(DOCKER_COMPOSE_FILE) down
+		docker-compose -f $(DOCKER_COMPOSE_FILE) down -v
 		sudo rm -fr persistence
 
 .PHONY : update
@@ -35,7 +39,7 @@ update:
 
 .PHONY : pull
 pull:
-		docker-compose -f $(DOCKER_COMPOSE_FILE) pull --parallel
+		docker-compose -f $(DOCKER_COMPOSE_FILE) pull
 
 .PHONY : run
 run:
@@ -45,6 +49,8 @@ run:
 		EXIM_SMARTHOST=$(EXIM_SMARTHOST) \
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
+		APP_BUILD_TAG=$(APP_BUILD_TAG) \
+		OPENRESTY_BUILD_TAG=$(OPENRESTY_BUILD_TAG) \
 		./go -f $(FOLLOW)
 
 .PHONY : stateless
@@ -52,6 +58,8 @@ stateless:
 		DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
+		APP_BUILD_TAG=$(APP_BUILD_TAG) \
+		OPENRESTY_BUILD_TAG=$(OPENRESTY_BUILD_TAG) \
 		./go -f $(FOLLOW)
 
 .PHONY : pass

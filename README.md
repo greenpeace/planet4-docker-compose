@@ -82,9 +82,14 @@ By default, the Wordpress application is bind-mounted at
 
 Backend administrator login is available at [https://test.planet4.dev/wp-login.php](https://test.planet4.dev/wp-login.php). An administrator user is created during first install with a randomly assigned password.
 
-Login username is `admin`. To find the password enter the following in the project root (where docker-compose.yml lives):
+Login username is `admin`. To show all passwords, enter the following in the project root (where docker-compose.yml lives):
 
 ```
+make pass
+```
+
+```
+# Show Wordpress login details
 make wppass
 ```
 
@@ -95,6 +100,7 @@ make wppass
 Enter the user values from `db.env` to login, or from bash prompt:
 
 ```
+# Show MySQL login details
 make pmapass
 ```
 ---
