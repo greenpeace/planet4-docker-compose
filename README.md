@@ -52,6 +52,8 @@ On first launch, the container bootstraps the installation with composer then af
 
 When you see the line `Starting service: php-fpm <php-version-number>` you can navigate to: [https://test.planet4.dev](https://test.planet4.dev)
 
+If at any point the install process fails, with Compose showing a message such as `file could not be downloaded (HTTP/1.1 404 Not Found)`, this is a transient network error and re-running the install should fix the issue. TODO: find a way to make composer retry failed downloads.
+
 ### Requirements
 
 Firstly, requirements for running this development environment:
@@ -63,8 +65,6 @@ GNU/Linux users have to install docker-compose separately:
 
 *   [Docker Compose](https://github.com/docker/compose/releases)
 
-
-(optional)
 *   [Make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work.
 
 ---
