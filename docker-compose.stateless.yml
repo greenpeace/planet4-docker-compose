@@ -99,6 +99,12 @@ services:
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
 
+  elasticsearch:
+    image: gcr.io/planet-4-151612/elasticsearch:${ELASTICSEARCH_BUILD_TAG:-latest}
+    networks:
+      - local
+    labels:
+      traefik.enable: "false"
   smtp:
     image: gcr.io/planet-4-151612/exim:${SMTP_BUILD_TAG:-develop}
     networks:
