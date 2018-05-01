@@ -111,7 +111,7 @@ services:
       traefik.enable: "true"
 
   elasticsearch:
-    image: es:6.1
+    image: gcr.io/planet-4-151612/elasticsearch:${ELASTICSEARCH_BUILD_TAG:-latest}
     networks:
       - local
     labels:
