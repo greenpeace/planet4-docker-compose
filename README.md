@@ -133,6 +133,10 @@ The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/)
 *   Enter `redis` in the Hostname field
 *   Tick all checkboxes under 'Purging Conditions'
 
+### Configuring ElasticSearch indexing
+
+Navigate to [Settings > ElasticPress > Settings](https://test.planet4.dev/wp-admin/admin.php?page=elasticpress-settings) and enter `http://elasticsearch:9200` as the Host.
+
 ## Environment variables
 
 This docker environment relies on the mysql official image as well as on the
