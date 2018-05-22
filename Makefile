@@ -17,8 +17,8 @@ MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
 ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 
-APP_BUILD_TAG ?= develop
-OPENRESTY_BUILD_TAG ?= develop
+APP_IMAGE ?= gcr.io/planet-4-151612/wordpress:develop
+OPENRESTY_IMAGE ?= gcr.io/planet-4-151612/openresty:develop
 
 .DEFAULT_GOAL := all
 
@@ -49,8 +49,8 @@ run:
 		EXIM_SMARTHOST=$(EXIM_SMARTHOST) \
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
-		APP_BUILD_TAG=$(APP_BUILD_TAG) \
-		OPENRESTY_BUILD_TAG=$(OPENRESTY_BUILD_TAG) \
+		APP_IMAGE=$(APP_IMAGE) \
+		OPENRESTY_IMAGE=$(OPENRESTY_IMAGE) \
 		./go -f $(FOLLOW)
 
 .PHONY : stateless
@@ -58,8 +58,8 @@ stateless:
 		DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
-		APP_BUILD_TAG=$(APP_BUILD_TAG) \
-		OPENRESTY_BUILD_TAG=$(OPENRESTY_BUILD_TAG) \
+		APP_IMAGE=$(APP_IMAGE) \
+		OPENRESTY_IMAGE=$(OPENRESTY_IMAGE) \
 		./go -f $(FOLLOW)
 
 .PHONY : pass
