@@ -51,6 +51,7 @@ services:
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - APP_HOSTPATH=${APP_HOSTPATH:-}
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
       - WP_SET_OPTIONS_ON_BOOT=true
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
@@ -77,6 +78,7 @@ services:
       - APP_ENV=${APP_ENV:-develop}
       - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
       - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - APP_HOSTPATH=${APP_HOSTPATH:-}
     labels:
       traefik.backend: "openresty"
       traefik.frontend.rule: "Host:${APP_HOSTNAME:-test.planet4.dev}"

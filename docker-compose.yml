@@ -55,6 +55,7 @@ services:
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - APP_HOSTPATH=${APP_HOSTPATH:-}
       - GIT_REF=develop
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
@@ -85,6 +86,7 @@ services:
       - APP_ENV=${APP_ENV:-develop}
       - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
       - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - APP_HOSTPATH=${APP_HOSTPATH:-}
       - PHP_ENABLED=true
     labels:
       traefik.backend: "openresty"
