@@ -2,7 +2,7 @@ version: '3'
 services:
   traefik:
     image: traefik:1.4
-    command: --web --docker --docker.domain=planet4.dev --docker.watch
+    command: --web --docker --docker.domain=planet4.test --docker.watch
     networks:
       - proxy
     ports:
@@ -65,7 +65,7 @@ services:
       - SSL_ENABLED=false
     labels:
       traefik.backend: "test"
-      traefik.frontend.rule: "Host:test.planet4.dev"
+      traefik.frontend.rule: "Host:test.planet4.test"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
     depends_on:
@@ -87,7 +87,7 @@ services:
       - proxy
     labels:
       traefik.backend: "pma"
-      traefik.frontend.rule: "Host:pma.planet4.dev"
+      traefik.frontend.rule: "Host:pma.planet4.test"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
 

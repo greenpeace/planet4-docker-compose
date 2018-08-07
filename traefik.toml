@@ -34,6 +34,6 @@ onHostRule = true
 
 [docker]
 endpoint = "unix:///var/run/docker.sock"
-domain = "planet4.dev"
+domain = "planet4.test"
 watch = true
 exposedbydefault = false

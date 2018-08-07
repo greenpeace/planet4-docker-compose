@@ -39,7 +39,7 @@ git clone https://github.com/greenpeace/planet4-docker-compose
 cd planet4-docker-compose
 
 # Mac and Linux only
-sudo echo "127.0.0.1  test.planet4.dev pma.planet4.dev planet.dev" >> /etc/hosts
+sudo echo "127.0.0.1  test.planet4.test pma.planet4.test planet.dev" >> /etc/hosts
 
 # Start the application
 make
@@ -50,7 +50,7 @@ docker-compose logs -f
 
 On first launch, the container bootstraps the installation with composer then after a short time (30 seconds to 1 minute) all services will be ready and responding to requests.
 
-When you see the line `Starting service: openresty` you can navigate to: [https://test.planet4.dev](https://test.planet4.dev)
+When you see the line `Starting service: openresty` you can navigate to: [https://test.planet4.test](https://test.planet4.test)
 
 ### Requirements
 
@@ -81,7 +81,7 @@ By default, the Wordpress application is bind-mounted at
 
 ### Administrator login
 
-Backend administrator login is available at [https://test.planet4.dev/wp-admin/](https://test.planet4.dev/wp-admin/). An administrator user is created during first install with a randomly assigned password.
+Backend administrator login is available at [https://test.planet4.test/wp-admin/](https://test.planet4.test/wp-admin/). An administrator user is created during first install with a randomly assigned password.
 
 Login username is `admin`. To find the password enter the following in the project root (where docker-compose.yml lives):
 
@@ -91,7 +91,7 @@ make wppass
 
 ### Database access via phpMyAdmin
 
-[phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [https://pma.planet4.dev](https://pma.planet4.dev)
+[phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [https://pma.planet4.test](https://pma.planet4.test)
 
 Enter the user values from `db.env` to login, or from bash prompt:
 
@@ -104,7 +104,7 @@ make pmapass
 
 ### Configuring WP-Stateless GCS bucket storage
 
-[WP-Stateless](https://github.com/wpCloud/wp-stateless/) is installed and activated, however images will be stored locally until remote GCS storage is enabled in the administrator backend. [Log in](https://test.planet4.dev/wp-login.php) with details gathered [from here](#login) and navigate to [Media > Stateless Setup](https://test.planet4.dev/wp-admin/upload.php?page=stateless-setup).
+[WP-Stateless](https://github.com/wpCloud/wp-stateless/) is installed and activated, however images will be stored locally until remote GCS storage is enabled in the administrator backend. [Log in](https://test.planet4.test/wp-login.php) with details gathered [from here](#login) and navigate to [Media > Stateless Setup](https://test.planet4.test/wp-admin/upload.php?page=stateless-setup).
 
 You will need a Google account with access to GCS buckets to continue.
 
@@ -122,7 +122,7 @@ Congratulations, you're now serving media files directly from GCS buckets!
 
 ### Configuring FastCGI cache purges
 
-The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/) is installed to enable FastCGI cache purges. Log in to the backend as above, navigate to [Settings > Nginx Helper](https://test.planet4.dev/wp-admin/options-general.php?page=nginx) and click:
+The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/) is installed to enable FastCGI cache purges. Log in to the backend as above, navigate to [Settings > Nginx Helper](https://test.planet4.test/wp-admin/options-general.php?page=nginx) and click:
 *   Enable Purge
 *   Redis Cache
 *   Enter `redis` in the Hostname field
@@ -193,7 +193,7 @@ If you are running any other services on your local device which respond on port
       - "8000:80"
 ```
 
-The first number is the port number on your host, the second number is mapped to port 80 on the openresty service container.  Now you can access the site at  [https://test.planet4.dev:8000](https://test.planet4.dev:8000) instead.
+The first number is the port number on your host, the second number is mapped to port 80 on the openresty service container.  Now you can access the site at  [https://test.planet4.test:8000](https://test.planet4.test:8000) instead.
 
 A more robust solution for hosting multiple services on port 80 is to use a reverse proxy  such as Traefik or [jwilder/openresty-proxy](https://github.com/jwilder/openresty-proxy) in a separate project, and use [Docker named networking](https://docs.docker.com/compose/networking/) features to isolate virtual networks.
 
@@ -206,7 +206,7 @@ Traefik comes with a simple admin interface accessible at [http://localhost:8080
 On a 2015 Macbook Pro, with a primed cache, this stack delivers 50 concurrent connections under siege with an average response time of 0.28 seconds and near-zero load on the php-fpm backend.
 
 ```bash
-$ siege -c 50 -t 20s -b test.planet4.dev
+$ siege -c 50 -t 20s -b test.planet4.test
 
 Lifting the server siege...
 Transactions:		          3374 hits
