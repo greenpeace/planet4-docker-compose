@@ -52,6 +52,8 @@ On first launch, the container bootstraps the installation with composer then af
 
 When you see the line `Starting service: openresty` you can navigate to: [https://test.planet4.test](https://test.planet4.test)
 
+If at any point the install process fails, with Compose showing a message such as `file could not be downloaded (HTTP/1.1 404 Not Found)`, this is a transient network error and re-running the install should fix the issue. TODO: find a way to make composer retry failed downloads.
+
 ### Requirements
 
 Firstly, requirements for running this development environment:
@@ -63,8 +65,6 @@ GNU/Linux users have to install docker-compose separately:
 
 *   [Docker Compose](https://github.com/docker/compose/releases)
 
-
-(optional)
 *   [Make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work.
 
 ---
@@ -72,7 +72,6 @@ GNU/Linux users have to install docker-compose separately:
 ## Editing source code
 
 By default, the Wordpress application is bind-mounted at
--   `./persistence/app/`
 -   `./persistence/app/`
 
 ---
@@ -83,9 +82,14 @@ By default, the Wordpress application is bind-mounted at
 
 Backend administrator login is available at [https://test.planet4.test/wp-admin/](https://test.planet4.test/wp-admin/). An administrator user is created during first install with a randomly assigned password.
 
-Login username is `admin`. To find the password enter the following in the project root (where docker-compose.yml lives):
+Login username is `admin`. To show all passwords, enter the following in the project root (where docker-compose.yml lives):
 
 ```
+make pass
+```
+
+```
+# Show Wordpress login details
 make wppass
 ```
 
@@ -96,6 +100,7 @@ make wppass
 Enter the user values from `db.env` to login, or from bash prompt:
 
 ```
+# Show MySQL login details
 make pmapass
 ```
 ---
@@ -127,6 +132,10 @@ The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/)
 *   Redis Cache
 *   Enter `redis` in the Hostname field
 *   Tick all checkboxes under 'Purging Conditions'
+
+### Configuring ElasticSearch indexing
+
+Navigate to [Settings > ElasticPress > Settings](https://test.planet4.dev/wp-admin/admin.php?page=elasticpress-settings) and enter `http://elasticsearch:9200` as the Host.
 
 ## Environment variables
 
