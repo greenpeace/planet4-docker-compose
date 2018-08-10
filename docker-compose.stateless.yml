@@ -1,7 +1,7 @@
 version: '3'
 services:
   traefik:
-    image: traefik:1.4-alpine
+    image: traefik:1.6
     command: --web --docker --docker.domain=planet4.test --docker.watch --logLevel=DEBUG
     networks:
       - proxy
