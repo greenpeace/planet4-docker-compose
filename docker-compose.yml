@@ -48,7 +48,7 @@ services:
       - local
       - db
     dns:
-      - ${DNS_RESOLVER:-8.8.8.8}
+      - ${DNS_RESOLVER:-1.1.1.1}
     volumes:
       - ./persistence/app:/app/source:cached
       - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
