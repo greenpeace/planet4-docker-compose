@@ -2,7 +2,7 @@ version: '3'
 services:
   traefik:
     image: traefik:1.6
-    command: --web --docker --docker.domain=planet4.test --docker.watch --logLevel=DEBUG
+    command: --web --docker --docker.domain=planet4.test --docker.watch
     networks:
       - proxy
     ports:
@@ -53,10 +53,8 @@ services:
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
-      - WP_SET_OPTIONS_ON_BOOT=true
+      - WP_FORCE_SSL_ADMIN=false
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
-      - WP_SITE_HOME=${APP_HOSTNAME:-www.planet4.test}
-      - WP_SITE_URL=${APP_HOSTNAME:-www.planet4.test}
       - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-www-planet4-test}
       - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
     env_file:
@@ -97,7 +95,7 @@ services:
       - proxy
     labels:
       traefik.backend: "pma"
-      traefik.frontend.rule: "Host:pma.planet4.test"
+      traefik.frontend.rule: "Host:pma.${APP_HOSTNAME:-www.planet4.test}"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
 
