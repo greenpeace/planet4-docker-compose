@@ -2,7 +2,7 @@ version: '3'
 services:
   traefik:
     image: traefik:1.6
-    command: --web --docker --docker.domain=planet4.test --docker.watch
+    command: --web --docker --docker.domain=planet4.test --docker.watch  --logLevel=DEBUG
     networks:
       - proxy
     ports:
@@ -15,7 +15,7 @@ services:
       - ./acme.json:/acme.json
     labels:
       traefik.backend: "traefik"
-      traefik.frontend.rule: "Host:traefik.${APP_HOSTNAME:-test.planet4.dev}"
+      traefik.frontend.rule: "Host:traefik.${APP_HOSTNAME:-www.planet4.test}"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
 
@@ -54,16 +54,16 @@ services:
       - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
       - APP_ENV=${APP_ENV:-develop}
-      - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       - GIT_REF=develop
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
       - WP_DEFAULT_CONTENT=${WP_DEFAULT_CONTENT:-false}
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
-      - WP_SITE_HOME=${APP_HOSTNAME:-test.planet4.dev}
-      - WP_SITE_URL=${APP_HOSTNAME:-test.planet4.dev}
-      - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-test-planet4-dev}
+      - WP_SITE_HOME=${APP_HOSTNAME:-www.planet4.test}
+      - WP_SITE_URL=${APP_HOSTNAME:-www.planet4.test}
+      - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-www-planet4-test}
       - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
     env_file:
       - ./app.env
@@ -85,12 +85,12 @@ services:
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
-      - APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
+      - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       - PHP_ENABLED=true
     labels:
       traefik.backend: "test"
-      traefik.frontend.rule: "Host:test.planet4.test"
+      traefik.frontend.rule: "Host:${APP_HOSTNAME:-www.planet4.test}"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
 

@@ -135,7 +135,7 @@ The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/)
 
 ### Configuring ElasticSearch indexing
 
-Navigate to [Settings > ElasticPress > Settings](https://test.planet4.dev/wp-admin/admin.php?page=elasticpress-settings) and enter `http://elasticsearch:9200` as the Host.
+Navigate to [Settings > ElasticPress > Settings](https://www.planet4.test/wp-admin/admin.php?page=elasticpress-settings) and enter `http://elasticsearch:9200` as the Host.
 
 ## Environment variables
 

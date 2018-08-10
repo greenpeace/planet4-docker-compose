@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -eax
 
-APP_HOSTNAME=${APP_HOSTNAME:-test.planet4.dev}
-
 SCALE_OPENRESTY=${SCALE_OPENRESTY:-1}
 SCALE_APP=${SCALE_APP:-1}
 
