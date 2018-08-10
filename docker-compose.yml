@@ -54,7 +54,13 @@ services:
       - APP_ENV=${APP_ENV:-develop}
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
+      # - DELETE_EXISTING_FILES=false
+      # - GIT_REF=develop
+      # - GIT_SOURCE=https://github.com/greenpeace/planet4-base-fork
+      # - MERGE_REF=develop
+      # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
+      # - OVERWRITE_EXISTING_FILES=false
       - WP_FORCE_SSL_ADMIN=false
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
       - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-www-planet4-test}
