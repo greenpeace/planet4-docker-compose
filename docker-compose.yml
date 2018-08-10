@@ -57,7 +57,6 @@ services:
       - GIT_REF=develop
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
-      - WP_DEFAULT_CONTENT=${WP_DEFAULT_CONTENT:-false}
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
       - WP_SITE_HOME=${APP_HOSTNAME:-www.planet4.test}
       - WP_SITE_URL=${APP_HOSTNAME:-www.planet4.test}
