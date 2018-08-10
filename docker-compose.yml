@@ -23,8 +23,6 @@ services:
     image: redis:4-alpine
     networks:
       - local
-    # volumes:
-    #   - ./persistence/redis:/data
     labels:
       traefik.enable: "false"
 
