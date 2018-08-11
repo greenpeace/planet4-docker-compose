@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eax
+set -ea
 
 SCALE_OPENRESTY=${SCALE_OPENRESTY:-1}
 SCALE_APP=${SCALE_APP:-1}
