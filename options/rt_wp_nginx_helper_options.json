@@ -1,0 +1,21 @@
+{
+  "enable_purge": 1,
+  "cache_method": "enable_redis",
+  "enable_map": 0,
+  "enable_log": 0,
+  "enable_stamp": 1,
+  "purge_homepage_on_edit": 1,
+  "purge_homepage_on_del": 1,
+  "purge_archive_on_edit": 1,
+  "purge_archive_on_del": 1,
+  "purge_archive_on_new_comment": 1,
+  "purge_archive_on_deleted_comment": 1,
+  "purge_page_on_mod": 1,
+  "purge_page_on_new_comment": 1,
+  "purge_page_on_deleted_comment": 1,
+  "purge_method": "get_request",
+  "purge_url": "",
+  "redis_hostname": "redis",
+  "redis_port": "6379",
+  "redis_prefix": "nginx-cache:"
+}
