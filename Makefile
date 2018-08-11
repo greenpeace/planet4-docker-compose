@@ -11,7 +11,9 @@ ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 
 .DEFAULT_GOAL := all
 
-all : clean test run
+NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
+
+all : clean test run config
 .PHONY : all
 
 .PHONY : test
@@ -35,13 +37,24 @@ run:
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
 		./go
+		./wait
+		@echo "Ready"
 
 .PHONY : stateless
-stateless:
+stateless: clean test start-stateless config
+
+.PHONY: start-stateless
+start-stateless:
 		DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
 		./go
+		./wait
+		@echo "Ready"
+
+.PHONY: config
+config:
+		docker-compose exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
 
 .PHONY : pass
 pass:
