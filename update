@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" pull --parallel
+docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" pull
 
 # ./stop
 ./go
