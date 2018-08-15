@@ -14,6 +14,7 @@ PROJECT ?= $(shell basename $(PWD) | sed s/[\w.-]//g)
 .DEFAULT_GOAL := all
 
 NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
+REWRITE := /%category%/%post_id%/%postname%/
 
 all : clean test run config
 .PHONY : all
@@ -61,6 +62,7 @@ start-stateless:
 
 .PHONY: config
 config:
+		docker-compose -p $(PROJECT) exec -T php-fpm wp rewrite structure $(REWRITE)
 		docker-compose -p $(PROJECT) exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
 
 .PHONY : pass
