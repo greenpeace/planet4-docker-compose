@@ -1,21 +1,28 @@
 #!/usr/bin/env bash
 set -eu
 
+network=${PROJECT}_proxy
+endpoint=https://www.planet4.test
+string=greenpeace
+
 # 2 seconds * 150 == 5+ minutes
 interval=2
 loop=150
 
 # Number of consecutive successes to qualify as 'up'
-threshold=2
+threshold=3
 success=0
+
+echo "Waiting for services to start ..."
 until [[ $success -ge $threshold ]]
 do
   # Curl to container and expect 'greenpeace' in the response
-  if curl -s -k -L "https://${APP_HOSTNAME:-www.planet4.test}" | grep -q "greenpeace"
+  if docker run --network $network --rm appropriate/curl -s -k "$endpoint" | grep -s "$string" > /dev/null
   then
     success=$((success+1))
-    echo "Success: $success/$threshold"
+    echo -en "\xE2\x9C\x94"
   else
+    echo -n "."
     success=0
   fi
 
@@ -28,4 +35,6 @@ do
   fi
 
   [[ $success -ge $threshold ]] || sleep $interval
+
 done
+echo
