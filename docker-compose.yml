@@ -89,6 +89,7 @@ services:
       - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
+      - REDIS_FASTCGI_CACHE_ENABLED=true
       - PHP_ENABLED=true
     labels:
       traefik.backend: "test"
