@@ -4,7 +4,9 @@ services:
     image: traefik:1.6
     command: --web --docker --docker.domain=planet4.test --docker.watch
     networks:
-      - proxy
+      proxy:
+        aliases:
+          - ${APP_HOSTNAME:-www.planet4.test}
     ports:
       - "80:80"
       - "443:443"

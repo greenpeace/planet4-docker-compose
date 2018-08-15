@@ -4,7 +4,9 @@ services:
     image: traefik:1.6
     command: --web --docker --docker.domain=planet4.test --docker.watch
     networks:
-      - proxy
+      proxy:
+        aliases:
+          - ${APP_HOSTNAME:-www.planet4.test}
     ports:
       - "80:80"
       - "443:443"
@@ -90,7 +92,7 @@ services:
       - PHP_ENABLED=true
     labels:
       traefik.backend: "test"
-      traefik.frontend.rule: "Host:${APP_HOSTNAME:-planet4.test}"
+      traefik.frontend.rule: "Host:${APP_HOSTNAME:-www.planet4.test}"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
 
@@ -108,7 +110,7 @@ services:
       - proxy
     labels:
       traefik.backend: "pma"
-      traefik.frontend.rule: "Host:pma.planet4.test"
+      traefik.frontend.rule: "Host:pma.www.planet4.test"
       traefik.docker.network: "planet4dockercompose_proxy"
       traefik.enable: "true"
 
