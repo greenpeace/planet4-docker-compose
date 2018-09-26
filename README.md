@@ -1,7 +1,33 @@
-
 # Greenpeace Planet4 docker development environment
 
 ![Planet4](https://cdn-images-1.medium.com/letterbox/300/36/50/50/1*XcutrEHk0HYv-spjnOej2w.png?source=logoAvatar-ec5f4e3b2e43---fded7925f62)
+
+# Table of Contents
+
+- [What is Planet4?](#what-is-planet4)
+- [What is this repository?](#what-is-this-repository)
+- [Quickstart](#quickstart)
+  - [Requirements](#requirements)
+- [Editing source code](#editing-source-code)
+- [Logging in](#logging-in)
+  - [Administrator login](#administrator-login)
+  - [Database access via phpMyAdmin](#database-access-via-phpmyadmin)
+- [Default Content](#default-content)
+  - [Import default content](#import-default-content)
+  - [Create Wordpress admin user](#create-wordpress-admin-user)
+  - [Clear cache](#clear-cache)
+- [Configuration](#configuration)
+  - [Configuring WP-Stateless GCS bucket storage](#configuring-wp-stateless-gcs-bucket-storage)
+  - [Configuring FastCGI cache purges](#configuring-fastcgi-cache-purges)
+  - [Configuring ElasticSearch indexing](#configuring-elasticsearch-indexing)
+- [Environment variables](#environment-variables)
+  - [Some useful variables](#some-useful-variables)
+  - [Development mode](#development-mode)
+- [Notes](#notes)
+  - [Updating](#updating)
+  - [Port conflicts](#port-conflicts)
+- [Traefik administration interface](#traefik-administration-interface)
+- [Performance](#performance)
 
 ## What is Planet4?
 
@@ -76,7 +102,7 @@ By default, the Wordpress application is bind-mounted at
 
 ---
 
-## <a name="login">Logging in</a>
+## Logging in
 
 ### Administrator login
 
@@ -103,6 +129,31 @@ Enter the user values from `db.env` to login, or from bash prompt:
 # Show MySQL login details
 make pmapass
 ```
+
+---
+
+## Default Content
+
+### Import default content
+
+Download the latest sql file of default content: [v0.1.17.sql.gz](https://storage.googleapis.com/planet4-default-content/planet4-defaultcontent_wordpress-v0.1.17.sql.gz).
+
+Login to phpMyAdmin, as described above, to import it. Select the `planet4_dev` database and go to *Import*.
+
+### Create Wordpress admin user
+
+Importing the default content will also override the existing users so you need to create a new one. But you can create a new one running the following command:
+
+```
+make wpadmin WP_USER=<username> WP_USER_EMAIL=<email@example.com>
+```
+
+This will also print out the new password.
+
+### Clear cache
+
+You may have to clear Redis cache once you import the default content. Login to Wordpress admin and click on *Flush Object Cache* on the Dashboard page.
+
 ---
 
 ## Configuration
