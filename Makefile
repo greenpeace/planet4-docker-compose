@@ -9,6 +9,9 @@ MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
 ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 
+WP_USER ?=${shell whoami}
+WP_USER_EMAIL ?=${shell git config --get user.email}
+
 PROJECT ?= $(shell basename $(PWD) | sed s/[\w.-]//g)
 
 .DEFAULT_GOAL := all
@@ -46,6 +49,10 @@ run:
 
 		PROJECT=$(PROJECT) \
 		./wait
+
+.PHONY : stop
+stop:
+		./stop
 
 .PHONY : stateless
 stateless: clean test start-stateless config
@@ -85,6 +92,10 @@ pmapass:
 		@printf "Pass:  %s\n----\n" $(MYSQL_PASS)
 		@printf "User:  root\n"
 		@printf "Pass:  %s\n----\n" $(ROOT_PASS)
+
+.PHONY : wpadmin
+wpadmin:
+		docker-compose -p $(PROJECT) exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
 
 .PHONY: flush
 flush:
