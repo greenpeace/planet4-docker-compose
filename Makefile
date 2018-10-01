@@ -14,13 +14,13 @@ WP_USER_EMAIL ?=${shell git config --get user.email}
 
 PROJECT ?= $(shell basename $(PWD) | sed s/[\w.-]//g)
 
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := run
 
 NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
 REWRITE := /%category%/%post_id%/%postname%/
 
-all : clean test run config
-.PHONY : all
+.PHONY : build
+build : clean test run config
 
 .PHONY : test
 test:
