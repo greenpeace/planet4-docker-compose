@@ -44,7 +44,7 @@ This repository contains needed files to set up a docker development environment
 *   [Redis](https://redis.io/) key-value store caching FastCGI, object and session data
 *   [PHPmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) for database administration
 
-By default, the quickstart command `make` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
+By default, the quickstart command `make build` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
 
 *   Traefik listens on Port 80, load balancing requests to:
 *   Two OpenResty reverse proxy servers, which cache FastCGI requests from
@@ -68,7 +68,7 @@ cd planet4-docker-compose
 echo "127.0.0.1 www.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /etc/hosts
 
 # Start the application
-make
+make build
 
 # View log output
 docker-compose logs -f
