@@ -27,8 +27,7 @@ test:
 
 .PHONY : clean
 clean:
-		docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) down -v
-		sudo rm -fr persistence
+		./clean
 
 .PHONY : update
 update:
