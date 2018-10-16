@@ -97,7 +97,23 @@ On first launch, the container bootstraps the installation with composer then af
 
 When you see the line `Starting service: openresty` you can navigate to: [https://www.planet4.test](https://www.planet4.test).
 
+**Troubleshooting**
+
 If at any point the install process fails, with Compose showing a message such as `file could not be downloaded (HTTP/1.1 404 Not Found)`, this is a transient network error and re-running the install should fix the issue.
+
+In case the problem persists, try uncommenting these lines in `docker-compose.yml`: 
+
+```
+- GIT_REF=develop
+- GIT_SOURCE=https://github.com/greenpeace/planet4-base-fork
+```
+
+In case you get a `sysctl: unknown oid 'vm.max_map_count'` error while running `make build`, you can comment out the `sysctl` call from the `go` script.
+
+```
+# Ensure Elasticsearch has adequate resources
+# sudo sysctl -w vm.max_map_count=262144
+```
 
 ### Run
 
