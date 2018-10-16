@@ -167,6 +167,15 @@ Download the latest sql file of default content: [v0.1.17.sql.gz](https://storag
 
 Login to phpmyadmin, as described above, to import it. Select the `planet4_dev` database and go to *Import*.
 
+**Troubleshooting**
+
+In case you find any trouble importing, try doing a clean restore by removing the database. To do so in phpMyAdmin,
+select the `planet4_dev` database, go to *Operations* and click on the "Delete database (DROP)" button.
+
+Then, create a new database named `planet4_dev` using the "New" link in phpMyAdmin's sidebar. Use collation: `utf8_general_ci`.
+
+Once the empty database is created, you can try importing the default content again.
+
 ### Create Wordpress admin user
 
 Importing the default content will also override the existing users so you need to create a new one. But you can create a new one running the following command:
