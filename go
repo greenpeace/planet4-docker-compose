@@ -5,9 +5,6 @@ SCALE_OPENRESTY=${SCALE_OPENRESTY:-1}
 SCALE_APP=${SCALE_APP:-1}
 PROJECT=${PROJECT:-$(basename ${PWD} | sed s/[\w.-]//g)}
 
-# Ensure Elasticsearch has adequate resources
-sudo sysctl -w vm.max_map_count=262144
-
 touch acme.json
 chmod 600 acme.json
 
