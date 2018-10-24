@@ -97,7 +97,9 @@ On first launch, the container bootstraps the installation with composer then af
 
 When you see the line `Starting service: openresty` you can navigate to: [https://www.planet4.test](https://www.planet4.test).
 
-If at any point the install process fails, with Compose showing a message such as `file could not be downloaded (HTTP/1.1 404 Not Found)`, this is a transient network error and re-running the install should fix the issue.
+**Troubleshooting**
+
+If at any point the install process fails, with Composer showing a message such as `file could not be downloaded (HTTP/1.1 404 Not Found)`, this is a transient network error and re-running the install should fix the issue.
 
 ### Run
 
@@ -166,6 +168,15 @@ make pmapass
 Download the latest sql file of default content: [v0.1.17.sql.gz](https://storage.googleapis.com/planet4-default-content/planet4-defaultcontent_wordpress-v0.1.17.sql.gz).
 
 Login to phpmyadmin, as described above, to import it. Select the `planet4_dev` database and go to *Import*.
+
+**Troubleshooting**
+
+In case you find any trouble importing, try doing a clean restore by removing the database. To do so in phpMyAdmin,
+select the `planet4_dev` database, go to *Operations* and click on the "Delete database (DROP)" button.
+
+Then, create a new database named `planet4_dev` using the "New" link in phpMyAdmin's sidebar. Use collation: `utf8_general_ci`.
+
+Once the empty database is created, you can try importing the default content again.
 
 ### Create Wordpress admin user
 
