@@ -12,7 +12,7 @@ ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 WP_USER ?=${shell whoami}
 WP_USER_EMAIL ?=${shell git config --get user.email}
 
-PROJECT ?= $(shell basename $(PWD) | sed s/[\w.-]//g)
+PROJECT ?= $(shell basename "$(PWD)" | sed s/[\w.-]//g)
 
 .DEFAULT_GOAL := run
 

@@ -3,7 +3,7 @@ set -eax
 
 SCALE_OPENRESTY=${SCALE_OPENRESTY:-1}
 SCALE_APP=${SCALE_APP:-1}
-PROJECT=${PROJECT:-$(basename ${PWD} | sed s/[\w.-]//g)}
+PROJECT=${PROJECT:-$(basename "${PWD}" | sed s/[\w.-]//g)}
 
 touch acme.json
 chmod 600 acme.json
