@@ -5,9 +5,9 @@ network=${PROJECT}_proxy
 endpoint=https://www.planet4.test
 string=greenpeace
 
-# 2 seconds * 150 == 5+ minutes
+# 2 seconds * 150 == 10+ minutes
 interval=2
-loop=150
+loop=300
 
 # Number of consecutive successes to qualify as 'up'
 threshold=3

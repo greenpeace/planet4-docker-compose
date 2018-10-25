@@ -44,7 +44,7 @@ run:
 		PROJECT=$(PROJECT) \
 		./go
 		@echo "Installing Wordpress, please wait..."
-		@echo "This may take up to 5 minutes on the first run."
+		@echo "This may take up to 10 minutes on the first run!"
 
 		PROJECT=$(PROJECT) \
 		./wait
