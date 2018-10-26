@@ -172,6 +172,7 @@ Login to phpmyadmin, as described above, to import it. Select the `planet4_dev` 
 Download the images of the default content: [v1.25-images.zip](https://storage.googleapis.com/planet4-default-content/planet4-default-content-1-25-images.zip)
 
 Unzip the images and copy them to ./persistence/app/public/wp-content/uploads
+
 **Troubleshooting**
 
 In case you find any trouble importing, try doing a clean restore by removing the database. To do so in phpMyAdmin,
