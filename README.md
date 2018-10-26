@@ -165,7 +165,7 @@ make pmapass
 
 ### Import default content
 
-Download the latest sql file of default content: [v0.1.17.sql.gz](https://storage.googleapis.com/planet4-default-content/planet4-defaultcontent_wordpress-v0.1.17.sql.gz).
+Download the latest sql file of default content: [v0.1.25.sql.gz](https://storage.googleapis.com/planet4-default-content/planet4-defaultcontent_wordpress-v0.1.25.sql.gz).
 
 Login to phpmyadmin, as described above, to import it. Select the `planet4_dev` database and go to *Import*.
 
