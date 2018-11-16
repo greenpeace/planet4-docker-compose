@@ -181,6 +181,10 @@ This will also print out the new password.
 
 You may have to clear Redis cache once you import the default content. Login to Wordpress admin and click on *Flush Object Cache* on the Dashboard page.
 
+You can also flush the Wordpress cache via command line by running `wp cache flush` in the `php-fpm` container:
+
+`docker-compose -p planet4dockercompose exec php-fpm wp cache flush`
+
 ---
 
 ## Configuration
