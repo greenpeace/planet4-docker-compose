@@ -192,13 +192,13 @@ make wpadmin WP_USER=<username> WP_USER_EMAIL=<email@example.com>
 
 This will also print out the new password.
 
-### Clear cache
+### Clear caches
 
-You may have to clear Redis cache once you import the default content. Login to Wordpress admin and click on *Flush Object Cache* on the Dashboard page.
+To completely clear redis of the full page cache, as well as object and transient caches:
 
-You can also flush the Wordpress cache via command line by running `wp cache flush` in the `php-fpm` container:
+`make flush`
 
-`docker-compose -p planet4dockercompose exec php-fpm wp cache flush`
+Alternatively, to only clear the object cache: Login to Wordpress admin and click on *Flush Object Cache* on the Dashboard page. To only clear the full page cache: click *Purge Cache* from the top menu.
 
 ---
 
