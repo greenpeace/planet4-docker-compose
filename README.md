@@ -2,8 +2,11 @@
 
 ![Planet4](https://cdn-images-1.medium.com/letterbox/300/36/50/50/1*XcutrEHk0HYv-spjnOej2w.png?source=logoAvatar-ec5f4e3b2e43---fded7925f62)
 
+<!-- TOC: doctoc README.md -->
+<!-- https://github.com/thlorenz/doctoc -->
+
 # Table of Contents
-  
+
 - [What is Planet4?](#what-is-planet4)
 - [What is this repository?](#what-is-this-repository)
 - [Quickstart](#quickstart)
@@ -67,6 +70,8 @@ Firstly, check you have all the requirements on your system. For Linux users, th
 * [git](https://www.git-scm.com/downloads)
 * [make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work.
 * [docker](https://docs.docker.com/engine/installation/)
+* [yarn](https://yarnpkg.com/)
+* [gulp](https://gulpjs.com/)
 
 For OsX and Windows users docker installation already includes docker-compose. Linux users have to install docker-compose separately:
 
@@ -107,6 +112,12 @@ If you just build the containers they are already running, but every time you ne
 
 ```
 make
+```
+
+There is also a watch command that monitors for changes on `scss` and `js` files and generates their minified counterparts:
+
+```
+make watch
 ```
 
 ### Stop
