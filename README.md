@@ -1,5 +1,7 @@
 # Greenpeace Planet4 docker development environment
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/aa88aacdd6f7424682eb53a8711e419e)](https://app.codacy.com/app/Greenpeace/planet4-docker-compose?utm_source=github.com&utm_medium=referral&utm_content=greenpeace/planet4-docker-compose&utm_campaign=Badge_Grade_Settings)
+
 ![Planet4](https://cdn-images-1.medium.com/letterbox/300/36/50/50/1*XcutrEHk0HYv-spjnOej2w.png?source=logoAvatar-ec5f4e3b2e43---fded7925f62)
 
 <!-- TOC: doctoc README.md -->
@@ -176,9 +178,13 @@ make pmapass
 
 ### Import default content
 
-Download the latest sql file of default content: [v0.1.17.sql.gz](https://storage.googleapis.com/planet4-default-content/planet4-defaultcontent_wordpress-v0.1.17.sql.gz).
+Download the latest sql file of default content: [v0.1.25.sql.gz](https://storage.googleapis.com/planet4-default-content/planet4-defaultcontent_wordpress-v0.1.25.sql.gz).
 
 Login to phpmyadmin, as described above, to import it. Select the `planet4_dev` database and go to *Import*.
+
+Download the images of the default content: [v1.25-images.zip](https://storage.googleapis.com/planet4-default-content/planet4-default-content-1-25-images.zip)
+
+Unzip the images and copy them to ./persistence/app/public/wp-content/uploads
 
 **Troubleshooting**
 
@@ -199,9 +205,13 @@ make wpadmin WP_USER=<username> WP_USER_EMAIL=<email@example.com>
 
 This will also print out the new password.
 
-### Clear cache
+### Clear caches
 
-You may have to clear Redis cache once you import the default content. Login to Wordpress admin and click on *Flush Object Cache* on the Dashboard page.
+To completely clear redis of the full page cache, as well as object and transient caches:
+
+`make flush`
+
+Alternatively, to only clear the object cache: Login to Wordpress admin and click on *Flush Object Cache* on the Dashboard page. To only clear the full page cache: click *Purge Cache* from the top menu.
 
 ---
 
