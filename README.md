@@ -1,5 +1,7 @@
 # Greenpeace Planet4 docker development environment
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/aa88aacdd6f7424682eb53a8711e419e)](https://app.codacy.com/app/Greenpeace/planet4-docker-compose?utm_source=github.com&utm_medium=referral&utm_content=greenpeace/planet4-docker-compose&utm_campaign=Badge_Grade_Settings)
+
 ![Planet4](https://cdn-images-1.medium.com/letterbox/300/36/50/50/1*XcutrEHk0HYv-spjnOej2w.png?source=logoAvatar-ec5f4e3b2e43---fded7925f62)
 
 <!-- TOC: doctoc README.md -->
