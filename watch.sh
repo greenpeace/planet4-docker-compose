@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -eax
+set -eao pipefail
+
+[ -x "$(command -v yarn)" ] || { >&2 echo "yarn is required but not installed, exiting."; exit 1; }
+[ -x "$(command -v gulp)" ] || { >&2 echo "gulp is requited but not installed, exiting."; exit 1; }
 
 pushd persistence/app/public/wp-content/themes/planet4-master-theme
 yarn
