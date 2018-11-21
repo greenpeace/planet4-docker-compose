@@ -3,10 +3,9 @@ set -e
 
 docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" pull
 
-# ./stop
-./go
+./go.sh
 
-sleep 5
+./wait.sh
 
 docker-compose -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" exec php-fpm composer site-update
 
