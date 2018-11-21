@@ -12,7 +12,7 @@ ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 WP_USER ?=${shell whoami}
 WP_USER_EMAIL ?=${shell git config --get user.email}
 
-PROJECT ?= $(shell basename "$(PWD)" | sed s/[\w.-]//g)
+PROJECT ?= $(shell basename "$(PWD)" | sed 's/[.-]//g')
 
 .DEFAULT_GOAL := run
 
@@ -23,15 +23,23 @@ REWRITE := /%category%/%post_id%/%postname%/
 build : clean test run config
 
 .PHONY : test
-test:
+test: test-sh test-yaml test-json
+
+test-sh:
+	find . -type f -name '*.sh' -not -path "./persistence/*" | xargs shellcheck
+
+test-yaml:
+	find . -type f -name '*.yml' -not -path "./persistence/*" | xargs yamllint
+test-json:
+	find . -type f -name '*.json' -not -path "./persistence/*" | xargs jq type
 
 .PHONY : clean
 clean:
-		./clean
+		./clean.sh
 
 .PHONY : update
 update:
-		./update
+		./update.sh
 
 .PHONY : pull
 pull:
@@ -42,12 +50,17 @@ run:
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
 		PROJECT=$(PROJECT) \
-		./go
+		./go.sh
 		@echo "Installing Wordpress, please wait..."
 		@echo "This may take up to 10 minutes on the first run!"
 
 		PROJECT=$(PROJECT) \
-		./wait
+		./wait.sh
+
+.PHONY : watch
+watch:
+		@echo "Running Planet 4 application script..."
+		./watch.sh
 
 .PHONY : watch
 watch:
@@ -56,7 +69,7 @@ watch:
 
 .PHONY : stop
 stop:
-		./stop
+		./stop.sh
 
 .PHONY : stateless
 stateless: clean test start-stateless config
@@ -67,9 +80,9 @@ start-stateless:
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
 		PROJECT=$(PROJECT) \
-		./go
+		./go.sh
 		PROJECT=$(PROJECT) \
-		./wait
+		./wait.sh
 
 .PHONY: config
 config:

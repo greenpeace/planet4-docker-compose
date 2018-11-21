@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eu
+set -euo pipefail
 
 network=${PROJECT}_proxy
 endpoint=https://www.planet4.test
@@ -17,10 +17,10 @@ echo "Waiting for services to start ..."
 until [[ $success -ge $threshold ]]
 do
   # Curl to container and expect 'greenpeace' in the response
-  if docker run --network $network --rm appropriate/curl -s -k "$endpoint" | grep -s "$string" > /dev/null
+  if docker run --network "$network" --rm appropriate/curl -s -k "$endpoint" | grep -s "$string" > /dev/null
   then
     success=$((success+1))
-    echo -en "\xE2\x9C\x94"
+    echo -en "\\xE2\\x9C\\x94"
   else
     echo -n "."
     success=0
