@@ -1,11 +1,43 @@
-
 # Greenpeace Planet4 docker development environment
 
 ![Planet4](https://cdn-images-1.medium.com/letterbox/300/36/50/50/1*XcutrEHk0HYv-spjnOej2w.png?source=logoAvatar-ec5f4e3b2e43---fded7925f62)
 
+<!-- TOC: doctoc README.md -->
+<!-- https://github.com/thlorenz/doctoc -->
+
+# Table of Contents
+
+- [What is Planet4?](#what-is-planet4)
+- [What is this repository?](#what-is-this-repository)
+- [Quickstart](#quickstart)
+  - [Requirements](#requirements)
+  - [First run](#first-run)
+  - [Run](#run)
+  - [Stop](#stop)
+- [Editing source code](#editing-source-code)
+- [Logging in](#logging-in)
+  - [Administrator login](#administrator-login)
+  - [Database access via phpMyAdmin](#database-access-via-phpmyadmin)
+- [Default Content](#default-content)
+  - [Import default content](#import-default-content)
+  - [Create Wordpress admin user](#create-wordpress-admin-user)
+  - [Clear cache](#clear-cache)
+- [Configuration](#configuration)
+  - [Configuring WP-Stateless GCS bucket storage](#configuring-wp-stateless-gcs-bucket-storage)
+  - [Configuring FastCGI cache purges](#configuring-fastcgi-cache-purges)
+  - [Configuring ElasticSearch indexing](#configuring-elasticsearch-indexing)
+- [Environment variables](#environment-variables)
+  - [Some useful variables](#some-useful-variables)
+  - [Development mode](#development-mode)
+- [Notes](#notes)
+  - [Updating](#updating)
+  - [Port conflicts](#port-conflicts)
+  - [Traefik administration interface](#traefik-administration-interface)
+  - [Performance](#performance)
+
 ## What is Planet4?
 
-Planet4 is the NEW Greenpeace web platform
+Planet4 is the new Greenpeace web platform.
 
 ## What is this repository?
 
@@ -18,7 +50,7 @@ This repository contains needed files to set up a docker development environment
 *   [Redis](https://redis.io/) key-value store caching FastCGI, object and session data
 *   [PHPmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) for database administration
 
-By default, the quickstart command `make` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
+By default, the quickstart command `make build` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
 
 *   Traefik listens on Port 80, load balancing requests to:
 *   Two OpenResty reverse proxy servers, which cache FastCGI requests from
@@ -29,7 +61,25 @@ By default, the quickstart command `make` is all you'll need to pull all require
 
 ## Quickstart
 
-*Note this repository has been tested extensively on OSX, should be just fine in Ubuntu/Debian and is extremely unlikely to work in Windows even in their Ubuntu shell, any feedback will be welcome!*
+*Note this repository has been tested on OSX and Linux It's extremely unlikely to work in Windows even in their Ubuntu shell, any feedback will be welcome!*
+
+### Requirements
+
+Firstly, check you have all the requirements on your system. For Linux users, these are either preinstalled or available through your distribution's package manager.
+
+* [git](https://www.git-scm.com/downloads)
+* [make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work.
+* [docker](https://docs.docker.com/engine/installation/)
+* [yarn](https://yarnpkg.com/)
+* [gulp](https://gulpjs.com/)
+
+For OsX and Windows users docker installation already includes docker-compose. Linux users have to install docker-compose separately:
+
+* [docker-compose](https://github.com/docker/compose/releases)
+
+### First run
+
+The first time you'll need to follow the steps below, in order to clone this repo and build the containers.
 
 ```
 # Clone the repository
@@ -39,10 +89,10 @@ git clone https://github.com/greenpeace/planet4-docker-compose
 cd planet4-docker-compose
 
 # Mac and Linux only
-sudo echo "127.0.0.1  test.planet4.dev pma.planet4.dev planet.dev" >> /etc/hosts
+echo "127.0.0.1 www.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /etc/hosts
 
 # Start the application
-make
+make build
 
 # View log output
 docker-compose logs -f
@@ -50,40 +100,61 @@ docker-compose logs -f
 
 On first launch, the container bootstraps the installation with composer then after a short time (30 seconds to 1 minute) all services will be ready and responding to requests.
 
-When you see the line `Starting service: openresty` you can navigate to: [https://test.planet4.dev](https://test.planet4.dev)
+When you see the line `Starting service: openresty` you can navigate to: [https://www.planet4.test](https://www.planet4.test).
 
-### Requirements
+**Troubleshooting**
 
-Firstly, requirements for running this development environment:
+If at any point the install process fails, with Composer showing a message such as `file could not be downloaded (HTTP/1.1 404 Not Found)`, this is a transient network error and re-running the install should fix the issue.
 
-*   [Docker](https://docs.docker.com/engine/installation/)
+### Run
 
-For MacOS and Windows users docker installation already includes docker-compose
-GNU/Linux users have to install docker-compose separately:
+If you just build the containers they are already running, but every time you need to run the whole environment you just need one command:
 
-*   [Docker Compose](https://github.com/docker/compose/releases)
+```
+make
+```
 
+There is also a watch command that monitors for changes on `scss` and `js` files and generates their minified counterparts:
 
-(optional)
-*   [Make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work.
+```
+make watch
+```
+
+### Stop
+
+To stop all the containers just run:
+
+```
+make stop
+```
 
 ---
 
 ## Editing source code
 
-By default, the Wordpress application is bind-mounted at
--   `./persistence/app/`
--   `./persistence/app/`
+By default, the Wordpress application is bind-mounted at:
+
+`./persistence/app/`
+
+All planet4 code will be under the Wordpress' content folder:
+
+`./persistence/app/public/wp-content/`
 
 ---
 
-## <a name="login">Logging in</a>
+## Logging in
 
 ### Administrator login
 
-Backend administrator login is available at [https://test.planet4.dev/wp-admin/](https://test.planet4.dev/wp-admin/). An administrator user is created during first install with a randomly assigned password.
+Backend administrator login is available at [https://www.planet4.test/wp-admin/](https://www.planet4.test/wp-admin/). An administrator user is created during first install with a randomly assigned password.
 
-Login username is `admin`. To find the password enter the following in the project root (where docker-compose.yml lives):
+Login username is `admin`. To show all passwords, enter the following in the project root (where `docker-compose.yml` lives):
+
+```
+make pass
+```
+
+To show Wordpress login details:
 
 ```
 make wppass
@@ -91,20 +162,54 @@ make wppass
 
 ### Database access via phpMyAdmin
 
-[phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [https://pma.planet4.dev](https://pma.planet4.dev)
+[phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [https://pma.www.planet4.test](https://pma.www.planet4.test)
 
 Enter the user values from `db.env` to login, or from bash prompt:
 
 ```
 make pmapass
 ```
+
+---
+
+## Default Content
+
+### Import default content
+
+Download the latest sql file of default content: [v0.1.17.sql.gz](https://storage.googleapis.com/planet4-default-content/planet4-defaultcontent_wordpress-v0.1.17.sql.gz).
+
+Login to phpmyadmin, as described above, to import it. Select the `planet4_dev` database and go to *Import*.
+
+**Troubleshooting**
+
+In case you find any trouble importing, try doing a clean restore by removing the database. To do so in phpMyAdmin,
+select the `planet4_dev` database, go to *Operations* and click on the "Delete database (DROP)" button.
+
+Then, create a new database named `planet4_dev` using the "New" link in phpMyAdmin's sidebar. Use collation: `utf8_general_ci`.
+
+Once the empty database is created, you can try importing the default content again.
+
+### Create Wordpress admin user
+
+Importing the default content will also override the existing users so you need to create a new one. But you can create a new one running the following command:
+
+```
+make wpadmin WP_USER=<username> WP_USER_EMAIL=<email@example.com>
+```
+
+This will also print out the new password.
+
+### Clear cache
+
+You may have to clear Redis cache once you import the default content. Login to Wordpress admin and click on *Flush Object Cache* on the Dashboard page.
+
 ---
 
 ## Configuration
 
 ### Configuring WP-Stateless GCS bucket storage
 
-[WP-Stateless](https://github.com/wpCloud/wp-stateless/) is installed and activated, however images will be stored locally until remote GCS storage is enabled in the administrator backend. [Log in](https://test.planet4.dev/wp-login.php) with details gathered [from here](#login) and navigate to [Media > Stateless Setup](https://test.planet4.dev/wp-admin/upload.php?page=stateless-setup).
+If you want to use the Google Cloud Storage you'll have to configure [WP-Stateless](https://github.com/wpCloud/wp-stateless/). The plugin is installed and activated, however images will be stored locally until remote GCS storage is enabled in the administrator backend. [Log in](https://www.planet4.test/wp-login.php) with details gathered [from here](#login) and navigate to [Media > Stateless Setup](https://www.planet4.test/wp-admin/upload.php?page=stateless-setup).
 
 You will need a Google account with access to GCS buckets to continue.
 
@@ -122,22 +227,27 @@ Congratulations, you're now serving media files directly from GCS buckets!
 
 ### Configuring FastCGI cache purges
 
-The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/) is installed to enable FastCGI cache purges. Log in to the backend as above, navigate to [Settings > Nginx Helper](https://test.planet4.dev/wp-admin/options-general.php?page=nginx) and click:
+The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/) is installed to enable FastCGI cache purges. Log in to the backend as above, navigate to [Settings > Nginx Helper](https://www.planet4.test/wp-admin/options-general.php?page=nginx) and click:
+
 *   Enable Purge
 *   Redis Cache
 *   Enter `redis` in the Hostname field
 *   Tick all checkboxes under 'Purging Conditions'
 
+### Configuring ElasticSearch indexing
+
+Navigate to [Settings > ElasticPress > Settings](https://www.planet4.test/wp-admin/admin.php?page=elasticpress-settings) and enter `http://elasticsearch:9200` as the Host.
+
 ## Environment variables
 
-This docker environment relies on the mysql official image as well as on the
-[planet4-base](https://github.com/greenpeace/planet4-base) application image.
+This docker environment relies on the mysql official image as well as on the [planet4-base-fork](https://github.com/greenpeace/planet4-base-fork) application image.
 
 Both images provide environment variables which adjust aspects of the runtime configuration. For this environment to run only the database parameters such as hostname, database name, database users and passwords are required.
 
 Initial values for this environment variables are dummy but are good to go for development porpoises. They can be changed in the provided `app.env` and `db.env` files, or directly in the [docker-compose.yml](https://docs.docker.com/compose/compose-file/#environment) file itself.
 
 ### Some useful variables
+
 See [openresty-php-exim](https://github.com/greenpeace/planet4-docker/tree/develop/source/planet-4-151612/openresty-php-exim)
 
 -   `NEWRELIC_LICENSE` set to the license key in your NewRelic dashboard to automatically receive server and application metrics
@@ -159,10 +269,10 @@ Document some of the useful builtin configuration options available in upstream 
 
 ### Updating
 
-To ensure you're running the latest version of both the infrastructure and the application:
+To ensure you're running the latest version of both the infrastructure and the application you can just build all containers again. **Keep in mind that this deletes the persistence folder and therefor all you local code changes to the application.**
 
 ```
-make
+make build
 ```
 
 This one simple command will ensure you're always running the latest version of the application and will perform the following:
@@ -193,20 +303,20 @@ If you are running any other services on your local device which respond on port
       - "8000:80"
 ```
 
-The first number is the port number on your host, the second number is mapped to port 80 on the openresty service container.  Now you can access the site at  [https://test.planet4.dev:8000](https://test.planet4.dev:8000) instead.
+The first number is the port number on your host, the second number is mapped to port 80 on the openresty service container.  Now you can access the site at  [https://www.planet4.test:8000](https://www.planet4.test:8000) instead.
 
 A more robust solution for hosting multiple services on port 80 is to use a reverse proxy  such as Traefik or [jwilder/openresty-proxy](https://github.com/jwilder/openresty-proxy) in a separate project, and use [Docker named networking](https://docs.docker.com/compose/networking/) features to isolate virtual networks.
 
-## Traefik administration interface
+### Traefik administration interface
 
-Traefik comes with a simple admin interface accessible at [http://localhost:8080](http://localhost:8080).
+Traefik comes with a simple admin interface accessible at [http://www.planet4.test:8080](http://www.planet4.test:8080).
 
-## Performance
+### Performance
 
 On a 2015 Macbook Pro, with a primed cache, this stack delivers 50 concurrent connections under siege with an average response time of 0.28 seconds and near-zero load on the php-fpm backend.
 
 ```bash
-$ siege -c 50 -t 20s -b test.planet4.dev
+$ siege -c 50 -t 20s -b www.planet4.test
 
 Lifting the server siege...
 Transactions:		          3374 hits
