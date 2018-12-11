@@ -1,5 +1,8 @@
 SHELL := /bin/bash
 
+DEFAULTCONTENT_DB_VERSION := "0.1.25"
+DEFAULTCONTENT_IMAGE_VERSION := "1-25"
+
 SCALE_OPENRESTY ?=1
 SCALE_APP ?=1
 
@@ -19,8 +22,37 @@ PROJECT ?= $(shell basename "$(PWD)" | sed 's/[.-]//g')
 NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
 REWRITE := /%category%/%post_id%/%postname%/
 
+DEFAULTCONTENT_BASE := "https://storage.googleapis.com/planet4-default-content"
+DEFAULTCONTENT_DB := "$(DEFAULTCONTENT_BASE)/planet4-defaultcontent_wordpress-v$(DEFAULTCONTENT_DB_VERSION).sql.gz"
+DEFAULTCONTENT_IMAGES := "$(DEFAULTCONTENT_BASE)/planet4-default-content-$(DEFAULTCONTENT_IMAGE_VERSION)-images.zip"
+
+defaultcontent:
+	@mkdir -p defaultcontent
+
+defaultcontent/db.sql.gz: defaultcontent
+	@echo "Downloading default content database"
+	@curl $(DEFAULTCONTENT_DB) > $@
+
+defaultcontent/images.zip: defaultcontent
+	@echo "Downloading default content images"
+	@curl $(DEFAULTCONTENT_IMAGES) > $@
+
+.PHONY: getdefaultcontent
+getdefaultcontent: defaultcontent/db.sql.gz defaultcontent/images.zip
+
+.PHONY: cleandefaultcontent
+cleandefaultcontent:
+	@rm -rf defaultcontent
+
+.PHONY: updatedefaultcontent
+updatedefaultcontent: cleandefaultcontent getdefaultcontent
+
+.PHONY: unzipimages
+unzipimages:
+	@unzip defaultcontent/images.zip -d persistence/app/public/wp-content/uploads
+
 .PHONY : build
-build : clean test run config
+build : clean test getdefaultcontent run unzipimages config
 
 .PHONY : test
 test: test-sh test-yaml test-json
@@ -34,7 +66,7 @@ test-json:
 	find . -type f -name '*.json' -not -path "./persistence/*" | xargs jq type
 
 .PHONY : clean
-clean:
+clean: cleandefaultcontent
 		./clean.sh
 
 .PHONY : update
@@ -62,11 +94,6 @@ watch:
 		@echo "Running Planet 4 application script..."
 		./watch.sh
 
-.PHONY : watch
-watch:
-		@echo "Running Planet 4 application script..."
-		./watch.sh
-
 .PHONY : stop
 stop:
 		./stop.sh
@@ -88,6 +115,8 @@ start-stateless:
 config:
 		docker-compose -p $(PROJECT) exec -T php-fpm wp rewrite structure $(REWRITE)
 		docker-compose -p $(PROJECT) exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
+		docker-compose -p $(PROJECT) exec php-fpm wp user update admin --user_pass=admin --role=administrator
+		docker-compose -p $(PROJECT) exec php-fpm wp plugin deactivate wp-stateless
 
 .PHONY : pass
 pass:
@@ -117,3 +146,12 @@ wpadmin:
 .PHONY: flush
 flush:
 	  docker-compose -p $(PROJECT) exec redis redis-cli flushdb
+
+
+.PHONY: php
+php:
+		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) run --rm --no-deps php-fpm bash
+
+.PHONY: test-wp
+test-wp:
+		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) run --rm --no-deps php-fpm vendor/bin/codecept run

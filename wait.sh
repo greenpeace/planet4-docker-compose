@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
+
 network=${PROJECT}_proxy
 endpoint=https://www.planet4.test
 string=greenpeace
