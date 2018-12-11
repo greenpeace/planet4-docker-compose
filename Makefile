@@ -154,4 +154,4 @@ php:
 
 .PHONY: test-wp
 test-wp:
-		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) run --rm --no-deps php-fpm vendor/bin/codecept run
+		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm vendor/bin/codecept run
