@@ -141,6 +141,7 @@ start-stateless:
 config:
 		docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
 		docker-compose exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
+		docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
 		docker-compose exec php-fpm wp user update admin --user_pass=admin --role=administrator
 		docker-compose exec php-fpm wp plugin deactivate wp-stateless
 
