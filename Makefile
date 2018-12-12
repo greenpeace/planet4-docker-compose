@@ -58,7 +58,7 @@ unzipimages:
 	@unzip defaultcontent/images.zip -d persistence/app/public/wp-content/uploads
 
 .PHONY: build
-build : clean test getdefaultcontent run unzipimages config
+build : clean test getdefaultcontent run unzipimages config flush
 
 .PHONY: ci
 ci: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
