@@ -132,7 +132,7 @@ config:
 		docker-compose -p $(PROJECT) exec -T php-fpm wp rewrite structure $(REWRITE)
 		docker-compose -p $(PROJECT) exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
 		docker-compose -p $(PROJECT) exec php-fpm wp user update admin --user_pass=admin --role=administrator
-		docker-compose -p $(PROJECT) exec php-fpm wp plugin deactivate wp-stateless
+		docker-compose -p $(PROJECT) exec php-fpm wp plugin deactivate wp-stateless nginx-helper
 
 .PHONY : pass
 pass:
@@ -170,5 +170,5 @@ php:
 
 .PHONY: test-wp
 test-wp:
-		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm composer install --prefer-dist
+		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm composer install --prefer-dist --no-progress
 		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm vendor/bin/codecept run --xml=junit.xml --html
