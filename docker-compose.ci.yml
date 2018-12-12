@@ -77,8 +77,7 @@ services:
 
   selenium:
     image: selenium/standalone-chrome:3
-    volumes:
-      - /dev/shm:/dev/shm
+    shm_size: 512M
     networks:
       - local
       - db
