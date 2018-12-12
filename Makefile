@@ -78,7 +78,8 @@ ci-copyimages: defaultcontent/images.zip
 	@rm -rf /tmp/images
 	@unzip defaultcontent/images.zip -d /tmp/images
 	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/public/wp-content/uploads
-	@echo Copied images into php-fpm:/app/source/public/wp-content/uploads
+	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q openresty):/app/source/public/wp-content/uploads
+	@echo Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads
 
 .PHONY : test
 test: test-sh test-yaml test-json
