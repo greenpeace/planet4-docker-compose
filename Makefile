@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
-DEFAULTCONTENT_DB_VERSION := "0.1.25"
-DEFAULTCONTENT_IMAGE_VERSION := "1-25"
+DEFAULTCONTENT_DB_VERSION ?= 0.1.25
+DEFAULTCONTENT_IMAGE_VERSION ?= 1-25
 
 SCALE_OPENRESTY ?=1
 SCALE_APP ?=1
@@ -17,14 +17,20 @@ WP_USER_EMAIL ?=${shell git config --get user.email}
 
 PROJECT ?= $(shell basename "$(PWD)" | sed 's/[.-]//g')
 
+# These vars are read by docker-compose
+# See https://docs.docker.com/compose/reference/envvars/
+export COMPOSE_FILE = $(DOCKER_COMPOSE_FILE)
+export COMPOSE_PROJECT_NAME=$(PROJECT)
+COMPOSE_ENV := COMPOSE_FILE=$(COMPOSE_FILE) COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME)
+
 .DEFAULT_GOAL := run
 
 NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
 REWRITE := /%category%/%post_id%/%postname%/
 
-DEFAULTCONTENT_BASE := "https://storage.googleapis.com/planet4-default-content"
-DEFAULTCONTENT_DB := "$(DEFAULTCONTENT_BASE)/planet4-defaultcontent_wordpress-v$(DEFAULTCONTENT_DB_VERSION).sql.gz"
-DEFAULTCONTENT_IMAGES := "$(DEFAULTCONTENT_BASE)/planet4-default-content-$(DEFAULTCONTENT_IMAGE_VERSION)-images.zip"
+DEFAULTCONTENT_BASE ?= https://storage.googleapis.com/planet4-default-content
+DEFAULTCONTENT_DB ?= $(DEFAULTCONTENT_BASE)/planet4-defaultcontent_wordpress-v$(DEFAULTCONTENT_DB_VERSION).sql.gz
+DEFAULTCONTENT_IMAGES ?= $(DEFAULTCONTENT_BASE)/planet4-default-content-$(DEFAULTCONTENT_IMAGE_VERSION)-images.zip
 
 defaultcontent:
 	@mkdir -p defaultcontent
@@ -51,11 +57,25 @@ updatedefaultcontent: cleandefaultcontent getdefaultcontent
 unzipimages:
 	@unzip defaultcontent/images.zip -d persistence/app/public/wp-content/uploads
 
-.PHONY : build
+.PHONY: build
 build : clean test getdefaultcontent run unzipimages config
 
-.PHONY : ci
-ci: test getdefaultcontent run-ci config test-wp
+.PHONY: ci
+ci: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
+ci: test getdefaultcontent run config ci-copyimages flush test-wp
+
+.PHONY: ci-%
+ci-%: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
+
+.PHONY: ci-extract-artifacts
+ci-extract-artifacts:
+	@docker cp $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/tests/_output /tmp/artifacts
+
+.PHONY: copyimages
+ci-copyimages: defaultcontent/images.zip
+	@rm -rf /tmp/images
+	@unzip defaultcontent/images.zip -d /tmp/images
+	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/public/wp-content/uploads
 
 .PHONY : test
 test: test-sh test-yaml test-json
@@ -78,23 +98,10 @@ update:
 
 .PHONY : pull
 pull:
-		docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) pull
+		docker-compose pull
 
 .PHONY : run
 run:
-		SCALE_APP=$(SCALE_APP) \
-		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
-		PROJECT=$(PROJECT) \
-		./go.sh
-		@echo "Installing Wordpress, please wait..."
-		@echo "This may take up to 10 minutes on the first run!"
-
-		PROJECT=$(PROJECT) \
-		./wait.sh
-
-.PHONY: run-ci
-run-ci:
-		DOCKER_COMPOSE_FILE=docker-compose.ci.yml \
 		SCALE_APP=$(SCALE_APP) \
 		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
 		PROJECT=$(PROJECT) \
@@ -129,10 +136,10 @@ start-stateless:
 
 .PHONY: config
 config:
-		docker-compose -p $(PROJECT) exec -T php-fpm wp rewrite structure $(REWRITE)
-		docker-compose -p $(PROJECT) exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
-		docker-compose -p $(PROJECT) exec php-fpm wp user update admin --user_pass=admin --role=administrator
-		docker-compose -p $(PROJECT) exec php-fpm wp plugin deactivate wp-stateless nginx-helper
+		docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
+		docker-compose exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
+		docker-compose exec php-fpm wp user update admin --user_pass=admin --role=administrator
+		docker-compose exec php-fpm wp plugin deactivate wp-stateless
 
 .PHONY : pass
 pass:
@@ -144,7 +151,7 @@ wppass:
 		@printf "Wordpress credentials:\n"
 		@printf "User:  admin\n"
 		@printf "Pass:  "
-		@docker-compose -p $(PROJECT) logs php-fpm | grep Admin | cut -d':' -f2 | xargs
+		@docker-compose logs php-fpm | grep Admin | cut -d':' -f2 | xargs
 		@printf "\n"
 
 .PHONY : pmapass
@@ -157,18 +164,22 @@ pmapass:
 
 .PHONY : wpadmin
 wpadmin:
-		docker-compose -p $(PROJECT) exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
+		docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
 
 .PHONY: flush
 flush:
-	  docker-compose -p $(PROJECT) exec redis redis-cli flushdb
+	  docker-compose exec redis redis-cli flushdb
 
 
 .PHONY: php
 php:
-		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) run --rm --no-deps php-fpm bash
+		@docker-compose run --rm --no-deps php-fpm bash
 
 .PHONY: test-wp
 test-wp:
-		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm composer install --prefer-dist --no-progress
-		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm vendor/bin/codecept run --xml=junit.xml --html
+		@docker-compose exec php-fpm composer install --prefer-dist --no-progress
+		@docker-compose exec php-fpm vendor/bin/codecept run --xml=junit.xml --html
+
+.PHONY: test-wp-failed
+test-wp-failed:
+		@docker-compose exec php-fpm vendor/bin/codecept run -g failed --xml=junit.xml --html
