@@ -54,6 +54,9 @@ unzipimages:
 .PHONY : build
 build : clean test getdefaultcontent run unzipimages config
 
+.PHONY : ci
+ci: test getdefaultcontent run-ci config test-wp
+
 .PHONY : test
 test: test-sh test-yaml test-json
 
@@ -89,6 +92,19 @@ run:
 		PROJECT=$(PROJECT) \
 		./wait.sh
 
+.PHONY: run-ci
+run-ci:
+		DOCKER_COMPOSE_FILE=docker-compose.ci.yml \
+		SCALE_APP=$(SCALE_APP) \
+		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
+		PROJECT=$(PROJECT) \
+		./go.sh
+		@echo "Installing Wordpress, please wait..."
+		@echo "This may take up to 10 minutes on the first run!"
+
+		PROJECT=$(PROJECT) \
+		./wait.sh
+
 .PHONY : watch
 watch:
 		@echo "Running Planet 4 application script..."
@@ -99,7 +115,7 @@ stop:
 		./stop.sh
 
 .PHONY : stateless
-stateless: clean test start-stateless config
+stateless: clean test getdefaultcontent start-stateless config
 
 .PHONY: start-stateless
 start-stateless:
@@ -154,4 +170,5 @@ php:
 
 .PHONY: test-wp
 test-wp:
+		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm composer install --prefer-dist
 		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm vendor/bin/codecept run

@@ -4,7 +4,7 @@ set -euo pipefail
 PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
 
 network=${PROJECT}_proxy
-endpoint=https://www.planet4.test
+endpoint=http://www.planet4.test
 string=greenpeace
 
 # 2 seconds * 150 == 10+ minutes

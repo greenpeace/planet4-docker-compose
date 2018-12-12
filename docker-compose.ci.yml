@@ -51,9 +51,10 @@ services:
       - php-fpm
       - redis
     networks:
-      local:
+      proxy:
         aliases:
           - ${APP_HOSTNAME:-www.planet4.test}
+      local:
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
@@ -81,7 +82,9 @@ services:
     networks:
       - local
       - db
+      - proxy
 
 networks:
   local:
   db:
+  proxy:
