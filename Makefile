@@ -171,4 +171,4 @@ php:
 .PHONY: test-wp
 test-wp:
 		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm composer install --prefer-dist
-		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm vendor/bin/codecept run
+		@docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) exec php-fpm vendor/bin/codecept run --xml=junit.xml --html
