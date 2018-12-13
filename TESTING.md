@@ -34,6 +34,12 @@ If a test fails you'll get a screenshot plus the HTML of the page inside:
 persistence/app/tests/_output/
 ```
 
+You can rerun just the failed tests with:
+
+```
+vendor/bin/codecept run -g failed
+```
+
 If you want to see the browser whilst it runs the tests point your VNC client at `localhost:5900`.
 
 ## Writing tests
@@ -43,6 +49,20 @@ See the following documentation for useful helper methods:
 * [codeception.com/docs/modules/WebDriver#Actions](https://codeception.com/docs/modules/WebDriver#Actions)
 * [github.com/lucatume/wp-browser/blob/master/README.md#wpdb-module](https://github.com/lucatume/wp-browser/blob/master/README.md#wpdb-module)
 * [github.com/lucatume/wp-browser/blob/master/src/Codeception/Module/WPDb.php](https://github.com/lucatume/wp-browser/blob/master/src/Codeception/Module/WPDb.php)
+
+### Debugging
+
+You can cause codeception to print out debug variables with:
+
+```php
+codecept_debug($somevariable);
+```
+
+... and then run codecept with the `--debug` flag:
+
+```
+vendor/bin/codecept run --debug tests/acceptance/YourTestCept.php
+```
 
 ## CI
 
