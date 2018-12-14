@@ -95,6 +95,15 @@ echo "127.0.0.1 www.planet4.test pma.www.planet4.test traefik.www.planet4.test" 
 
 # Start the application
 make build
+```
+
+If you want to run docker-compose commands directly:
+```
+# Set your shell environment variables correctly
+eval $(make env)
+
+# View status of containers
+docker-compose ps 
 
 # View log output
 docker-compose logs -f
@@ -148,29 +157,13 @@ All planet4 code will be under the Wordpress' content folder:
 
 ### Administrator login
 
-Backend administrator login is available at [https://www.planet4.test/wp-admin/](https://www.planet4.test/wp-admin/). An administrator user is created during first install with a randomly assigned password.
+Backend administrator login is available at [https://www.planet4.test/wp-admin/](https://www.planet4.test/wp-admin/).
 
-Login username is `admin`. To show all passwords, enter the following in the project root (where `docker-compose.yml` lives):
-
-```
-make pass
-```
-
-To show Wordpress login details:
-
-```
-make wppass
-```
+Login username is `admin` and the password is `admin`.
 
 ### Database access via phpMyAdmin
 
 [phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [https://pma.www.planet4.test](https://pma.www.planet4.test)
-
-Enter the user values from `db.env` to login, or from bash prompt:
-
-```
-make pmapass
-```
 
 ---
 
@@ -178,32 +171,17 @@ make pmapass
 
 ### Import default content
 
-Download the latest sql file of default content: [v0.1.25.sql.gz](https://storage.googleapis.com/planet4-default-content/planet4-defaultcontent_wordpress-v0.1.25.sql.gz).
-
-Login to phpmyadmin, as described above, to import it. Select the `planet4_dev` database and go to *Import*.
-
-Download the images of the default content: [v1.25-images.zip](https://storage.googleapis.com/planet4-default-content/planet4-default-content-1-25-images.zip)
-
-Unzip the images and copy them to ./persistence/app/public/wp-content/uploads
+The default content is imported automatically for you.
 
 **Troubleshooting**
 
-In case you find any trouble importing, try doing a clean restore by removing the database. To do so in phpMyAdmin,
-select the `planet4_dev` database, go to *Operations* and click on the "Delete database (DROP)" button.
+If you want to revert back to the default content database you can delete the remove the database container and volume and recreate:
 
-Then, create a new database named `planet4_dev` using the "New" link in phpMyAdmin's sidebar. Use collation: `utf8_general_ci`.
-
-Once the empty database is created, you can try importing the default content again.
-
-### Create Wordpress admin user
-
-Importing the default content will also override the existing users so you need to create a new one. But you can create a new one running the following command:
-
+```php
+make revertdb
+# ... wait for a bit ...
+make config flush
 ```
-make wpadmin WP_USER=<username> WP_USER_EMAIL=<email@example.com>
-```
-
-This will also print out the new password.
 
 ### Clear caches
 

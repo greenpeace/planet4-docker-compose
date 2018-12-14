@@ -36,8 +36,6 @@ services:
     volumes:
       - db:/var/lib/mysql
       - ./defaultcontent:/docker-entrypoint-initdb.d
-    environment:
-      MYSQL_ROOT_PASSWORD: root
     networks:
       - db
     labels:
@@ -108,6 +106,9 @@ services:
     depends_on:
       - db
       - traefik
+    environment:
+      PMA_USER: root
+      PMA_PASSWORD: root
     env_file:
       - ./db.env
     volumes:

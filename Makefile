@@ -32,6 +32,10 @@ DEFAULTCONTENT_BASE ?= https://storage.googleapis.com/planet4-default-content
 DEFAULTCONTENT_DB ?= $(DEFAULTCONTENT_BASE)/planet4-defaultcontent_wordpress-v$(DEFAULTCONTENT_DB_VERSION).sql.gz
 DEFAULTCONTENT_IMAGES ?= $(DEFAULTCONTENT_BASE)/planet4-default-content-$(DEFAULTCONTENT_IMAGE_VERSION)-images.zip
 
+.PHONY: env
+env:
+	@echo export $(COMPOSE_ENV)
+
 defaultcontent:
 	@mkdir -p defaultcontent
 
@@ -169,22 +173,30 @@ pmapass:
 
 .PHONY : wpadmin
 wpadmin:
-		docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
+		@docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
 
 .PHONY: flush
 flush:
-	  docker-compose exec redis redis-cli flushdb
+		@docker-compose exec redis redis-cli flushdb
 
 
-.PHONY: php
-php:
+.PHONY: php-shell
+php-shell:
 		@docker-compose run --rm --no-deps php-fpm bash
 
-.PHONY: test-wp
-test-wp:
+.PHONY: test-codeception
+test-codeception:
 		@docker-compose exec php-fpm composer install --prefer-dist --no-progress
 		@docker-compose exec php-fpm vendor/bin/codecept run --xml=junit.xml --html
 
-.PHONY: test-wp-failed
-test-wp-failed:
+.PHONY: test-codeception-failed
+test-codeception-failed:
 		@docker-compose exec php-fpm vendor/bin/codecept run -g failed --xml=junit.xml --html
+
+
+.PHONY: revertdb
+revertdb:
+		@docker stop $(shell $(COMPOSE_ENV) docker-compose ps -q db)
+		@docker rm $(shell $(COMPOSE_ENV) docker-compose ps -q db)
+		@docker volume rm $(COMPOSE_PROJECT_NAME)_db
+		@docker-compose up -d
