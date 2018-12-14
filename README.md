@@ -193,6 +193,12 @@ Alternatively, to only clear the object cache: Login to Wordpress admin and clic
 
 ---
 
+## Testing
+
+See [TESTING](TESTING.md) for more info.
+
+---
+
 ## Configuration
 
 ### Configuring WP-Stateless GCS bucket storage
