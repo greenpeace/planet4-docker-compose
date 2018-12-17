@@ -62,11 +62,6 @@ watch:
 		@echo "Running Planet 4 application script..."
 		./watch.sh
 
-.PHONY : watch
-watch:
-		@echo "Running Planet 4 application script..."
-		./watch.sh
-
 .PHONY : stop
 stop:
 		./stop.sh
