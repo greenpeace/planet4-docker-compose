@@ -130,7 +130,7 @@ stop:
 		./stop.sh
 
 .PHONY : stateless
-stateless: clean test getdefaultcontent start-stateless config
+stateless: clean test getdefaultcontent start-stateless config config-stateless
 
 .PHONY: start-stateless
 start-stateless:
@@ -149,6 +149,10 @@ config:
 		docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
 		docker-compose exec php-fpm wp user update admin --user_pass=admin --role=administrator
 		docker-compose exec php-fpm wp plugin deactivate wp-stateless
+
+.PHONY: config-stateless
+config-stateless:
+		@docker-compose exec php-fpm wp plugin activate wp-stateless
 
 .PHONY : pass
 pass:
