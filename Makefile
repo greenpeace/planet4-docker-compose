@@ -12,8 +12,8 @@ MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
 ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 
-WP_USER ?=${shell whoami}
-WP_USER_EMAIL ?=${shell git config --get user.email}
+WP_USER ?= $(shell whoami)
+WP_USER_EMAIL ?= $(shell git config --get user.email)
 
 PROJECT ?= $(shell basename "$(PWD)" | sed 's/[.-]//g')
 
@@ -93,114 +93,114 @@ test-sh:
 
 test-yaml:
 	find . -type f -name '*.yml' -not -path "./persistence/*" | xargs yamllint
+
 test-json:
 	find . -type f -name '*.json' -not -path "./persistence/*" | xargs jq type
 
 .PHONY : clean
 clean: cleandefaultcontent
-		./clean.sh
+	./clean.sh
 
 .PHONY : update
 update:
-		./update.sh
+	./update.sh
 
 .PHONY : pull
 pull:
-		docker-compose pull
+	docker-compose pull
 
 .PHONY : run
 run:
-		SCALE_APP=$(SCALE_APP) \
-		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
-		PROJECT=$(PROJECT) \
-		./go.sh
-		@echo "Installing Wordpress, please wait..."
-		@echo "This may take up to 10 minutes on the first run!"
+	SCALE_APP=$(SCALE_APP) \
+	SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
+	PROJECT=$(PROJECT) \
+	./go.sh
+	@echo "Installing Wordpress, please wait..."
+	@echo "This may take up to 10 minutes on the first run!"
 
-		PROJECT=$(PROJECT) \
-		./wait.sh
+	PROJECT=$(PROJECT) \
+	./wait.sh
 
 .PHONY : watch
 watch:
-		@echo "Running Planet 4 application script..."
-		./watch.sh
+	@echo "Running Planet 4 application script..."
+	./watch.sh
 
 .PHONY : stop
 stop:
-		./stop.sh
+	./stop.sh
 
 .PHONY : stateless
 stateless: clean test getdefaultcontent start-stateless config config-stateless
 
 .PHONY: start-stateless
 start-stateless:
-		DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
-		SCALE_APP=$(SCALE_APP) \
-		SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
-		PROJECT=$(PROJECT) \
-		./go.sh
-		PROJECT=$(PROJECT) \
-		./wait.sh
+	DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
+	SCALE_APP=$(SCALE_APP) \
+	SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
+	PROJECT=$(PROJECT) \
+	./go.sh
+	PROJECT=$(PROJECT) \
+	./wait.sh
 
 .PHONY: config
 config:
-		docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
-		docker-compose exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
-		docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
-		docker-compose exec php-fpm wp user update admin --user_pass=admin --role=administrator
-		docker-compose exec php-fpm wp plugin deactivate wp-stateless
+	docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
+	docker-compose exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
+	docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
+	docker-compose exec php-fpm wp user update admin --user_pass=admin --role=administrator
+	docker-compose exec php-fpm wp plugin deactivate wp-stateless
 
 .PHONY: config-stateless
 config-stateless:
-		@docker-compose exec php-fpm wp plugin activate wp-stateless
+	@docker-compose exec php-fpm wp plugin activate wp-stateless
 
 .PHONY : pass
 pass:
-		@make pmapass
-		@make wppass
+	@make pmapass
+	@make wppass
 
 .PHONY : wppass
 wppass:
-		@printf "Wordpress credentials:\n"
-		@printf "User:  admin\n"
-		@printf "Pass:  "
-		@docker-compose logs php-fpm | grep Admin | cut -d':' -f2 | xargs
-		@printf "\n"
+	@printf "Wordpress credentials:\n"
+	@printf "User:  admin\n"
+	@printf "Pass:  "
+	@docker-compose logs php-fpm | grep Admin | cut -d':' -f2 | xargs
+	@printf "\n"
 
 .PHONY : pmapass
 pmapass:
-		@printf "Database credentials:\n"
-		@printf "User:  %s\n" $(MYSQL_USER)
-		@printf "Pass:  %s\n----\n" $(MYSQL_PASS)
-		@printf "User:  root\n"
-		@printf "Pass:  %s\n----\n" $(ROOT_PASS)
+	@printf "Database credentials:\n"
+	@printf "User:  %s\n" $(MYSQL_USER)
+	@printf "Pass:  %s\n----\n" $(MYSQL_PASS)
+	@printf "User:  root\n"
+	@printf "Pass:  %s\n----\n" $(ROOT_PASS)
 
 .PHONY : wpadmin
 wpadmin:
-		@docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
+	@docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
 
 .PHONY: flush
 flush:
-		@docker-compose exec redis redis-cli flushdb
-
+	@docker-compose exec redis redis-cli flushdb
 
 .PHONY: php-shell
 php-shell:
-		@docker-compose run --rm --no-deps php-fpm bash
+	@docker-compose run --rm --no-deps php-fpm bash
 
 .PHONY: test-codeception
 test-codeception:
-		@docker-compose exec php-fpm composer install --prefer-dist --no-progress
-		@docker-compose exec php-fpm vendor/bin/codecept run --xml=junit.xml --html
+	@docker-compose exec php-fpm composer install --prefer-dist --no-progress
+	@docker-compose exec php-fpm vendor/bin/codecept run --xml=junit.xml --html
 
 .PHONY: test-codeception-failed
 test-codeception-failed:
-		@docker-compose exec php-fpm vendor/bin/codecept run -g failed --xml=junit.xml --html
+	@docker-compose exec php-fpm vendor/bin/codecept run -g failed --xml=junit.xml --html
 
 
 .PHONY: revertdb
 revertdb:
-		@docker stop $(shell $(COMPOSE_ENV) docker-compose ps -q db)
-		@docker rm $(shell $(COMPOSE_ENV) docker-compose ps -q db)
-		@docker volume rm $(COMPOSE_PROJECT_NAME)_db
-		@docker-compose up -d
+	@docker stop $(shell $(COMPOSE_ENV) docker-compose ps -q db)
+	@docker rm $(shell $(COMPOSE_ENV) docker-compose ps -q db)
+	@docker volume rm $(COMPOSE_PROJECT_NAME)_db
+	@docker-compose up -d
