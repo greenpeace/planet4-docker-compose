@@ -30,7 +30,7 @@ test-sh:
 
 test-yaml:
 	find . -type f -name '*.yml' -not -path "./persistence/*" | xargs yamllint
-	
+
 test-json:
 	find . -type f -name '*.json' -not -path "./persistence/*" | xargs jq type
 
@@ -45,6 +45,16 @@ update:
 .PHONY : pull
 pull:
 	docker-compose -p $(PROJECT) -f $(DOCKER_COMPOSE_FILE) pull
+
+persistence/app:
+	mkdir -p persistence/app
+
+.PHONY: appdata
+appdata: persistence/app
+	docker cp $(shell docker create $(APP_IMAGE) | tee .tmp-id):/app/source persistence
+	docker rm -v $(shell cat .tmp-id)
+	rm -fr persistence/app
+	mv persistence/source persistence/app
 
 .PHONY : run
 run:
