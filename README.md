@@ -20,7 +20,8 @@
 - [Logging in](#logging-in)
   - [Administrator login](#administrator-login)
   - [Database access via phpMyAdmin](#database-access-via-phpmyadmin)
-- [Default Content](#default-content)
+- [Running production containers locally](#production-containers)
+- [Default content](#default-content)
   - [Import default content](#import-default-content)
   - [Create Wordpress admin user](#create-wordpress-admin-user)
   - [Clear cache](#clear-cache)
@@ -171,6 +172,26 @@ Enter the user values from `db.env` to login, or from bash prompt:
 ```
 make pmapass
 ```
+
+---
+
+## Production Containers
+
+To run production containers locally, it's necessary to define two environment variables and then run `make appdata`. This tells docker-compose which containers to use, and then copies the contents of the `/app/source` directory to the local `persistence` folder.
+
+Example:
+
+```bash
+# Change these variables to the container images you wish to run
+export APP_IMAGE=gcr.io/planet-4-151612/planet4-flibble-app:develop
+export OPENRESTY_IMAGE=gcr.io/planet-4-151612/planet4-flibble-openresty:develop
+# Copy contents of container /app/source into local persistence folder
+make appdata
+# Bring up container suite
+make run
+```
+
+From here, you can download a database export from GCS (for example: https://console.cloud.google.com/storage/browser/planet4-flibble-db-backup?project=planet-4-151612) and visit [phpMyAdmin](http://pma.www.planet4.test) to perform the import.
 
 ---
 
