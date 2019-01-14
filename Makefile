@@ -66,7 +66,7 @@ build : clean test getdefaultcontent run unzipimages config flush
 
 .PHONY: ci
 ci: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
-ci: test getdefaultcontent run config ci-copyimages flush test-wp
+ci: test getdefaultcontent run config ci-copyimages flush test-codeception
 
 .PHONY: ci-%
 ci-%: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
