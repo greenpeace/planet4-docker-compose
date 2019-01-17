@@ -40,12 +40,12 @@ defaultcontent:
 	@mkdir -p defaultcontent
 
 defaultcontent/db.sql.gz: defaultcontent
-	@echo "Downloading default content database"
-	@curl $(DEFAULTCONTENT_DB) > $@
+	@echo "Downloading default content database from $(DEFAULTCONTENT_DB)"
+	@curl --fail $(DEFAULTCONTENT_DB) > $@
 
 defaultcontent/images.zip: defaultcontent
-	@echo "Downloading default content images"
-	@curl $(DEFAULTCONTENT_IMAGES) > $@
+	@echo "Downloading default content images from $(DEFAULTCONTENT_IMAGES)"
+	@curl --fail $(DEFAULTCONTENT_IMAGES) > $@
 
 .PHONY: getdefaultcontent
 getdefaultcontent: defaultcontent/db.sql.gz defaultcontent/images.zip
