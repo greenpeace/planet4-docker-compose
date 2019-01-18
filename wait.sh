@@ -6,7 +6,7 @@ PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
 network=${PROJECT}_proxy
 endpoint=${APP_HOSTNAME:-http://www.planet4.test}
 
-if [[ ! -z "${APP_HOSTPATH:-}" ]]
+if [[ -n "${APP_HOSTPATH:-}" ]]
 then
   endpoint="$endpoint/$APP_HOSTPATH/"
 fi
