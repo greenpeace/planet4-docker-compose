@@ -5,7 +5,12 @@ DEFAULTCONTENT_IMAGE_VERSION ?= 1-25
 
 SCALE_OPENRESTY ?=1
 SCALE_APP ?=1
-
+APP_HOSTPATH        ?= test
+# YAML interprets 'empty' values as 'nil'
+ifeq ($(APP_HOSTPATH),<nil>)
+# So if APP_HOSTPATH is set, but blank, clean this value
+APP_HOSTPATH :=
+endif
 DOCKER_COMPOSE_FILE ?= docker-compose.yml
 
 MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
