@@ -1,0 +1,91 @@
+---
+version: '3'
+services:
+  redis:
+    image: redis:4-stretch
+    networks:
+      - local
+
+  db:
+    build:
+      context: defaultcontent
+      dockerfile: ../ci/db/Dockerfile
+    env_file:
+      - ./db.env
+    networks:
+      - db
+
+  php-fpm:
+    image: $APP_IMAGE
+    depends_on:
+      - db
+      - redis
+    networks:
+      - local
+      - db
+    dns:
+      - ${DNS_RESOLVER:-1.1.1.1}
+    environment:
+      - APP_ENV=${APP_ENV:-develop}
+      - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
+      - APP_HOSTPATH=${APP_HOSTPATH:-}
+      # - DELETE_EXISTING_FILES=false
+      - GIT_REF=${GIT_REF:-develop}
+      - GIT_SOURCE=https://github.com/greenpeace/planet4-base-fork
+      # - MERGE_REF=develop
+      # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
+      - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
+      # - OVERWRITE_EXISTING_FILES=false
+      - WP_FORCE_SSL_ADMIN=false
+      - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
+      # - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-www-planet4-test}
+      - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-false}
+      - WP_DEFAULT_CONTENT=false
+    env_file:
+      - ./app.env
+      - ./db.env
+
+  openresty:
+    image: $OPENRESTY_IMAGE
+    ports:
+      - "18080:80"
+    depends_on:
+      - php-fpm
+      - redis
+    networks:
+      proxy:
+        aliases:
+          - ${APP_HOSTNAME:-www.planet4.test}
+      local:
+    environment:
+      - APP_ENV=${APP_ENV:-develop}
+      - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
+      - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
+      - APP_HOSTPATH=${APP_HOSTPATH:-}
+      - REDIS_FASTCGI_CACHE_ENABLED=true
+      - PHP_ENABLED=true
+
+  elasticsearch:
+    image: gcr.io/planet-4-151612/elasticsearch:${ELASTICSEARCH_BUILD_TAG:-latest}
+    networks:
+      - local
+    environment:
+      - discovery.type=single-node
+
+  smtp:
+    image: gcr.io/planet-4-151612/exim:${SMTP_BUILD_TAG:-develop}
+    networks:
+      - local
+
+  selenium:
+    image: selenium/standalone-chrome:3
+    shm_size: 512M
+    networks:
+      - local
+      - db
+      - proxy
+
+networks:
+  local:
+  db:
+  proxy:

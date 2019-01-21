@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
+
 network=${PROJECT}_proxy
-endpoint=https://www.planet4.test
+endpoint=${APP_HOSTNAME:-http://www.planet4.test}
+
+if [[ -n "${APP_HOSTPATH:-}" ]]
+then
+  endpoint="$endpoint/$APP_HOSTPATH/"
+fi
+
 string=greenpeace
 
 # 2 seconds * 150 == 10+ minutes

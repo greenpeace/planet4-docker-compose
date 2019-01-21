@@ -34,7 +34,8 @@ services:
     env_file:
       - ./db.env
     volumes:
-      - ./persistence/mysql:/var/lib/mysql:cached
+      - db:/var/lib/mysql
+      - ./defaultcontent:/docker-entrypoint-initdb.d
     networks:
       - db
     labels:
@@ -48,6 +49,7 @@ services:
     networks:
       - local
       - db
+      - proxy
     dns:
       - ${DNS_RESOLVER:-1.1.1.1}
     volumes:
@@ -58,7 +60,7 @@ services:
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       # - DELETE_EXISTING_FILES=false
-      - GIT_REF=develop
+      - GIT_REF=${GIT_REF:-develop}
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base-fork
       # - MERGE_REF=develop
       # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
@@ -68,6 +70,7 @@ services:
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
       - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-www-planet4-test}
       - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
+      - WP_DEFAULT_CONTENT=false
     env_file:
       - ./app.env
       - ./db.env
@@ -103,10 +106,13 @@ services:
     depends_on:
       - db
       - traefik
+    environment:
+      PMA_USER: root
+      PMA_PASSWORD: root
     env_file:
       - ./db.env
     volumes:
-      - ./persistence/pma:/sessions
+      - pma:/sessions
     networks:
       - db
       - proxy
@@ -132,9 +138,27 @@ services:
     labels:
       traefik.enable: "false"
 
+  selenium:
+    image: selenium/standalone-chrome-debug:3
+    environment:
+      - VNC_NO_PASSWORD=1
+    ports:
+      - "5900:5900"
+    volumes:
+      - /dev/shm:/dev/shm
+    networks:
+      - local
+      - proxy
+      - db
+    labels:
+      traefik.enable: "false"
 
 networks:
   local:
   db:
   proxy:
     driver: bridge
+
+volumes:
+  db:
+  pma:
