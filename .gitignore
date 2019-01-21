@@ -1,5 +1,6 @@
+.idea
+.tmp-id
+acme.json
+defaultcontent
 persistence
 secrets
-acme.json
-.idea
-defaultcontent

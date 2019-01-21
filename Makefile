@@ -114,6 +114,16 @@ update:
 pull:
 	docker-compose pull
 
+persistence/app:
+	mkdir -p persistence/app
+
+.PHONY: appdata
+appdata: persistence/app
+	docker cp $(shell docker create $(APP_IMAGE) | tee .tmp-id):/app/source persistence
+	docker rm -v $(shell cat .tmp-id)
+	rm -fr persistence/app
+	mv persistence/source persistence/app
+
 .PHONY : run
 run:
 	SCALE_APP=$(SCALE_APP) \
