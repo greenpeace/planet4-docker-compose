@@ -67,11 +67,11 @@ unzipimages:
 	@unzip defaultcontent/images.zip -d persistence/app/public/wp-content/uploads
 
 .PHONY: build
-build : clean test getdefaultcontent run unzipimages config flush
+build : clean lint getdefaultcontent run unzipimages config flush
 
 .PHONY: ci
 ci: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
-ci: test getdefaultcontent run config ci-copyimages flush test-codeception
+ci: lint getdefaultcontent run config ci-copyimages flush test-codeception
 
 .PHONY: ci-%
 ci-%: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
@@ -90,16 +90,16 @@ ci-copyimages: defaultcontent/images.zip
 	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q openresty):/app/source/public/wp-content/uploads
 	@echo Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads
 
-.PHONY : test
-test: test-sh test-yaml test-json
+.PHONY : lint
+lint: lint-sh lint-yaml lint-json
 
-test-sh:
+lint-sh:
 	find . -type f -name '*.sh' -not -path "./persistence/*" | xargs shellcheck
 
-test-yaml:
+lint-yaml:
 	find . -type f -name '*.yml' -not -path "./persistence/*" | xargs yamllint
 
-test-json:
+lint-json:
 	find . -type f -name '*.json' -not -path "./persistence/*" | xargs jq type
 
 .PHONY : clean
@@ -146,7 +146,7 @@ stop:
 	./stop.sh
 
 .PHONY : stateless
-stateless: clean test getdefaultcontent start-stateless config config-stateless
+stateless: clean lint getdefaultcontent start-stateless config config-stateless
 
 .PHONY: start-stateless
 start-stateless:
