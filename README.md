@@ -75,6 +75,9 @@ Firstly, check you have all the requirements on your system. For Linux users, th
 * [docker](https://docs.docker.com/engine/installation/)
 * [yarn](https://yarnpkg.com/)
 * [gulp](https://gulpjs.com/)
+* [shellcheck](https://www.shellcheck.net/)
+* [yamllint](http://www.yamllint.com/)
+* [jq](https://stedolan.github.io/jq/)
 
 For OsX and Windows users docker installation already includes docker-compose. Linux users have to install docker-compose separately:
 
