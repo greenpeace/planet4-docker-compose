@@ -17,13 +17,13 @@ $I = new AcceptanceTester($scenario);
 $I->wantTo('check home page');
 $I->amOnPage('/');
 $I->see('People Power', 'h2');
-``` 
+```
 
 There are two environments in which the tests run:
 
 * this developer environment
 * CI environment
-  * see [CircleCI configuration](https://github.com/greenpeace/planet4-base-fork/blob/codeception/.circleci/config.yml#L44) in base 
+  * see [CircleCI configuration](https://github.com/greenpeace/planet4-base-fork/blob/codeception/.circleci/config.yml#L44) in base
 
 Both of the environments start by loading the
 [default content](https://k8s.p4.greenpeace.org/defaultcontent/)
@@ -47,14 +47,33 @@ make php-shell
 From there you can run all the tests with:
 
 ```
-vendor/bin/codecept run
+tests/vendor/bin/codecept run
 ```
 
 ... or a single test:
 
 ```
-vendor/bin/codecept run tests/acceptance/HomePageCept.php
+tests/vendor/bin/codecept run tests/acceptance/HomePageCept.php
 ```
+
+### Troubleshooting
+
+* In case you don't find the Codeception binary (`tests/vendor/bin/codecept`), run:
+
+```
+cd tests
+composer install
+```
+
+Inside the PHP container you accessed through `php-shell`.
+
+* To ensure the code you changed is being tested, make sure to flush the cache between tests by typing:
+
+```
+make flush
+```
+
+In the docker-compose root.
 
 ### Test failures
 
@@ -122,7 +141,7 @@ $I->click('Some Button Text');
 
 // fill in and submit a form
 $I->submitForm('#search_form', ['s' => 'climate']);
-// 
+//
 ```
 
 Check the existing tests or see the following documentation for more useful helper methods:
@@ -157,7 +176,7 @@ $I->havePageInDatabase([
 ]);
 
 $I->amOnPage('/' . $slug);
-``` 
+```
 
 Any created database content is automatically cleaned up at the end of the test
 (although sometimes this does not happen).
