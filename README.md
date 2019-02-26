@@ -79,9 +79,11 @@ Firstly, check you have all the requirements on your system. For Linux users, th
 * [yamllint](http://www.yamllint.com/)
 * [jq](https://stedolan.github.io/jq/)
 
-For OsX and Windows users docker installation already includes docker-compose. Linux users have to install docker-compose separately:
+For OsX and Windows users docker installation already includes docker-compose.
+Linux users have to install docker-compose separately and also check the Post-installation steps:
 
 * [docker-compose](https://github.com/docker/compose/releases)
+* [post-installation](https://docs.docker.com/install/linux/linux-postinstall/)
 
 ### First run
 
