@@ -70,19 +70,20 @@ unzipimages:
 build : clean lint getdefaultcontent run unzipimages config flush
 
 .PHONY: dev
-dev : clean-dev dev-master-theme dev-plugin-blocks dev-plugin-engagingnetworks dev-plugin-medialibrary
+dev : clean-dev
+	$(MAKE) -j dev-master-theme dev-plugin-blocks dev-plugin-engagingnetworks dev-plugin-medialibrary
 
 dev-master-theme:
-	git clone https://github.com/greenpeace/planet4-master-theme.git persistence/app/public/wp-content/themes/planet4-master-theme
+	git clone --depth=1 https://github.com/greenpeace/planet4-master-theme.git persistence/app/public/wp-content/themes/planet4-master-theme
 
 dev-plugin-blocks:
-	git clone https://github.com/greenpeace/planet4-plugin-blocks.git persistence/app/public/wp-content/plugins/planet4-plugin-blocks
+	git clone --depth=1 https://github.com/greenpeace/planet4-plugin-blocks.git persistence/app/public/wp-content/plugins/planet4-plugin-blocks
 
 dev-plugin-engagingnetworks:
-	git clone https://github.com/greenpeace/planet4-plugin-engagingnetworks.git persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
+	git clone --depth=1 https://github.com/greenpeace/planet4-plugin-engagingnetworks.git persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
 
 dev-plugin-medialibrary:
-	git clone https://github.com/greenpeace/planet4-plugin-medialibrary.git persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
+	git clone --depth=1 https://github.com/greenpeace/planet4-plugin-medialibrary.git persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
 
 .PHONY: ci
 ci: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
