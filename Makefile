@@ -69,6 +69,21 @@ unzipimages:
 .PHONY: build
 build : clean lint getdefaultcontent run unzipimages config flush
 
+.PHONY: dev
+dev : clean-dev dev-master-theme dev-plugin-blocks dev-plugin-engagingnetworks dev-plugin-medialibrary
+
+dev-master-theme:
+	git clone https://github.com/greenpeace/planet4-master-theme.git persistence/app/public/wp-content/themes/planet4-master-theme
+
+dev-plugin-blocks:
+	git clone https://github.com/greenpeace/planet4-plugin-blocks.git persistence/app/public/wp-content/plugins/planet4-plugin-blocks
+
+dev-plugin-engagingnetworks:
+	git clone https://github.com/greenpeace/planet4-plugin-engagingnetworks.git persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
+
+dev-plugin-medialibrary:
+	git clone https://github.com/greenpeace/planet4-plugin-medialibrary.git persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
+
 .PHONY: ci
 ci: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
 ci: lint getdefaultcontent run config ci-copyimages flush test-codeception
@@ -105,6 +120,13 @@ lint-json:
 .PHONY : clean
 clean: cleandefaultcontent
 	./clean.sh
+
+.PHONY : clean-dev
+clean-dev:
+	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-blocks
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
 
 .PHONY : update
 update:
