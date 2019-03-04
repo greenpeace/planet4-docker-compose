@@ -125,6 +125,8 @@ ifdef NRO_REPO
 # gives us the basename of the repo e.g. "planet4-netherlands"
 NRO_DIRNAME := $(shell echo $(NRO_REPO) | sed 's/^.*\///g; s/\.git$$//g')
 NRO_BRANCH ?= develop
+NRO_APP_HOSTNAME ?= www.planet4.test
+NRO_APP_HOSTPATH ?=
 endif
 
 .PHONY: env
@@ -421,8 +423,15 @@ nro-disable:
 
 .PHONY: nro-test-codeception
 nro-test-codeception:
-	@docker-compose exec php-fpm sh -c 'cd tests && composer install --prefer-dist --no-progress'
-	@docker-compose exec php-fpm sh -c '\
-		cd sites/$(NRO_DIRNAME) && \
-		../../tests/vendor/bin/codecept run --xml=junit.xml --html \
-	'
+	@docker-compose \
+		-f $(DOCKER_COMPOSE_FILE) \
+		-f docker-compose.tools.yml \
+		run \
+		-e APP_HOSTNAME=$(NRO_APP_HOSTNAME) \
+		-e APP_HOSTPATH=$(NRO_APP_HOSTPATH) \
+		--user $(id -u):$(id -g) --rm --no-deps \
+		codeception sh -c '\
+			cd sites/$(NRO_DIRNAME) && \
+			codeceptionify.sh . && \
+			codecept run --xml=junit.xml --html \
+		'
