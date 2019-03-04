@@ -1,6 +1,7 @@
 .idea
 .tmp-id
 acme.json
+artifacts
 defaultcontent
 persistence
 secrets

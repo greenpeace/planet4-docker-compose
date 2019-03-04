@@ -212,19 +212,23 @@ endif
 .PHONY: ci-%
 ci-%: export DOCKER_COMPOSE_FILE := docker-compose.ci.yml
 
+artifacts/codeception:
+	@mkdir -p $@
+
 .PHONY: ci-extract-artifacts
-ci-extract-artifacts:
-	@mkdir -p /tmp/artifacts
-	@docker cp $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/tests/_output/. /tmp/artifacts
-	@echo Extracted artifacts into /tmp/artifacts
+ci-extract-artifacts: artifacts/codeception
+	@docker cp $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/tests/_output/. $^
+	@echo Extracted artifacts into $^
 
 .PHONY: ci-copyimages
 ci-copyimages: $(LOCAL_IMAGES)
-	@rm -rf /tmp/images
-	@unzip $(LOCAL_IMAGES) -d /tmp/images
-	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/public/wp-content/uploads
-	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q openresty):/app/source/public/wp-content/uploads
-	@echo Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads
+	$(eval TMPDIR := $(shell mktemp -d))
+	mkdir -p "$(TMPDIR)/images"
+	@unzip $(LOCAL_IMAGES) -d "$(TMPDIR)/images"
+	@docker cp "$(TMPDIR)/images/." $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/public/wp-content/uploads
+	@docker cp "$(TMPDIR)/images/." $(shell $(COMPOSE_ENV) docker-compose ps -q openresty):/app/source/public/wp-content/uploads
+	@echo "Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads"
+	@rm -fr "$TMPDIR"
 
 # ============================================================================
 
