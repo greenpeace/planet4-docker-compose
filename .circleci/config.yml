@@ -9,6 +9,9 @@ version: 2
 jobs:
   codeception:
     <<: *defaults
+    environment:
+      APP_IMAGE: gcr.io/planet-4-151612/planet4-base-app:${CIRCLE_BRANCH}
+      OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-app:${CIRCLE_BRANCH}
     steps:
       - checkout
       - restore_cache:
