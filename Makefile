@@ -239,7 +239,7 @@ test: test-codeception
 .PHONY: test-codeception
 test-codeception:
 	@docker-compose exec php-fpm sh -c 'cd tests && composer install --prefer-dist --no-progress'
-	@docker-compose exec php-fpm tests/vendor/bin/codecept run --xml=junit.xml --html
+	@docker-compose exec php-fpm tests/vendor/bin/codecept run --xml=results.xml --html
 
 .PHONY: test-codeception-failed
 test-codeception-failed:
