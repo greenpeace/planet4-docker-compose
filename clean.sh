@@ -1,15 +1,41 @@
 #!/usr/bin/env bash
-
-set -eax
+set -ea
 
 PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[.-]//g')}
-DOCKER_COMPOSE_FILE=${DOCKER_COMPOSE_FILE:-docker-compose.yml}
+
+COMPOSE_FILES=(
+  "docker-compose.yml"
+  "docker-compose.ci.yml"
+  "docker-compose.stateless.yml"
+)
+for f in "${COMPOSE_FILES[@]}"
+do
+  docker-compose -p "${PROJECT}" -f "$f" down --rmi local -v || true
+done
+
 if [ -d "persistence" ]
 then
+  echo "Deleting persistence directory ..."
   read -p "Are you sure? [y/N] " -n 1 -r
   if [[ $REPLY =~ ^[Yy]$ ]]
   then
-  	docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE}" down -v
+    echo
   	sudo rm -fr persistence
+  fi
+fi
+
+CONTENT_PATH=${CONTENT_PATH:-defaultcontent}
+
+if [ -d "${CONTENT_PATH}" ]
+then
+  echo
+  echo "Deleting ${CONTENT_PATH} directory ..."
+  read -p "Are you sure? [y/N] " -n 1 -r
+  if [[ $REPLY =~ ^[Yy]$ ]]
+  then
+    echo
+    set -x >/dev/null
+    rm -fr "${CONTENT_PATH}"
+    set +x >/dev/null
   fi
 fi
