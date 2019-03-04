@@ -3,36 +3,19 @@ set -euo pipefail
 
 PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
 
-network=${PROJECT}_proxy
-endpoint=${APP_HOSTNAME:-http://www.planet4.test}
 
-if [[ -n "${APP_HOSTPATH:-}" ]]
-then
-  endpoint="$endpoint/$APP_HOSTPATH/"
-fi
+function ping() {
+  local connect_timeout=2
+  local string=greenpeace
 
-string=greenpeace
+  local network=${PROJECT}_proxy
+  local endpoint=${APP_HOSTNAME:-http://www.planet4.test}
 
-# 6 seconds * 100 == 10+ minutes
-interval=1
-connect_timeout=5
-loop=50
+  if [[ -n "${APP_HOSTPATH:-}" ]]
+  then
+    endpoint="$endpoint/$APP_HOSTPATH/"
+  fi
 
-# Number of consecutive successes to qualify as 'up'
-threshold=3
-success=0
-
-services=(
-  "openresty"
-  "php-fpm"
-  "db"
-  "redis"
-)
-
-echo "Waiting for services to start ..."
-until [[ $success -ge $threshold ]]
-do
-  # Curl to container and expect 'greenpeace' in the response
   if docker run --network "$network" --rm appropriate/curl --connect-timeout $connect_timeout -s -k "$endpoint" | grep -s "$string" > /dev/null
   then
     success=$((success+1))
@@ -41,31 +24,59 @@ do
     echo -n "."
     success=0
   fi
+}
 
+function check_services() {
+  local services=(
+    "openresty"
+    "php-fpm"
+    "db"
+    "redis"
+  )
   for s in "${services[@]}"
   do
     if ! grep -q "$(docker-compose -p "${PROJECT}" ps -q "$s")" <<< "$(docker ps -q --no-trunc)"
     then
       echo
-      docker ps -a | >&2 grep -E "Exited.+seconds?"
+      docker ps -a | >&2 grep -E "Exited"
       echo
       docker-compose -p "${PROJECT}" logs "$s" | >&2 tail -20
       echo
       >&2 echo "ERROR: $s is not running"
       echo
-      exit 1
+      return 1
     fi
   done
+}
 
-  loop=$((loop-1))
-  if [[ $loop -lt 1 ]]
-  then
-    >&2 echo "[ERROR] Timeout waiting for docker-compose to start"
-    >&2 docker-compose -p "${PROJECT}" logs
-    exit 1
-  fi
+function wait() {
+  # ~6 seconds * 100 == 10+ minutes
+  # Actual interval varies depending on platform due to docker calls
+  local interval=1
+  local loop=120
 
-  [[ $success -ge $threshold ]] || sleep $interval
+  # Number of consecutive successes to qualify as 'up'
+  local threshold=3
+  local success=0
 
-done
+  until [[ $success -ge $threshold ]]
+  do
+    ping
+    check_services
+
+    loop=$((loop-1))
+    if [[ $loop -lt 1 ]]
+    then
+      >&2 echo "[ERROR] Timeout waiting for docker-compose to start"
+      >&2 docker-compose -p "${PROJECT}" logs
+      return 1
+    fi
+
+    [[ $success -ge $threshold ]] || sleep $interval
+  done
+}
+
+echo "Waiting for services to start ..."
+wait
 echo
+echo "All good!"
