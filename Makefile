@@ -19,6 +19,7 @@ ifeq ($(APP_HOSTPATH),<nil>)
 APP_HOSTPATH :=
 endif
 DOCKER_COMPOSE_FILE ?= docker-compose.yml
+DOCKER_COMPOSE_TOOLS_FILE ?= docker-compose.tools.yml
 
 MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
@@ -425,7 +426,7 @@ nro-disable:
 nro-test-codeception:
 	@docker-compose \
 		-f $(DOCKER_COMPOSE_FILE) \
-		-f docker-compose.tools.yml \
+		-f $(DOCKER_COMPOSE_TOOLS_FILE) \
 		run \
 		-e APP_HOSTNAME=$(NRO_APP_HOSTNAME) \
 		-e APP_HOSTPATH=$(NRO_APP_HOSTPATH) \
