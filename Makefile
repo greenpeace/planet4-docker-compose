@@ -52,10 +52,91 @@ REMOTE_IMAGES		:= $(CONTENT_BASE)/$(CONTENT_IMAGES)
 LOCAL_DB				:= $(CONTENT_PATH)/$(CONTENT_DB)
 LOCAL_IMAGES		:= $(CONTENT_PATH)/$(CONTENT_IMAGES)
 
+# ============================================================================
+
+# Check necessary commands exist
+
+CIRCLECI := $(shell command -v circleci 2> /dev/null)
+DOCKER := $(shell command -v docker 2> /dev/null)
+COMPOSER := $(shell command -v composer 2> /dev/null)
+JQ := $(shell command -v jq 2> /dev/null)
+SHELLCHECK := $(shell command -v shellcheck 2> /dev/null)
+YAMLLINT := $(shell command -v yamllint 2> /dev/null)
+
+# ============================================================================
+
+.DEFAULT_GOAL := run
+
+.PHONY: init
+init: .git/hooks/pre-commit
+
+.git/hooks/%:
+	@chmod 755 .githooks/*
+	@find .git/hooks -type l -exec rm {} \;
+	@find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
+
+# ============================================================================
+
+# SELF TESTS
+
+.PHONY : lint
+lint: init
+	@$(MAKE) -j lint-docker lint-sh lint-yaml lint-json lint-ci
+
+lint-docker:
+ifndef DOCKER
+$(error "docker is not installed: https://docs.docker.com/install/")
+endif
+	@docker run --rm -i hadolint/hadolint < ci/db/Dockerfile
+
+lint-sh:
+ifndef SHELLCHECK
+$(error "shellcheck is not installed: https://github.com/koalaman/shellcheck")
+endif
+	@find . ! -path './persistence/*' -type f -name '*.sh' | xargs shellcheck
+
+lint-yaml:
+ifndef YAMLLINT
+$(error "yamllint is not installed: https://github.com/adrienverge/yamllint")
+endif
+	@find . ! -path './persistence/*' -type f -name '*.yml' | xargs yamllint
+
+lint-json:
+ifndef JQ
+$(error "jq is not installed: https://stedolan.github.io/jq/download/")
+endif
+	@find . ! -path './persistence/*' -type f -name '*.json' | xargs jq type | grep -q '"object"'
+
+lint-ci:
+ifndef CIRCLECI
+$(error "circleci is not installed: https://circleci.com/docs/2.0/local-cli/#installation")
+endif
+	@circleci config validate >/dev/null
+
+# ============================================================================
 
 .PHONY: env
 env:
 	@echo export $(COMPOSE_ENV)
+
+# ============================================================================
+
+# CLEAN GENERATED ASSETS
+
+.PHONY : clean
+clean:
+	./clean.sh
+
+.PHONY : clean-dev
+clean-dev:
+	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-blocks
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
+
+# ============================================================================
+
+# DEFAULT CONTENT TASKS
 
 $(CONTENT_PATH):
 	mkdir -p $@
@@ -80,8 +161,23 @@ updatedefaultcontent: cleandefaultcontent getdefaultcontent
 unzipimages:
 	@unzip $(LOCAL_IMAGES) -d persistence/app/public/wp-content/uploads
 
+# ============================================================================
+
+# BUILD AND RUN: THE MEAT AND POTATOS
+
 .PHONY: build
 build : run unzipimages config flush
+
+.PHONY : run
+run: init getdefaultcontent
+	./go.sh
+	@echo "Installing Wordpress, please wait..."
+	@echo "This may take up to 10 minutes on the first run!"
+	./wait.sh
+
+# ============================================================================
+
+# DEVELOPER ENVIRONMENT
 
 .PHONY: dev
 dev : clean-dev dev-master-theme dev-plugin-blocks dev-plugin-engagingnetworks dev-plugin-medialibrary
@@ -97,6 +193,10 @@ dev-plugin-engagingnetworks:
 
 dev-plugin-medialibrary:
 	git clone https://github.com/greenpeace/planet4-plugin-medialibrary.git persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
+
+# ============================================================================
+
+# CONTINUOUS INTEGRATION TASKS
 
 .PHONY: ci
 ci: lint run config ci-copyimages flush test-codeception
@@ -118,31 +218,29 @@ ci-copyimages: $(LOCAL_IMAGES)
 	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q openresty):/app/source/public/wp-content/uploads
 	@echo Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads
 
-.PHONY : lint
-lint: lint-sh lint-yaml lint-json
 
-lint-sh:
-	find . -type f -name '*.sh' -not -path "./persistence/*" | xargs shellcheck
+# ============================================================================
 
-lint-yaml:
-	find . -type f -name '*.yml' -not -path "./persistence/*" | xargs yamllint
+# CODECEPTION TASKS
 
-lint-json:
-	find . -type f -name '*.json' -not -path "./persistence/*" | xargs jq type
+test: test-codeception
 
-.PHONY : clean
-clean:
-	./clean.sh
+.PHONY: test-codeception
+test-codeception:
+	@docker-compose exec php-fpm sh -c 'cd tests && composer install --prefer-dist --no-progress'
+	@docker-compose exec php-fpm tests/vendor/bin/codecept run --xml=junit.xml --html
 
-.PHONY : clean-dev
-clean-dev:
-	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-blocks
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
+.PHONY: test-codeception-failed
+test-codeception-failed:
+	@docker-compose exec php-fpm tests/vendor/bin/codecept run -g failed --xml=junit.xml --html
+
+# ============================================================================
+
+# KITCHEN SINK
 
 .PHONY : update
 update:
+	$(error DEPRECATED. Please run `make clean build` instead.)
 	./update.sh
 
 .PHONY : pull
@@ -158,13 +256,6 @@ appdata: persistence/app
 	docker rm -v $(shell cat .tmp-id)
 	rm -fr persistence/app
 	mv persistence/source persistence/app
-
-.PHONY : run
-run:
-	./go.sh
-	@echo "Installing Wordpress, please wait..."
-	@echo "This may take up to 10 minutes on the first run!"
-	./wait.sh
 
 .PHONY : watch
 watch:
@@ -183,6 +274,10 @@ start-stateless:
 	DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
 	./go.sh
 	./wait.sh
+
+# ============================================================================
+
+# POST INSTALL AND CONFIGURATION TASKS
 
 .PHONY: config
 config:
@@ -229,17 +324,6 @@ flush:
 .PHONY: php-shell
 php-shell:
 	@docker-compose run --rm --no-deps php-fpm bash
-
-test: test-codeception
-
-.PHONY: test-codeception
-test-codeception:
-	@docker-compose exec php-fpm sh -c 'cd tests && composer install --prefer-dist --no-progress'
-	@docker-compose exec php-fpm tests/vendor/bin/codecept run --xml=junit.xml --html
-
-.PHONY: test-codeception-failed
-test-codeception-failed:
-	@docker-compose exec php-fpm tests/vendor/bin/codecept run -g failed --xml=junit.xml --html
 
 .PHONY: revertdb
 revertdb:
