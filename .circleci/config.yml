@@ -7,17 +7,6 @@ defaults: &defaults
 version: 2
 
 jobs:
-  lint:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: make lint
-      - run:
-          name: Notify failure
-          when: on_fail
-          command: TYPE="Lint" notify-job-failure.sh
   codeception:
     <<: *defaults
     steps:
@@ -52,5 +41,4 @@ workflows:
   version: 2
   test:
     jobs:
-      - lint
       - codeception
