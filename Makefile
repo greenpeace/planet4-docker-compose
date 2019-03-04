@@ -207,7 +207,7 @@ endif
 ifndef OPENRESTY_IMAGE
 	$(error OPENRESTY_IMAGE is not set)
 endif
-	@$(MAKE) lint run config ci-copyimages flush test-codeception
+	@$(MAKE) lint run config ci-copyimages flush
 
 .PHONY: ci-%
 ci-%: export DOCKER_COMPOSE_FILE := docker-compose.ci.yml
