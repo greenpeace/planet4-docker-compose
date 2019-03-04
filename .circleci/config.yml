@@ -11,7 +11,7 @@ jobs:
     <<: *defaults
     environment:
       APP_IMAGE: gcr.io/planet-4-151612/planet4-base-app:develop
-      OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-app:develop
+      OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-openresty:develop
     steps:
       - checkout
       - restore_cache:
