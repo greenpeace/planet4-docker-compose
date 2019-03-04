@@ -170,10 +170,10 @@ build : run unzipimages config flush
 
 .PHONY : run
 run: init getdefaultcontent
-	./go.sh
+	@./go.sh
 	@echo "Installing Wordpress, please wait..."
 	@echo "This may take up to 10 minutes on the first run!"
-	./wait.sh
+	@./wait.sh
 
 # ============================================================================
 
