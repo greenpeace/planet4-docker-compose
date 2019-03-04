@@ -13,6 +13,7 @@ docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" b
 
 echo "Starting services ..."
 docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" up -d \
+  --remove-orphans \
   --scale openresty="$SCALE_OPENRESTY" \
   --scale php-fpm="$SCALE_APP"
 
