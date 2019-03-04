@@ -1,10 +1,14 @@
 SHELL := /bin/bash
 
-DEFAULTCONTENT_DB_VERSION ?= 0.1.36
-DEFAULTCONTENT_IMAGE_VERSION ?= 1-25
+CONTENT_DB_VERSION ?= 0.1.36
+CONTENT_IMAGE_VERSION ?= 1-25
 
 SCALE_OPENRESTY ?=1
 SCALE_APP ?=1
+
+export SCALE_APP
+export SCALE_OPENRESTY
+
 APP_HOSTPATH        ?= test
 # YAML interprets 'empty' values as 'nil'
 ifeq ($(APP_HOSTPATH),<nil>)
@@ -21,6 +25,7 @@ WP_USER ?= $(shell whoami)
 WP_USER_EMAIL ?= $(shell git config --get user.email)
 
 PROJECT ?= $(shell basename "$(PWD)" | sed 's/[.-]//g')
+export PROJECT
 
 # These vars are read by docker-compose
 # See https://docs.docker.com/compose/reference/envvars/
@@ -28,46 +33,55 @@ export COMPOSE_FILE = $(DOCKER_COMPOSE_FILE)
 export COMPOSE_PROJECT_NAME=$(PROJECT)
 COMPOSE_ENV := COMPOSE_FILE=$(COMPOSE_FILE) COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME)
 
-.DEFAULT_GOAL := run
 
 NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
 REWRITE := /%category%/%post_id%/%postname%/
 
-DEFAULTCONTENT_BASE ?= https://storage.googleapis.com/planet4-default-content
-DEFAULTCONTENT_DB ?= $(DEFAULTCONTENT_BASE)/planet4-defaultcontent_wordpress-v$(DEFAULTCONTENT_DB_VERSION).sql.gz
-DEFAULTCONTENT_IMAGES ?= $(DEFAULTCONTENT_BASE)/planet4-default-content-$(DEFAULTCONTENT_IMAGE_VERSION)-images.zip
+# ============================================================================
+
+CONTENT_PATH 		:= defaultcontent
+export CONTENT_PATH
+
+CONTENT_BASE 		?= https://storage.googleapis.com/planet4-default-content
+CONTENT_DB 			?= planet4-defaultcontent_wordpress-v$(CONTENT_DB_VERSION).sql.gz
+CONTENT_IMAGES 	?= planet4-default-content-$(CONTENT_IMAGE_VERSION)-images.zip
+
+REMOTE_DB				:= $(CONTENT_BASE)/$(CONTENT_DB)
+REMOTE_IMAGES		:= $(CONTENT_BASE)/$(CONTENT_IMAGES)
+
+LOCAL_DB				:= $(CONTENT_PATH)/$(CONTENT_DB)
+LOCAL_IMAGES		:= $(CONTENT_PATH)/$(CONTENT_IMAGES)
+
 
 .PHONY: env
 env:
 	@echo export $(COMPOSE_ENV)
 
-defaultcontent:
-	@mkdir -p defaultcontent
+$(CONTENT_PATH):
+	mkdir -p $@
 
-defaultcontent/db.sql.gz: defaultcontent
-	@echo "Downloading default content database from $(DEFAULTCONTENT_DB)"
-	@curl --fail $(DEFAULTCONTENT_DB) > $@
+$(LOCAL_DB): $(CONTENT_PATH)
+	curl --fail $(REMOTE_DB) > $@
 
-defaultcontent/images.zip: defaultcontent
-	@echo "Downloading default content images from $(DEFAULTCONTENT_IMAGES)"
-	@curl --fail $(DEFAULTCONTENT_IMAGES) > $@
+$(LOCAL_IMAGES): $(CONTENT_PATH)
+	curl --fail $(REMOTE_IMAGES) > $@
 
 .PHONY: getdefaultcontent
-getdefaultcontent: defaultcontent/db.sql.gz defaultcontent/images.zip
+getdefaultcontent: $(LOCAL_DB) $(LOCAL_IMAGES)
 
 .PHONY: cleandefaultcontent
 cleandefaultcontent:
-	@rm -rf defaultcontent
+	@rm -rf $(CONTENT_PATH)
 
 .PHONY: updatedefaultcontent
 updatedefaultcontent: cleandefaultcontent getdefaultcontent
 
 .PHONY: unzipimages
 unzipimages:
-	@unzip defaultcontent/images.zip -d persistence/app/public/wp-content/uploads
+	@unzip $(LOCAL_IMAGES) -d persistence/app/public/wp-content/uploads
 
 .PHONY: build
-build : clean lint getdefaultcontent run unzipimages config flush
+build : run unzipimages config flush
 
 .PHONY: dev
 dev : clean-dev dev-master-theme dev-plugin-blocks dev-plugin-engagingnetworks dev-plugin-medialibrary
@@ -85,8 +99,7 @@ dev-plugin-medialibrary:
 	git clone https://github.com/greenpeace/planet4-plugin-medialibrary.git persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
 
 .PHONY: ci
-ci: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
-ci: lint getdefaultcontent run config ci-copyimages flush test-codeception
+ci: lint run config ci-copyimages flush test-codeception
 
 .PHONY: ci-%
 ci-%: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
@@ -98,9 +111,9 @@ ci-extract-artifacts:
 	@echo Extracted artifacts into /tmp/artifacts
 
 .PHONY: ci-copyimages
-ci-copyimages: defaultcontent/images.zip
+ci-copyimages: $(LOCAL_IMAGES)
 	@rm -rf /tmp/images
-	@unzip defaultcontent/images.zip -d /tmp/images
+	@unzip $(LOCAL_IMAGES) -d /tmp/images
 	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/public/wp-content/uploads
 	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q openresty):/app/source/public/wp-content/uploads
 	@echo Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads
@@ -118,7 +131,7 @@ lint-json:
 	find . -type f -name '*.json' -not -path "./persistence/*" | xargs jq type
 
 .PHONY : clean
-clean: cleandefaultcontent
+clean:
 	./clean.sh
 
 .PHONY : clean-dev
@@ -148,14 +161,9 @@ appdata: persistence/app
 
 .PHONY : run
 run:
-	SCALE_APP=$(SCALE_APP) \
-	SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
-	PROJECT=$(PROJECT) \
 	./go.sh
 	@echo "Installing Wordpress, please wait..."
 	@echo "This may take up to 10 minutes on the first run!"
-
-	PROJECT=$(PROJECT) \
 	./wait.sh
 
 .PHONY : watch
@@ -173,17 +181,14 @@ stateless: clean lint getdefaultcontent start-stateless config config-stateless
 .PHONY: start-stateless
 start-stateless:
 	DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
-	SCALE_APP=$(SCALE_APP) \
-	SCALE_OPENRESTY=$(SCALE_OPENRESTY) \
-	PROJECT=$(PROJECT) \
 	./go.sh
-	PROJECT=$(PROJECT) \
 	./wait.sh
 
 .PHONY: config
 config:
-	docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
 	docker-compose exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
+	$(MAKE) flush
+	docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
 	docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
 	docker-compose exec php-fpm wp user update admin --user_pass=admin --role=administrator
 	docker-compose exec php-fpm wp plugin deactivate wp-stateless
@@ -225,6 +230,8 @@ flush:
 php-shell:
 	@docker-compose run --rm --no-deps php-fpm bash
 
+test: test-codeception
+
 .PHONY: test-codeception
 test-codeception:
 	@docker-compose exec php-fpm sh -c 'cd tests && composer install --prefer-dist --no-progress'
@@ -233,7 +240,6 @@ test-codeception:
 .PHONY: test-codeception-failed
 test-codeception-failed:
 	@docker-compose exec php-fpm tests/vendor/bin/codecept run -g failed --xml=junit.xml --html
-
 
 .PHONY: revertdb
 revertdb:
