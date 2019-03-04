@@ -8,6 +8,8 @@ PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
 touch acme.json
 chmod 600 acme.json
 
+docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" build
+
 docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" up -d \
   --scale openresty="$SCALE_OPENRESTY" \
   --scale php-fpm="$SCALE_APP"

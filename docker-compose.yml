@@ -30,12 +30,13 @@ services:
       traefik.enable: "false"
 
   db:
-    image: mysql:5.7
+    build:
+      context: defaultcontent
+      dockerfile: ../ci/db/Dockerfile
     env_file:
       - ./db.env
     volumes:
       - db:/var/lib/mysql
-      - ./defaultcontent:/docker-entrypoint-initdb.d
     networks:
       - db
     labels:
