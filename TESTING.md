@@ -227,3 +227,15 @@ export OPENRESTY_IMAGE=gcr.io/planet-4-151612/planet4-base-openresty:codeception
 export APP_IMAGE=gcr.io/planet-4-151612/planet4-base-app:codeception
 make ci
 ```
+
+## NRO
+
+The NRO-specific tests are a simplified version of the main tests. In particular:
+
+- only one suite (an acceptance suite named "tests")
+- mainly designed to run against the gcloud deployed environments
+- NRO repos contain no codeception configuration, only a `tests/` directory, with the tests directly in
+- when executed the codeception configuration is copied into the directory
+- configuration and dependencies are defined in [greenpeace/planet4-circleci-codeception](https://github.com/greenpeace/planet4-circleci-codeception)
+- `codeceptionify.sh <destination>` script copies the needed configuration files into `<destination>`
+- only base codeception modules are available (i.e. nothing from [lucatume/wp-browser](https://github.com/lucatume/wp-browser)) - so no direct db access or content seeding

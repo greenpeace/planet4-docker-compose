@@ -245,6 +245,42 @@ See [TESTING](TESTING.md) for more info.
 
 ---
 
+## NRO sites
+
+You can also use this setup to work on an NRO site.
+
+**First, create/edit `Makefile.include`** to contain:
+
+```
+NRO_REPO := https://github.com/greenpeace/planet4-netherlands.git
+NRO_THEME := planet4-child-theme-netherlands
+
+# optionally specify a branch, will default to "develop" otherwise
+#NRO_BRANCH := my-other-branch
+
+# by default it will test against your local docker-compose setup version
+# but you can optionally specify these variables to run the tests against
+# a deployed environment
+#NRO_APP_HOSTNAME := k8s.p4.greenpeace.org
+#NRO_APP_HOSTPATH := nl
+```
+
+**Then enable the NRO:**
+
+```
+make nro-enable
+```
+
+**And, run the tests:**
+
+```
+make nro-test-codeception
+```
+
+The tests work a bit differently to the main ones, see [TESTING#NRO](TESTING.md#NRO) for more info.
+
+---
+
 ## Configuration
 
 ### Configuring WP-Stateless GCS bucket storage
