@@ -4,6 +4,8 @@ defaults: &defaults
     - image: gcr.io/planet-4-151612/circleci-base:latest
   working_directory: /home/circleci/app
 
+version: 2
+
 jobs:
   lint:
     <<: *defaults
