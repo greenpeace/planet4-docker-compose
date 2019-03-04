@@ -22,15 +22,13 @@ jobs:
             - composer-v1
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: make ci test ci-extract-artifacts
+      - run: make ci
       - save_cache:
           key: composer-v1-{{ .Branch }}-{{ .Revision }}-{{ .BuildNum }}
           paths:
             - defaultcontent
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - var
+      - run: make test
+      - run: make ci-extract-artifacts
       - store_test_results:
           path: /tmp/artifacts
       - store_artifacts:
