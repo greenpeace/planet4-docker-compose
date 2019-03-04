@@ -199,10 +199,18 @@ dev-plugin-medialibrary:
 # CONTINUOUS INTEGRATION TASKS
 
 .PHONY: ci
-ci: lint run config ci-copyimages flush test-codeception
+ci: export DOCKER_COMPOSE_FILE := docker-compose.ci.yml
+ci:
+ifndef APP_IMAGE
+	$(error APP_IMAGE is not set)
+endif
+ifndef OPENRESTY_IMAGE
+	$(error OPENRESTY_IMAGE is not set)
+endif
+	@$(MAKE) lint run config ci-copyimages flush test-codeception
 
 .PHONY: ci-%
-ci-%: export DOCKER_COMPOSE_FILE = docker-compose.ci.yml
+ci-%: export DOCKER_COMPOSE_FILE := docker-compose.ci.yml
 
 .PHONY: ci-extract-artifacts
 ci-extract-artifacts:
@@ -217,7 +225,6 @@ ci-copyimages: $(LOCAL_IMAGES)
 	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/public/wp-content/uploads
 	@docker cp /tmp/images/. $(shell $(COMPOSE_ENV) docker-compose ps -q openresty):/app/source/public/wp-content/uploads
 	@echo Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads
-
 
 # ============================================================================
 
