@@ -14,9 +14,25 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run: make lint
+  codeception:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: make ci test ci-extract-artifacts
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - var
+      - store_test_results:
+          path: /tmp/artifacts
+      - store_artifacts:
+          path: /tmp/artifacts
 
 workflows:
   version: 2
   test:
     jobs:
       - lint
+      - codeception
