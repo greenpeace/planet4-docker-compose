@@ -22,9 +22,19 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - composer-v1-{{ .Branch }}-{{ .Revision }}-{{ .BuildNum }}
+            - composer-v1-{{ .Branch }}-{{ .Revision }}
+            - composer-v1-{{ .Branch }}
+            - composer-v1
       - setup_remote_docker:
           docker_layer_caching: true
       - run: make ci test ci-extract-artifacts
+      - save_cache:
+          key: composer-v1-{{ .Branch }}-{{ .Revision }}-{{ .BuildNum }}
+          paths:
+            - defaultcontent
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
