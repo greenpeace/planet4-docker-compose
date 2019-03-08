@@ -52,6 +52,7 @@ This repository contains needed files to set up a docker development environment
 *   [php-fpm](https://php-fpm.org/) high performance PHP FastCGI implementation
 *   [Redis](https://redis.io/) key-value store caching FastCGI, object and session data
 *   [PHPmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) for database administration
+*   [ElasticHQ](https://hub.docker.com/r/elastichq/elasticsearch-hq/) for monitoring and managing Elasticsearch cluster 
 
 By default, the quickstart command `make build` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
 
@@ -170,6 +171,10 @@ Login username is `admin` and the password is `admin`.
 ### Database access via phpMyAdmin
 
 [phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [https://pma.www.planet4.test](https://pma.www.planet4.test)
+
+### Elasticsearch access via ElasticHQ
+
+[elastichq](https://hub.docker.com/r/elastichq/elasticsearch-hq/) Access at [http://localhost:5000/](http://localhost:5000/)
 
 ---
 
