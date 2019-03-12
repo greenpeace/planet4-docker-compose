@@ -5,3 +5,4 @@ artifacts
 defaultcontent
 persistence
 secrets
+db/Dockerfile

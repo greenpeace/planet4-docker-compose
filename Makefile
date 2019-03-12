@@ -46,6 +46,8 @@ CONTENT_BASE 		?= https://storage.googleapis.com/planet4-default-content
 CONTENT_DB 			?= planet4-defaultcontent_wordpress-v$(CONTENT_DB_VERSION).sql.gz
 CONTENT_IMAGES 	?= planet4-default-content-$(CONTENT_IMAGE_VERSION)-images.zip
 
+export CONTENT_DB
+
 REMOTE_DB				:= $(CONTENT_BASE)/$(CONTENT_DB)
 REMOTE_IMAGES		:= $(CONTENT_BASE)/$(CONTENT_IMAGES)
 
@@ -83,11 +85,11 @@ init: .git/hooks/pre-commit
 lint: init
 	@$(MAKE) -j lint-docker lint-sh lint-yaml lint-json lint-ci
 
-lint-docker:
+lint-docker: db/Dockerfile
 ifndef DOCKER
 $(error "docker is not installed: https://docs.docker.com/install/")
 endif
-	@docker run --rm -i hadolint/hadolint < ci/db/Dockerfile
+	@docker run --rm -i hadolint/hadolint < db/Dockerfile
 
 lint-sh:
 ifndef SHELLCHECK
@@ -154,6 +156,7 @@ getdefaultcontent: $(LOCAL_DB) $(LOCAL_IMAGES)
 cleandefaultcontent:
 	@rm -rf $(CONTENT_PATH)
 
+
 .PHONY: updatedefaultcontent
 updatedefaultcontent: cleandefaultcontent getdefaultcontent
 
@@ -169,7 +172,8 @@ unzipimages:
 build : run unzipimages config flush
 
 .PHONY : run
-run: init getdefaultcontent
+run:
+	@$(MAKE) -j init getdefaultcontent db/Dockerfile
 	@./go.sh
 	@echo "Installing Wordpress, please wait..."
 	@echo "This may take up to 10 minutes on the first run!"
@@ -208,6 +212,9 @@ ifndef OPENRESTY_IMAGE
 	$(error OPENRESTY_IMAGE is not set)
 endif
 	@$(MAKE) lint run config ci-copyimages flush
+
+db/Dockerfile:
+	envsubst < $@.in > $@
 
 .PHONY: ci-%
 ci-%: export DOCKER_COMPOSE_FILE := docker-compose.ci.yml

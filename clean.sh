@@ -10,6 +10,7 @@ COMPOSE_FILES=(
 )
 for f in "${COMPOSE_FILES[@]}"
 do
+  # Remove containers, local images (db) and the shared volumes
   docker-compose -p "${PROJECT}" -f "$f" down --rmi local -v || true
 done
 
@@ -39,3 +40,6 @@ then
     set +x >/dev/null
   fi
 fi
+
+# Remoove generated Dockerfile
+rm -f db/Dockerfile

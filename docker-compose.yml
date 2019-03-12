@@ -32,7 +32,7 @@ services:
   db:
     build:
       context: defaultcontent
-      dockerfile: ../ci/db/Dockerfile
+      dockerfile: ../db/Dockerfile
     env_file:
       - ./db.env
     volumes:
