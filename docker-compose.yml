@@ -134,6 +134,8 @@ services:
 
   elastichq:
     image: elastichq/elasticsearch-hq
+    environment:
+      HQ_DEFAULT_URL: http://elasticsearch:9200
     networks:
       - local
     ports:
