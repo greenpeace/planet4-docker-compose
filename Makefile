@@ -33,7 +33,6 @@ export COMPOSE_FILE = $(DOCKER_COMPOSE_FILE)
 export COMPOSE_PROJECT_NAME=$(PROJECT)
 COMPOSE_ENV := COMPOSE_FILE=$(COMPOSE_FILE) COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME)
 
-
 NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
 REWRITE := /%category%/%post_id%/%postname%/
 
@@ -87,31 +86,31 @@ lint: init
 
 lint-docker: db/Dockerfile
 ifndef DOCKER
-$(error "docker is not installed: https://docs.docker.com/install/")
+	$(error "docker is not installed: https://docs.docker.com/install/")
 endif
 	@docker run --rm -i hadolint/hadolint < db/Dockerfile
 
 lint-sh:
 ifndef SHELLCHECK
-$(error "shellcheck is not installed: https://github.com/koalaman/shellcheck")
+	$(error "shellcheck is not installed: https://github.com/koalaman/shellcheck")
 endif
 	@find . ! -path './persistence/*' -type f -name '*.sh' | xargs shellcheck
 
 lint-yaml:
 ifndef YAMLLINT
-$(error "yamllint is not installed: https://github.com/adrienverge/yamllint")
+	$(error "yamllint is not installed: https://github.com/adrienverge/yamllint")
 endif
 	@find . ! -path './persistence/*' -type f -name '*.yml' | xargs yamllint
 
 lint-json:
 ifndef JQ
-$(error "jq is not installed: https://stedolan.github.io/jq/download/")
+	$(error "jq is not installed: https://stedolan.github.io/jq/download/")
 endif
 	@find . ! -path './persistence/*' -type f -name '*.json' | xargs jq type | grep -q '"object"'
 
 lint-ci:
 ifndef CIRCLECI
-$(error "circleci is not installed: https://circleci.com/docs/2.0/local-cli/#installation")
+	$(error "circleci is not installed: https://circleci.com/docs/2.0/local-cli/#installation")
 endif
 	@circleci config validate >/dev/null
 
