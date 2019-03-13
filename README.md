@@ -53,7 +53,7 @@ This repository contains needed files to set up a docker development environment
 *   [php-fpm](https://php-fpm.org/) high performance PHP FastCGI implementation
 *   [Redis](https://redis.io/) key-value store caching FastCGI, object and session data
 *   [PHPmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) for database administration
-*   [ElasticHQ](https://hub.docker.com/r/elastichq/elasticsearch-hq/) for monitoring and managing Elasticsearch cluster 
+*   [ElasticHQ](https://hub.docker.com/r/elastichq/elasticsearch-hq/) for monitoring and managing Elasticsearch cluster
 
 By default, the quickstart command `make build` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
 
@@ -262,7 +262,9 @@ The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/)
 
 ### Configuring ElasticSearch indexing
 
-Navigate to [Settings > ElasticPress > Settings](https://www.planet4.test/wp-admin/admin.php?page=elasticpress-settings) and enter `http://elasticsearch:9200` as the Host.
+The Elasticsearch host is configured during initial build. But if you want to confirm that the setting is right, navigate to [Settings > ElasticPress > Settings](https://www.planet4.test/wp-admin/admin.php?page=elasticpress-settings). The Host should be: `http://elasticsearch:9200`.
+
+Anytime you want to re-index Elasticsearch you can just run: `make elastic`.
 
 ## Environment variables
 
