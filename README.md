@@ -22,10 +22,10 @@
 - [Logging in](#logging-in)
   - [Administrator login](#administrator-login)
   - [Database access via phpMyAdmin](#database-access-via-phpmyadmin)
+  - [Elasticsearch access via ElasticHQ](#elasticsearch-access-via-elastichq)
 - [Running production containers locally](#production-containers)
 - [Default content](#default-content)
   - [Import default content](#import-default-content)
-  - [Create Wordpress admin user](#create-wordpress-admin-user)
   - [Clear cache](#clear-cache)
 - [Configuration](#configuration)
   - [Configuring WP-Stateless GCS bucket storage](#configuring-wp-stateless-gcs-bucket-storage)
@@ -39,6 +39,7 @@
   - [Port conflicts](#port-conflicts)
   - [Traefik administration interface](#traefik-administration-interface)
   - [Performance](#performance)
+- [License](#license)
 
 ## What is Planet4?
 
