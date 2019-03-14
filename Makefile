@@ -24,6 +24,8 @@ ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 WP_USER ?= $(shell whoami)
 WP_USER_EMAIL ?= $(shell git config --get user.email)
 
+ELASTICSEARCH_HOST ?= http://elasticsearch:9200/
+
 PROJECT ?= $(shell basename "$(PWD)" | sed 's/[.-]//g')
 export PROJECT
 
@@ -168,7 +170,7 @@ unzipimages:
 # BUILD AND RUN: THE MEAT AND POTATOS
 
 .PHONY: build
-build : run unzipimages config flush
+build : run unzipimages config elastic flush
 
 .PHONY : run
 run:
@@ -200,6 +202,16 @@ dev-plugin-medialibrary:
 
 # ============================================================================
 
+# ELASTICSEARCH
+
+.PHONY: elastic
+elastic: elastic-index flush
+
+elastic-index:
+	docker-compose exec php-fpm wp elasticpress index --setup --quiet --url=www.planet4.test
+
+# ============================================================================
+
 # CONTINUOUS INTEGRATION TASKS
 
 .PHONY: ci
@@ -211,7 +223,7 @@ endif
 ifndef OPENRESTY_IMAGE
 	$(error OPENRESTY_IMAGE is not set)
 endif
-	@$(MAKE) lint run config ci-copyimages flush
+	@$(MAKE) lint run config ci-copyimages elastic flush
 
 db/Dockerfile:
 	envsubst < $@.in > $@
@@ -305,6 +317,7 @@ config:
 	docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
 	docker-compose exec php-fpm wp user update admin --user_pass=admin --role=administrator
 	docker-compose exec php-fpm wp plugin deactivate wp-stateless
+	docker-compose exec php-fpm wp option update ep_host $(ELASTICSEARCH_HOST)
 
 .PHONY: config-stateless
 config-stateless:
