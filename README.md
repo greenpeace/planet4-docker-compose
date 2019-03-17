@@ -165,10 +165,10 @@ By default the planet4 master-theme and the planet4 plugins will be copies of sp
 
 In order to turn them into git repositories run the dev target.
 These folders would be turned into the respective git repositories.
-> persistence/app/public/wp-content/themes/planet4-master-theme
-> persistence/app/public/wp-content/plugins/planet4-plugin-blocks
-> persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
-> persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary 
+> - persistence/app/public/wp-content/themes/planet4-master-theme
+> - persistence/app/public/wp-content/plugins/planet4-plugin-blocks
+> - persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
+> - persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary 
 
 ```
 make dev
