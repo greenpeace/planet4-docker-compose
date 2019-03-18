@@ -354,7 +354,7 @@ flush:
 
 .PHONY: php-shell
 php-shell:
-	@docker-compose run --rm --no-deps php-fpm bash
+	@docker-compose exec php-fpm bash
 
 .PHONY: revertdb
 revertdb:
