@@ -253,7 +253,7 @@ ci-copyimages: $(LOCAL_IMAGES)
 
 # CODECEPTION TASKS
 
-test: test-codeception
+test: test-env-info test-codeception
 
 .PHONY: test-codeception
 test-codeception:
@@ -263,6 +263,12 @@ test-codeception:
 .PHONY: test-codeception-failed
 test-codeception-failed:
 	@docker-compose exec php-fpm tests/vendor/bin/codecept run -g failed --xml=junit.xml --html
+
+.PHONY: test-env-info
+test-env-info:
+	@docker-compose exec php-fpm sh -c 'echo "Wp core information" && wp core version --extra'
+	@docker-compose exec php-fpm sh -c 'echo "Themes" && wp theme list'
+	@docker-compose exec php-fpm sh -c 'echo "Plugins" && wp plugin list'
 
 # ============================================================================
 
