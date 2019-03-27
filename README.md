@@ -50,7 +50,7 @@ Planet4 is the new Greenpeace web platform.
 This repository contains needed files to set up a docker development environment that consists of:
 
 *   [MySQL](https://hub.docker.com/_/mysql/) container as database engine
-*   [Traeik](https://traefik.io) load balancing ingress controller
+*   [Traefik](https://traefik.io) load balancing ingress controller
 *   [OpenResty](https://openresty.org) dynamic web platform based on NGINX and Lua
 *   [php-fpm](https://php-fpm.org/) high performance PHP FastCGI implementation
 *   [Redis](https://redis.io/) key-value store caching FastCGI, object and session data
@@ -60,15 +60,15 @@ This repository contains needed files to set up a docker development environment
 By default, the quickstart command `make build` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
 
 *   Traefik listens on Port 80, load balancing requests to:
-*   Two OpenResty reverse proxy servers, which cache FastCGI requests from
-*   Three PHP-FPM application nodes, all backed by
-*   A single Redis instance and
+*   OpenResty reverse proxy server, caching FastCGI requests from
+*   a PHP-FPM application, all backed by
+*   Redis key-value store and
 *   MySQL database server.
-*   Self-signed SSL certificates, with HTTP > HTTPS redirection
+*   Self-signed SSL certificates, with optional HTTP > HTTPS redirection
 
 ## Quickstart
 
-*Note this repository has been tested on OSX and Linux It's extremely unlikely to work in Windows even in their Ubuntu shell, any feedback will be welcome!*
+*This repository has been tested and is working on OSX, Linux and Windows WSL (Windows Subsystem for Linux).*
 
 ### Requirements
 
