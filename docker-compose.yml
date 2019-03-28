@@ -72,6 +72,8 @@ services:
       - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-www-planet4-test}
       - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
       # - WP_VERSION=${WP_VERSION:-latest}
+      - CODECEPTION_SELENIUM_HOST=selenium
+      - CODECEPTION_SELENIUM_PORT=4444
     env_file:
       - ./app.env
       - ./db.env

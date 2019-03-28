@@ -1,3 +1,6 @@
+# include optional configuration (used for NRO configuration)
+-include Makefile.include
+
 SHELL := /bin/bash
 
 CONTENT_DB_VERSION ?= 0.1.38
@@ -16,6 +19,7 @@ ifeq ($(APP_HOSTPATH),<nil>)
 APP_HOSTPATH :=
 endif
 DOCKER_COMPOSE_FILE ?= docker-compose.yml
+DOCKER_COMPOSE_TOOLS_FILE ?= docker-compose.tools.yml
 
 MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
@@ -117,6 +121,14 @@ endif
 	@circleci config validate >/dev/null
 
 # ============================================================================
+
+ifdef NRO_REPO
+# gives us the basename of the repo e.g. "planet4-netherlands"
+NRO_DIRNAME := $(shell echo $(NRO_REPO) | sed 's/^.*\///g; s/\.git$$//g')
+NRO_BRANCH ?= develop
+NRO_APP_HOSTNAME ?= www.planet4.test
+NRO_APP_HOSTPATH ?=
+endif
 
 .PHONY: env
 env:
@@ -368,3 +380,59 @@ revertdb:
 	@docker rm $(shell $(COMPOSE_ENV) docker-compose ps -q db)
 	@docker volume rm $(COMPOSE_PROJECT_NAME)_db
 	@docker-compose up -d
+
+.PHONY: nro-enable
+nro-enable:
+	@[[ ! -z "$(NRO_REPO)" ]] || (\
+		echo "You need to specify some variables before you can use this!" && \
+		echo && \
+		echo "Create/edit a file called Makefile.include, then add:" && \
+		echo && \
+		echo "NRO_REPO := <put the Git URL for the NRO repo here>" && \
+		echo "NRO_THEME := <put the theme name for the NRO here>" && \
+		echo "NRO_BRANCH := <optionally, the branch you want, default is develop>" && \
+		echo && \
+		exit 1 \
+	)
+	@echo "NRO repo $(NRO_REPO)"
+	@echo "NRO theme $(NRO_THEME)"
+	@echo "NRO dirname $(NRO_DIRNAME)"
+	@docker-compose exec php-fpm sh -c " \
+		mkdir -p sites && \
+		(cd sites && (test -d $(NRO_DIRNAME) || git clone $(NRO_REPO) $(NRO_DIRNAME))) && \
+		(cd "sites/$(NRO_DIRNAME)" && git checkout $(NRO_BRANCH)) && \
+		composer config extra.merge-plugin.require "sites/$(NRO_DIRNAME)/composer-local.json" && \
+		composer update && \
+		composer run-script copy:themes && \
+		composer run-script copy:plugins && \
+		composer run-script plugin:activate  && \
+		composer run-script theme:activate $(NRO_THEME) \
+	"
+	@make flush
+
+.PHONY: nro-disable
+nro-disable:
+	@docker-compose exec php-fpm sh -c " \
+		composer config extra.merge-plugin.require "composer-local.json" && \
+		composer update && \
+		composer run-script copy:themes && \
+		composer run-script copy:plugins && \
+		composer run-script plugin:activate  && \
+		composer run-script theme:activate planet4-master-theme \
+	"
+	@make flush
+
+.PHONY: nro-test-codeception
+nro-test-codeception:
+	@docker-compose \
+		-f $(DOCKER_COMPOSE_FILE) \
+		-f $(DOCKER_COMPOSE_TOOLS_FILE) \
+		run \
+		-e APP_HOSTNAME=$(NRO_APP_HOSTNAME) \
+		-e APP_HOSTPATH=$(NRO_APP_HOSTPATH) \
+		--user $(id -u):$(id -g) --rm --no-deps \
+		codeception sh -c '\
+			cd sites/$(NRO_DIRNAME) && \
+			codeceptionify.sh . && \
+			codecept run --xml=junit.xml --html \
+		'

@@ -6,3 +6,4 @@ defaultcontent
 persistence
 secrets
 db/Dockerfile
+Makefile.include
