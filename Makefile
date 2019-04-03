@@ -187,6 +187,7 @@ build : run unzipimages config elastic flush
 .PHONY : run
 run:
 	@$(MAKE) -j init getdefaultcontent db/Dockerfile
+	cp ci/scripts/duplicate-db.sh defaultcontent/duplicate-db.sh
 	@./go.sh
 	@echo "Installing Wordpress, please wait..."
 	@echo "This may take up to 10 minutes on the first run!"
@@ -265,12 +266,22 @@ ci-copyimages: $(LOCAL_IMAGES)
 
 # CODECEPTION TASKS
 
-test: test-env-info test-codeception
+test: install-codeception test-env-info test-codeception
+
+.PHONY: install-codeception
+install-codeception:
+	@docker-compose exec php-fpm bash -c 'cd tests && composer install --prefer-dist --no-progress'
+
+.PHONY: test-codeception-unit
+test-codeception-unit:
+	@docker-compose exec php-fpm tests/vendor/bin/codecept run wpunit --xml=junit.xml --html --debug
+
+.PHONY: test-codeception-acceptance
+test-codeception-acceptance:
+	@docker-compose exec php-fpm tests/vendor/bin/codecept run acceptance --xml=junit.xml --html
 
 .PHONY: test-codeception
-test-codeception:
-	@docker-compose exec php-fpm sh -c 'cd tests && composer install --prefer-dist --no-progress'
-	@docker-compose exec php-fpm tests/vendor/bin/codecept run --xml=results.xml --html
+test-codeception: test-codeception-unit test-codeception-acceptance
 
 .PHONY: test-codeception-failed
 test-codeception-failed:
