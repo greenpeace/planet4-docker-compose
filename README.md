@@ -77,8 +77,8 @@ Firstly, check you have all the requirements on your system. For Linux users, th
 * [git](https://www.git-scm.com/downloads)
 * [make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work.
 * [docker](https://docs.docker.com/engine/installation/)
-* [yarn](https://yarnpkg.com/)
-* [gulp](https://gulpjs.com/)
+* [npm](https://www.npmjs.com/)
+* [gulp-cli](https://gulpjs.com/)
 * [shellcheck](https://www.shellcheck.net/)
 * [yamllint](http://www.yamllint.com/)
 * [jq](https://stedolan.github.io/jq/)
@@ -168,7 +168,7 @@ These folders would be turned into the respective git repositories.
 > - persistence/app/public/wp-content/themes/planet4-master-theme
 > - persistence/app/public/wp-content/plugins/planet4-plugin-blocks
 > - persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
-> - persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary 
+> - persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
 
 ```
 make dev
