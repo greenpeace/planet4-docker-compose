@@ -281,7 +281,7 @@ test-codeception-acceptance:
 	@docker-compose exec php-fpm tests/vendor/bin/codecept run acceptance --xml=junit.xml --html
 
 .PHONY: test-codeception
-test-codeception: test-codeception-unit test-codeception-acceptance
+test-codeception: test-codeception-acceptance
 
 .PHONY: test-codeception-failed
 test-codeception-failed:
