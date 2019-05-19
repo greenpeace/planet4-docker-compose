@@ -82,6 +82,7 @@ Firstly, check you have all the requirements on your system. For Linux users, th
 * [shellcheck](https://www.shellcheck.net/)
 * [yamllint](http://www.yamllint.com/)
 * [jq](https://stedolan.github.io/jq/)
+* [envsubst](https://stackoverflow.com/questions/23620827/envsubst-command-not-found-on-mac-os-x-10-8/23622446#23622446)
 
 For OsX and Windows users docker installation already includes docker-compose.
 Linux users have to install docker-compose separately and also check the Post-installation steps:
