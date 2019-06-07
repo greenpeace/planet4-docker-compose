@@ -77,7 +77,7 @@ services:
       - local
 
   selenium:
-    image: selenium/standalone-chrome:3
+    image: selenium/standalone-chrome:3.141.59-oxygen
     shm_size: 512M
     networks:
       - local
