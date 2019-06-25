@@ -292,6 +292,7 @@ test-env-info:
 	@docker-compose exec php-fpm sh -c 'echo "Wp core information" && wp core version --extra'
 	@docker-compose exec php-fpm sh -c 'echo "Themes" && wp theme list'
 	@docker-compose exec php-fpm sh -c 'echo "Plugins" && wp plugin list'
+	@docker-compose exec php-fpm sh -c 'echo "Greenpeace Packages" && wp option get greenpeace_packages --format=yaml'
 
 # ============================================================================
 
