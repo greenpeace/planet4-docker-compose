@@ -174,6 +174,13 @@ These folders would be turned into the respective git repositories.
 ```
 make dev
 ```
+
+If you want the repositories to be cloned using ssh protocol, instead of https, you can use a varialbe:
+
+```
+GIT_PROTO=ssh make dev
+```
+
 ---
 
 ## Logging in
