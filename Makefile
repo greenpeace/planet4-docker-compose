@@ -201,6 +201,18 @@ run:
 dev : clean-dev
 	@./dev.sh
 
+dev-install-xdebug:
+ifeq (Darwin, $(shell uname -s))
+	$(eval export XDEBUG_REMOTE_HOST=$(shell ipconfig getifaddr en0))
+else
+	$(eval export XDEBUG_REMOTE_HOST=$(shell docker network inspect ${PROJECT}_local --format '{{(index .IPAM.Config 0).Gateway }}'))
+endif
+	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install php-xdebug'
+	envsubst < dev-templates/xdebug.tmpl > dev-templates/xdebug.out
+	docker cp dev-templates/xdebug.out $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/tmp/20-xdebug.ini
+	docker-compose exec php-fpm sh -c 'mv /tmp/20-xdebug.ini /etc/php/$${PHP_MAJOR_VERSION}/fpm/conf.d/20-xdebug.ini'
+	docker-compose exec php-fpm sh -c 'service php$${PHP_MAJOR_VERSION}-fpm reload'
+
 # ============================================================================
 
 # ELASTICSEARCH
