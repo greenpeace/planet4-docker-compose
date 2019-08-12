@@ -365,6 +365,19 @@ pmapass:
 wpadmin:
 	@docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
 
+.PHONY: status
+status:
+	@docker-compose ps
+	@echo
+	@$(MAKE) pass
+	@echo
+	@echo "Site is ready!"
+	@echo " Frontend - http://www.planet4.test"
+	@echo " Backend  - http://www.planet4.test/admin"
+	@echo
+	@echo "Execute the following command to configure your local shell environment"
+	@$(MAKE) env
+
 .PHONY: flush
 flush:
 	@docker-compose exec redis redis-cli flushdb
