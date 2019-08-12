@@ -314,7 +314,7 @@ stop:
 	./stop.sh
 
 .PHONY : stateless
-stateless: clean lint getdefaultcontent start-stateless config config-stateless
+stateless: clean getdefaultcontent start-stateless config config-stateless status
 
 .PHONY: start-stateless
 start-stateless:
