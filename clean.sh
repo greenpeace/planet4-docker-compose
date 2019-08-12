@@ -16,7 +16,11 @@ done
 
 if [ -d "persistence" ]
 then
-  echo "Deleting persistence directory ..."
+  echo
+  echo "Deleting persistence directory (requires sudo to remove DB files)..."
+  echo " \$ sudo rm -fr $(pwd)/persistence"
+  echo
+
   read -p "Are you sure? [y/N] " -n 1 -r
   if [[ $REPLY =~ ^[Yy]$ ]]
   then
