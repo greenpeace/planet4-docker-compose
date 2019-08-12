@@ -288,11 +288,6 @@ test-env-info:
 
 # KITCHEN SINK
 
-.PHONY : update
-update:
-	$(error DEPRECATED. Please run `make clean build` instead.)
-	./update.sh
-
 .PHONY : pull
 pull:
 	docker-compose pull
