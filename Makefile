@@ -25,6 +25,9 @@ MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
 ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 
+WP_ADMIN_USER := admin
+WP_ADMIN_PASS := admin
+
 WP_USER ?= $(shell whoami)
 WP_USER_EMAIL ?= $(shell git config --get user.email)
 
@@ -332,7 +335,7 @@ config:
 	$(MAKE) flush
 	docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
 	docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
-	docker-compose exec php-fpm wp user update admin --user_pass=admin --role=administrator
+	docker-compose exec php-fpm wp user update $(WP_ADMIN_USER) --user_pass=$(WP_ADMIN_PASS) --role=administrator
 	docker-compose exec php-fpm wp plugin deactivate wp-stateless
 	docker-compose exec php-fpm wp option update ep_host $(ELASTICSEARCH_HOST)
 
@@ -348,9 +351,8 @@ pass:
 .PHONY : wppass
 wppass:
 	@printf "Wordpress credentials:\n"
-	@printf "User:  admin\n"
-	@printf "Pass:  "
-	@docker-compose logs php-fpm | grep Admin | cut -d':' -f2 | xargs
+	@printf "User:  %s\n" $(WP_ADMIN_USER)
+	@printf "Pass:  %s\n" $(WP_ADMIN_PASS)
 	@printf "\n"
 
 .PHONY : pmapass
