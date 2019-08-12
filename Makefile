@@ -332,12 +332,12 @@ start-stateless:
 .PHONY: config
 config:
 	docker-compose exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
-	$(MAKE) flush
 	docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
 	docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
 	docker-compose exec php-fpm wp user update $(WP_ADMIN_USER) --user_pass=$(WP_ADMIN_PASS) --role=administrator
 	docker-compose exec php-fpm wp plugin deactivate wp-stateless
 	docker-compose exec php-fpm wp option update ep_host $(ELASTICSEARCH_HOST)
+	$(MAKE) flush
 
 .PHONY: config-stateless
 config-stateless:
