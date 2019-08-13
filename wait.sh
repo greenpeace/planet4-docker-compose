@@ -3,7 +3,6 @@ set -euo pipefail
 
 PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
 
-
 function ping() {
   local connect_timeout=2
   local string=greenpeace
@@ -49,7 +48,7 @@ function check_services() {
   done
 }
 
-function wait() {
+function main() {
   # ~6 seconds * 100 == 10+ minutes
   # Actual interval varies depending on platform due to docker calls
   local interval=1
@@ -58,6 +57,8 @@ function wait() {
   # Number of consecutive successes to qualify as 'up'
   local threshold=3
   local success=0
+
+  printf "Waiting for services to start "
 
   until [[ $success -ge $threshold ]]
   do
@@ -74,9 +75,9 @@ function wait() {
 
     [[ $success -ge $threshold ]] || sleep $interval
   done
+
+  echo
+  echo "Services started successfully"
 }
 
-echo "Waiting for services to start ..."
-wait
-echo
-echo "All good!"
+main
