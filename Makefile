@@ -75,7 +75,10 @@ YAMLLINT := $(shell command -v yamllint 2> /dev/null)
 
 # ============================================================================
 
-.DEFAULT_GOAL := run
+.DEFAULT_GOAL := all
+
+.PHONY: all
+all: build run config status
 
 .PHONY: init
 init: .git/hooks/pre-commit
@@ -368,12 +371,13 @@ status:
 	@echo
 	@$(MAKE) pass
 	@echo
-	@echo "Site is ready!"
 	@echo " Frontend - http://www.planet4.test"
 	@echo " Backend  - http://www.planet4.test/admin"
 	@echo
 	@echo "Execute the following command to configure your local shell environment"
+	@echo
 	@$(MAKE) env
+	@echo
 
 .PHONY: flush
 flush:
