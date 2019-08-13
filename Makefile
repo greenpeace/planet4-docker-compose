@@ -188,8 +188,16 @@ unzipimages:
 
 # BUILD AND RUN: THE MEAT AND POTATOS
 
+.PHONY: hosts
+hosts:
+	@if ! grep -q "127.0.0.1 www.planet4.test" /etc/hosts; then \
+	echo ""; \
+	echo "Please enter your sudo password to configure the /etc/hosts file:"; \
+	echo "127.0.0.1 www.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /etc/hosts; \
+	else echo "Hosts file already configured"; fi
+
 .PHONY: build
-build : run unzipimages config elastic flush
+build : hosts run unzipimages config elastic flush
 
 .PHONY : run
 run:
