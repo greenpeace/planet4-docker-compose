@@ -11,11 +11,12 @@
 
 # Table of Contents
 
-- [What is Planet4?](#what-is-planet4)
-- [What is this repository?](#what-is-this-repository)
+- [Introduction](#introduction)
+- [Contents](#contents)
 - [Quickstart](#quickstart)
   - [Requirements](#requirements)
   - [First run](#first-run)
+  - [Troubleshooting](#troubleshooting)
   - [Run](#run)
   - [Stop](#stop)
 - [Editing source code](#editing-source-code)
@@ -41,30 +42,30 @@
   - [Performance](#performance)
 - [License](#license)
 
-## What is Planet4?
+## Introduction
 
-Planet4 is the new Greenpeace web platform.
+Planet4 is the new Greenpeace web platform. This repository attempts to provide as consistent a local development environment as possible, in accordance with [12factor](https://12factor.net) development principles.
 
-## What is this repository?
+## Contents
 
 This repository contains needed files to set up a docker development environment that consists of:
 
-*   [MySQL](https://hub.docker.com/_/mysql/) container as database engine
-*   [Traefik](https://traefik.io) load balancing ingress controller
-*   [OpenResty](https://openresty.org) dynamic web platform based on NGINX and Lua
-*   [php-fpm](https://php-fpm.org/) high performance PHP FastCGI implementation
-*   [Redis](https://redis.io/) key-value store caching FastCGI, object and session data
-*   [PHPmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) for database administration
-*   [ElasticHQ](https://hub.docker.com/r/elastichq/elasticsearch-hq/) for monitoring and managing Elasticsearch cluster
+- [MySQL](https://hub.docker.com/_/mysql/) container as database engine
+- [Traefik](https://traefik.io) load balancing ingress controller
+- [OpenResty](https://openresty.org) dynamic web platform based on NGINX and Lua
+- [php-fpm](https://php-fpm.org/) high performance PHP FastCGI implementation
+- [Redis](https://redis.io/) key-value store caching FastCGI, object and session data
+- [PHPmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) for database administration
+- [ElasticHQ](https://hub.docker.com/r/elastichq/elasticsearch-hq/) for monitoring and managing Elasticsearch cluster
 
 By default, the quickstart command `make build` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
 
-*   Traefik listens on Port 80, load balancing requests to:
-*   OpenResty reverse proxy server, caching FastCGI requests from
-*   a PHP-FPM application, all backed by
-*   Redis key-value store and
-*   MySQL database server.
-*   Self-signed SSL certificates, with optional HTTP > HTTPS redirection
+- Traefik listens on Port 80, load balancing requests to:
+- OpenResty reverse proxy server, caching FastCGI requests from
+- a PHP-FPM application, all backed by
+- Redis key-value store and
+- MySQL database server.
+- Self-signed SSL certificates, with optional HTTP > HTTPS redirection
 
 ## Quickstart
 
@@ -74,42 +75,40 @@ By default, the quickstart command `make build` is all you'll need to pull all r
 
 Firstly, check you have all the requirements on your system. For Linux users, these are either preinstalled or available through your distribution's package manager.
 
-* [git](https://www.git-scm.com/downloads)
-* [make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work.
-* [docker](https://docs.docker.com/engine/installation/)
-* [npm](https://www.npmjs.com/)
-* [gulp-cli](https://gulpjs.com/)
-* [shellcheck](https://www.shellcheck.net/)
-* [yamllint](http://www.yamllint.com/)
-* [jq](https://stedolan.github.io/jq/)
-* [envsubst](https://stackoverflow.com/questions/23620827/envsubst-command-not-found-on-mac-os-x-10-8/23622446#23622446)
+- [git](https://www.git-scm.com/downloads)
+- [make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work.
+- [docker](https://docs.docker.com/engine/installation/)
+- [npm](https://www.npmjs.com/)
+- [gulp-cli](https://gulpjs.com/)
+- [shellcheck](https://www.shellcheck.net/)
+- [yamllint](http://www.yamllint.com/)
+- [jq](https://stedolan.github.io/jq/)
+- [envsubst](https://stackoverflow.com/questions/23620827/envsubst-command-not-found-on-mac-os-x-10-8/23622446#23622446)
 
 For OsX and Windows users docker installation already includes docker-compose.
 Linux users have to install docker-compose separately and also check the Post-installation steps:
 
-* [docker-compose](https://github.com/docker/compose/releases)
-* [post-installation](https://docs.docker.com/install/linux/linux-postinstall/)
+- [docker-compose](https://github.com/docker/compose/releases)
+- [post-installation](https://docs.docker.com/install/linux/linux-postinstall/)
 
 ### First run
 
 The first time you'll need to follow the steps below, in order to clone this repo and build the containers.
 
-```
+```bash
 # Clone the repository
 git clone https://github.com/greenpeace/planet4-docker-compose
 
 # Navigate to new directory
 cd planet4-docker-compose
 
-# Mac and Linux only
-echo "127.0.0.1 www.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /etc/hosts
-
-# Start the application
-make build
+# Build containers, start and configure the application
+make
 ```
 
 If you want to run docker-compose commands directly:
-```
+
+```bash
 # Set your shell environment variables correctly
 eval $(make env)
 
@@ -120,34 +119,47 @@ docker-compose ps
 docker-compose logs -f
 ```
 
-On first launch, the container bootstraps the installation with composer then after a short time (30 seconds to 1 minute) all services will be ready and responding to requests.
+On first launch, the container bootstraps the installation with composer then after a few minutes all services will be ready and responding to requests.
 
-When you see the line `Starting service: openresty` you can navigate to: [https://www.planet4.test](https://www.planet4.test).
+When the terminal is finished, and you see the line 'ready', navigate to [https://www.planet4.test](https://www.planet4.test).
 
-**Troubleshooting**
+It's not necessary to re-run `make build` each time you wish to start the local development environment. To start containers on subsequent runs, use:
 
-If at any point the install process fails, with Composer showing a message such as `file could not be downloaded (HTTP/1.1 404 Not Found)`, this is a transient network error and re-running the install should fix the issue.
-
-### Run
-
-If you just build the containers they are already running, but every time you need to run the whole environment you just need one command:
-
-```
-make
+```bash
+make run
 ```
 
 There is also a watch command that monitors for changes on `scss` and `js` files and generates their minified counterparts:
 
-```
+```bash
 make watch
 ```
+
+### Troubleshooting
+
+To view the output of running containers:
+
+```bash
+eval $(make env)
+docker-compose logs
+```
+
+If at any point the install process fails, with Composer showing a message such as `file could not be downloaded (HTTP/1.1 404 Not Found)`, this is a transient network error and re-running the install should fix the issue.
 
 ### Stop
 
 To stop all the containers just run:
 
-```
+```bash
 make stop
+```
+
+### Updating
+
+To update all containers, run:
+
+```bash
+make run
 ```
 
 ---
@@ -171,15 +183,16 @@ These folders would be turned into the respective git repositories.
 > - persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
 > - persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
 
-```
+```bash
 make dev
 ```
 
-If you want the repositories to be cloned using ssh protocol, instead of https, you can use a varialbe:
+If you want the repositories to be cloned using ssh protocol, instead of https, you can use a variable:
 
-```
+```bash
 GIT_PROTO=ssh make dev
 ```
+
 
 ---
 
@@ -299,13 +312,13 @@ You will need a Google account with access to GCS buckets to continue.
 
 Once logged in:
 
-*   Click 'Get Started Now'
-*   Authenticate
-*   Choose 'Planet-4' project (or a custom project from your private account)
-*   Choose or create a Google Cloud Bucket - it's recommended to use a bucket name unique to your own circumstances, eg 'mynamehere-test-planet4-wordpress'
-*   Choose a region close to your work environment
-*   Skip creating a billing account (if using Greenpeace Planet 4 project)
-*   Click continue, and wait a little while for all necessary permissions and object to be created.
+- Click 'Get Started Now'
+- Authenticate
+- Choose 'Planet-4' project (or a custom project from your private account)
+- Choose or create a Google Cloud Bucket - it's recommended to use a bucket name unique to your own circumstances, eg 'mynamehere-test-planet4-wordpress'
+- Choose a region close to your work environment
+- Skip creating a billing account (if using Greenpeace Planet 4 project)
+- Click continue, and wait a little while for all necessary permissions and object to be created.
 
 Congratulations, you're now serving media files directly from GCS buckets!
 
