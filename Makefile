@@ -78,7 +78,7 @@ YAMLLINT := $(shell command -v yamllint 2> /dev/null)
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: build run config status
+all: build config status
 	@echo "Ready"
 
 .PHONY: init
