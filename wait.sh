@@ -58,6 +58,10 @@ function main() {
   local threshold=3
   local success=0
 
+  echo
+  echo "Starting P4 Wordpress docker-compose stack."
+  echo "Note, this may take up to 10 minutes on the first run!"
+  echo
   printf "Waiting for services to start "
 
   until [[ $success -ge $threshold ]]

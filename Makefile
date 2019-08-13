@@ -79,6 +79,7 @@ YAMLLINT := $(shell command -v yamllint 2> /dev/null)
 
 .PHONY: all
 all: build run config status
+	@echo "Ready"
 
 .PHONY: init
 init: .git/hooks/pre-commit
@@ -195,8 +196,6 @@ run:
 	@$(MAKE) -j init getdefaultcontent db/Dockerfile
 	cp ci/scripts/duplicate-db.sh defaultcontent/duplicate-db.sh
 	@./go.sh
-	@echo "Installing Wordpress, please wait..."
-	@echo "This may take up to 10 minutes on the first run!"
 	@./wait.sh
 
 # ============================================================================
