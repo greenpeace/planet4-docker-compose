@@ -38,7 +38,7 @@ export PROJECT
 
 # These vars are read by docker-compose
 # See https://docs.docker.com/compose/reference/envvars/
-export COMPOSE_FILE = $(DOCKER_COMPOSE_FILE)
+export COMPOSE_FILE = $(PWD)/$(DOCKER_COMPOSE_FILE)
 export COMPOSE_PROJECT_NAME=$(PROJECT)
 COMPOSE_ENV := COMPOSE_FILE=$(COMPOSE_FILE) COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME)
 
