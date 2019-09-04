@@ -38,7 +38,7 @@ export PROJECT
 
 # These vars are read by docker-compose
 # See https://docs.docker.com/compose/reference/envvars/
-export COMPOSE_FILE = $(DOCKER_COMPOSE_FILE)
+export COMPOSE_FILE = $(PWD)/$(DOCKER_COMPOSE_FILE)
 export COMPOSE_PROJECT_NAME=$(PROJECT)
 COMPOSE_ENV := COMPOSE_FILE=$(COMPOSE_FILE) COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME)
 
@@ -69,7 +69,6 @@ LOCAL_IMAGES		:= $(CONTENT_PATH)/$(CONTENT_IMAGES)
 CIRCLECI := $(shell command -v circleci 2> /dev/null)
 DOCKER := $(shell command -v docker 2> /dev/null)
 COMPOSER := $(shell command -v composer 2> /dev/null)
-JQ := $(shell command -v jq 2> /dev/null)
 SHELLCHECK := $(shell command -v shellcheck 2> /dev/null)
 YAMLLINT := $(shell command -v yamllint 2> /dev/null)
 
@@ -95,7 +94,7 @@ init: .git/hooks/pre-commit
 
 .PHONY : lint
 lint: init
-	@$(MAKE) -j lint-docker lint-sh lint-yaml lint-json lint-ci
+	@$(MAKE) -j lint-docker lint-sh lint-yaml lint-ci
 
 lint-docker: db/Dockerfile
 ifndef DOCKER
@@ -114,12 +113,6 @@ ifndef YAMLLINT
 	$(error "yamllint is not installed: https://github.com/adrienverge/yamllint")
 endif
 	@find . ! -path './persistence/*' -type f -name '*.yml' | xargs yamllint
-
-lint-json:
-ifndef JQ
-	$(error "jq is not installed: https://stedolan.github.io/jq/download/")
-endif
-	@find . ! -path './persistence/*' -type f -name '*.json' | xargs jq type | grep -q '"object"'
 
 lint-ci:
 ifndef CIRCLECI
