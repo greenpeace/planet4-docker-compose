@@ -6,9 +6,9 @@
 
 ![Planet4](https://cdn-images-1.medium.com/letterbox/300/36/50/50/1*XcutrEHk0HYv-spjnOej2w.png?source=logoAvatar-ec5f4e3b2e43---fded7925f62)
 
-<!-- TOC: doctoc README.md -->
-<!-- https://github.com/thlorenz/doctoc -->
-
+<!-- Run this command to update TOC: doctoc --title '# Table of Contents' README.md -->
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Table of Contents
 
 - [Introduction](#introduction)
@@ -17,17 +17,19 @@
   - [Requirements](#requirements)
   - [First run](#first-run)
   - [Troubleshooting](#troubleshooting)
-  - [Run](#run)
   - [Stop](#stop)
+  - [Updating](#updating)
 - [Editing source code](#editing-source-code)
 - [Logging in](#logging-in)
   - [Administrator login](#administrator-login)
   - [Database access via phpMyAdmin](#database-access-via-phpmyadmin)
   - [Elasticsearch access via ElasticHQ](#elasticsearch-access-via-elastichq)
-- [Running production containers locally](#production-containers)
-- [Default content](#default-content)
+- [Production Containers](#production-containers)
+- [Default Content](#default-content)
   - [Import default content](#import-default-content)
-  - [Clear cache](#clear-cache)
+  - [Clear caches](#clear-caches)
+- [Testing](#testing)
+- [NRO sites](#nro-sites)
 - [Configuration](#configuration)
   - [Configuring WP-Stateless GCS bucket storage](#configuring-wp-stateless-gcs-bucket-storage)
   - [Configuring FastCGI cache purges](#configuring-fastcgi-cache-purges)
@@ -36,11 +38,13 @@
   - [Some useful variables](#some-useful-variables)
   - [Development mode](#development-mode)
 - [Notes](#notes)
-  - [Updating](#updating)
+  - [Updating](#updating-1)
   - [Port conflicts](#port-conflicts)
   - [Traefik administration interface](#traefik-administration-interface)
   - [Performance](#performance)
 - [License](#license)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Introduction
 
