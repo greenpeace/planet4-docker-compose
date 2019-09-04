@@ -393,13 +393,13 @@ flush:
 
 .PHONY: php-shell
 php-shell:
+	@docker stop $(shell $(COMPOSE_ENV) docker-compose ps -q db)
+	@docker rm $(shell $(COMPOSE_ENV) docker-compose ps -q db)
+	@docker volume rm $(COMPOSE_PROJECT_NAME)_db
 	@docker-compose exec php-fpm bash
 
 .PHONY: revertdb
 revertdb:
-	@docker stop $(shell $(COMPOSE_ENV) docker-compose ps -q db)
-	@docker rm $(shell $(COMPOSE_ENV) docker-compose ps -q db)
-	@docker volume rm $(COMPOSE_PROJECT_NAME)_db
 	@docker-compose up -d
 
 .PHONY: nro-enable
