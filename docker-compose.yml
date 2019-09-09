@@ -8,6 +8,7 @@ services:
       proxy:
         aliases:
           - ${APP_HOSTNAME:-www.planet4.test}
+          - www.planet4.fnord
     ports:
       - "80:80"
       - "443:443"
@@ -99,10 +100,11 @@ services:
       - REDIS_FASTCGI_CACHE_ENABLED=true
       - PHP_ENABLED=true
     labels:
-      traefik.backend: "test"
-      traefik.frontend.rule: "Host:${APP_HOSTNAME:-www.planet4.test}"
-      traefik.docker.network: "planet4dockercompose_proxy"
-      traefik.enable: "true"
+      - "traefik.backend=test"
+      - "traefik.foo.frontend.rule=Host:${APP_HOSTNAME:-www.planet4.test}"
+      - "traefik.bar.frontend.rule=Host:www.planet4.fnord"
+      - "traefik.docker.network=planet4dockercompose_proxy"
+      - "traefik.enable=true"
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:4.7
