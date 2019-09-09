@@ -1,0 +1,9 @@
+zend_extension=xdebug.so
+xdebug.remote_host=${XDEBUG_REMOTE_HOST}
+xdebug.remote_port=9010
+xdebug.remote_enable=1
+xdebug.remote_handler=dbgp
+xdebug.profiler_enable=0;
+xdebug.profiler_enable_trigger=1;
+xdebug.profiler_output_dir="/app/source"
+xdebug.profiler_output_name="cachegrind.out.%t-%s-%R"
