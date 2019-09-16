@@ -6,4 +6,5 @@ defaultcontent
 persistence
 secrets
 db/Dockerfile
+hosts.backup
 Makefile.include

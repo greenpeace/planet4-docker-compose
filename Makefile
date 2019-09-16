@@ -183,10 +183,13 @@ unzipimages:
 
 .PHONY: hosts
 hosts:
-	@if ! grep -q "127.0.0.1 www.planet4.test" /etc/hosts; then \
+	@if ! grep -q "127.0.0.1[[:space:]]\+www.planet4.test" /etc/hosts; then \
+	cp /etc/hosts hosts.backup; \
+	echo "Your hosts file has been backed up to $(PWD)/'hosts.backup'"; \
 	echo ""; \
-	echo "Please enter your sudo password to configure the /etc/hosts file:"; \
-	echo "127.0.0.1 www.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /etc/hosts; \
+	echo "May require sudo password to configure the /etc/hosts file ..."; \
+	echo ""; \
+	echo -e "# Planet4 local development environment\n127.0.0.1\twww.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /etc/hosts; \
 	else echo "Hosts file already configured"; fi
 
 .PHONY: build
