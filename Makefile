@@ -169,7 +169,6 @@ getdefaultcontent: $(LOCAL_DB) $(LOCAL_IMAGES)
 cleandefaultcontent:
 	@rm -rf $(CONTENT_PATH)
 
-
 .PHONY: updatedefaultcontent
 updatedefaultcontent: cleandefaultcontent getdefaultcontent
 
@@ -188,8 +187,7 @@ hosts:
 	echo "Your hosts file has been backed up to $(PWD)/'hosts.backup'"; \
 	echo ""; \
 	echo "May require sudo password to configure the /etc/hosts file ..."; \
-	echo ""; \
-	echo -e "# Planet4 local development environment\n127.0.0.1\twww.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /etc/hosts; \
+	echo -e "\n# Planet4 local development environment\n127.0.0.1\twww.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /etc/hosts; \
 	else echo "Hosts file already configured"; fi
 
 .PHONY: build
