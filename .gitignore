@@ -8,3 +8,4 @@ secrets
 db/Dockerfile
 hosts.backup
 Makefile.include
+xdebug.out
