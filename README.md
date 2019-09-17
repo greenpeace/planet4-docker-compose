@@ -84,8 +84,6 @@ Firstly, check you have all the requirements on your system. For Linux users, th
 - [docker](https://docs.docker.com/engine/installation/)
 - [npm](https://www.npmjs.com/)
 - [gulp-cli](https://gulpjs.com/)
-- [shellcheck](https://www.shellcheck.net/)
-- [yamllint](http://www.yamllint.com/)
 - [envsubst](https://stackoverflow.com/questions/23620827/envsubst-command-not-found-on-mac-os-x-10-8/23622446#23622446)
 
 For OsX and Windows users docker installation already includes docker-compose.
@@ -93,6 +91,13 @@ Linux users have to install docker-compose separately and also check the Post-in
 
 - [docker-compose](https://github.com/docker/compose/releases)
 - [post-installation](https://docs.docker.com/install/linux/linux-postinstall/)
+
+### Contributor requirements
+
+The following tools are required to contribute to this repository
+
+- [shellcheck](https://www.shellcheck.net/)
+- [yamllint](http://www.yamllint.com/)
 
 ### First run
 
