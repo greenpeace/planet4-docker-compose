@@ -68,6 +68,7 @@ LOCAL_IMAGES		:= $(CONTENT_PATH)/$(CONTENT_IMAGES)
 
 CIRCLECI := $(shell command -v circleci 2> /dev/null)
 DOCKER := $(shell command -v docker 2> /dev/null)
+ENVSUBST := $(shell command -v envsubst 2> /dev/null)
 COMPOSER := $(shell command -v composer 2> /dev/null)
 SHELLCHECK := $(shell command -v shellcheck 2> /dev/null)
 YAMLLINT := $(shell command -v yamllint 2> /dev/null)
@@ -214,6 +215,9 @@ ifeq (Darwin, $(shell uname -s))
 else
 	$(eval export XDEBUG_REMOTE_HOST=$(shell docker network inspect ${PROJECT}_local --format '{{(index .IPAM.Config 0).Gateway }}'))
 endif
+ifndef ENVSUBST
+	$(error Command: 'envsubst' not found, please install using your package manager)
+endif
 	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install php-xdebug'
 	envsubst < dev-templates/xdebug.tmpl > dev-templates/xdebug.out
 	docker cp dev-templates/xdebug.out $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/tmp/20-xdebug.ini
@@ -246,6 +250,9 @@ endif
 	@$(MAKE) lint run config ci-copyimages elastic flush
 
 db/Dockerfile:
+ifndef ENVSUBST
+	$(error Command: 'envsubst' not found, please install using your package manager)
+endif
 	envsubst < $@.in > $@
 
 .PHONY: ci-%
