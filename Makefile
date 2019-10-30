@@ -146,8 +146,8 @@ clean:
 .PHONY : clean-dev
 clean-dev:
 	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-blocks
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-engagingnetworks
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-engagingnetworks
 	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
 
 # ============================================================================
