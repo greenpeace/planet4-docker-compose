@@ -1,8 +1,6 @@
 # Testing
 
-For acceptance testing we use
-[codeception](https://codeception.com/)together with
-[WPBrowser](https://codeception.com/for/wordpress) for closer integration with WordPress.
+For acceptance testing we use [codeception](https://codeception.com/) together with [WPBrowser](https://codeception.com/for/wordpress) for closer integration with WordPress.
 
 Features:
 * directly read/write to the WordPress database
@@ -25,14 +23,17 @@ There are two environments in which the tests run:
 * CI environment
   * see [CircleCI configuration](https://github.com/greenpeace/planet4-base-fork/blob/codeception/.circleci/config.yml#L44) in base
 
-Both of the environments start by loading the
-[default content](https://k8s.p4.greenpeace.org/defaultcontent/)
-so you can write tests against that content.
+Both of the environments start by loading the [default content](https://k8s.p4.greenpeace.org/defaultcontent/) so you can write tests against that content.
 
 ## Running tests
 
-If you docker-compose development environment is already up
-(see [README](README.md) and running you can run them with:
+Assuming you docker-compose development environment is already up (see [README](README.md) and running, you first need to install test dependencies. This only needs to happen once:
+
+```
+make test
+```
+
+To run the tests next time just run:
 
 ```
 make test-codeception
