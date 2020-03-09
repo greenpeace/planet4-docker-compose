@@ -143,13 +143,6 @@ env:
 clean:
 	./clean.sh
 
-.PHONY : clean-dev
-clean-dev:
-	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-engagingnetworks
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-medialibrary
-
 # ============================================================================
 
 # DEFAULT CONTENT TASKS
@@ -192,9 +185,9 @@ hosts:
 	else echo "Hosts file already configured"; fi
 
 .PHONY: build
-build : hosts run unzipimages config elastic flush
+build: hosts run unzipimages config elastic flush
 
-.PHONY : run
+.PHONY: run
 run:
 	@$(MAKE) -j init getdefaultcontent db/Dockerfile
 	cp ci/scripts/duplicate-db.sh defaultcontent/duplicate-db.sh
@@ -206,8 +199,15 @@ run:
 # DEVELOPER ENVIRONMENT
 
 .PHONY: dev
-dev : clean-dev
-	@./dev.sh
+dev: hosts run unzipimages config repos elastic flush status
+	@echo "Ready"
+
+.PHONY: repos
+repos:
+	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks
+	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-engagingnetworks
+	@./repos.sh
 
 dev-install-xdebug:
 ifeq (Darwin, $(shell uname -s))
@@ -352,7 +352,6 @@ start-stateless:
 config:
 	docker-compose exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
 	docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
-	docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
 	docker-compose exec php-fpm wp user update $(WP_ADMIN_USER) --user_pass=$(WP_ADMIN_PASS) --role=administrator
 	docker-compose exec php-fpm wp plugin deactivate wp-stateless
 	docker-compose exec php-fpm wp option update ep_host $(ELASTICSEARCH_HOST)
