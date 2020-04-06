@@ -1,59 +1,66 @@
-# Testing
+---
+description: Testing functionality with Acceptance tests
+---
+
+# Acceptance Tests
 
 For acceptance testing we use [codeception](https://codeception.com/) together with [WPBrowser](https://codeception.com/for/wordpress) for closer integration with WordPress.
 
 Features:
-* directly read/write to the WordPress database
-* run in a full browser environment via selenium
-* use the high level codeception API for writing simple tests
+
+- directly read/write to the WordPress database
+- run in a full browser environment via selenium
+- use the high level codeception API for writing simple tests
 
 A very simple test might look like this:
 
 ```php
 <?php
-$I = new AcceptanceTester($scenario);
-$I->wantTo('check home page');
-$I->amOnPage('/');
-$I->see('People Power', 'h2');
+  $I = new AcceptanceTester($scenario);
+  $I->wantTo('check home page');
+  $I->amOnPage('/');
+  $I->see('People Power', 'h2');
 ```
 
 There are two environments in which the tests run:
 
-* this developer environment
-* CI environment
-  * see [CircleCI configuration](https://github.com/greenpeace/planet4-base-fork/blob/codeception/.circleci/config.yml#L44) in base
+- this developer environment
+- CI environment
+  - see [CircleCI configuration](https://github.com/greenpeace/planet4-base-fork/blob/master/.circleci/config.yml#L44) in base
 
 Both of the environments start by loading the [default content](https://k8s.p4.greenpeace.org/defaultcontent/) so you can write tests against that content.
 
-## Running tests
+## Running tests locally
 
-Assuming you docker-compose development environment is already up (see [README](README.md) and running, you first need to install test dependencies. This only needs to happen once:
+Assuming your local docker-compose development environment is already up and running, you first need to install test dependencies.
 
-```
+This only needs to happen once:
+
+```bash
 make test
 ```
 
 To run the tests next time just run:
 
-```
+```bash
 make test-codeception
 ```
 
 If you want to run individual tests it's easiest to get a php shell inside a docker container:
 
-```
+```bash
 make php-shell
 ```
 
 From there you can run all the tests with:
 
-```
+```bash
 tests/vendor/bin/codecept run
 ```
 
-... or a single test:
+or a single test:
 
-```
+```bash
 tests/vendor/bin/codecept run tests/acceptance/HomePageCept.php
 ```
 
@@ -61,16 +68,16 @@ tests/vendor/bin/codecept run tests/acceptance/HomePageCept.php
 
 * In case you don't find the Codeception binary (`tests/vendor/bin/codecept`), run:
 
-```
+```bash
 cd tests
 composer install
 ```
 
 Inside the PHP container you accessed through `php-shell`.
 
-* To ensure the code you changed is being tested, make sure to flush the cache between tests by typing:
+To ensure the code you changed is being tested, make sure to flush the cache between tests by typing:
 
-```
+```bash
 make flush
 ```
 
@@ -80,13 +87,13 @@ In the docker-compose root.
 
 If a test fails you'll get a screenshot plus the HTML of the page inside:
 
-```
+```bash
 persistence/app/tests/_output/
 ```
 
 You can also rerun just the failed tests with:
 
-```
+```bash
 vendor/bin/codecept run -g failed
 ```
 
@@ -94,7 +101,7 @@ vendor/bin/codecept run -g failed
 
 You can watch the browser live as it runs the tests by connecting a VNC client to:
 
-```
+```bash
 localhost:5900
 ```
 
@@ -127,12 +134,12 @@ $I->seeElement('.page-header');
 
 // ... or an element with a particular attribute
 $I->seeElement('.cat-gallery img', [
-    'src' => 'http://www.planet4.test/wp-content/uploads/2018/05/my-cat.jpg']
+  'src' => 'http://www.planet4.test/wp-content/uploads/2018/05/my-cat.jpg']
 );
 
 // check is link is present
 $I->seeLink('Facebook', 'https://www.facebook.com/greenpeace.international');
-````
+```
 
 There might be further interaction with the page:
 
@@ -147,9 +154,9 @@ $I->submitForm('#search_form', ['s' => 'climate']);
 
 Check the existing tests or see the following documentation for more useful helper methods:
 
-* [codeception.com/docs/modules/WebDriver#Actions](https://codeception.com/docs/modules/WebDriver#Actions)
-* [github.com/lucatume/wp-browser/blob/master/README.md#wpdb-module](https://github.com/lucatume/wp-browser/blob/master/README.md#wpdb-module)
-* [github.com/lucatume/wp-browser/blob/master/src/Codeception/Module/WPDb.php](https://github.com/lucatume/wp-browser/blob/master/src/Codeception/Module/WPDb.php)
+- [WebDriver Actions](https://codeception.com/docs/modules/WebDriver#Actions)
+- [wpdb-module](https://github.com/lucatume/wp-browser/blob/master/README.md#wpdb-module)
+- [WPDb.php](https://github.com/lucatume/wp-browser/blob/master/src/Codeception/Module/WPDb.php)
 
 ### Creating content during the test
 
@@ -187,14 +194,14 @@ Any created database content is automatically cleaned up at the end of the test
 If you want to reuse some functionality across tests you can
 add helpers to the `AcceptanceTester` class in:
 
-```
+```bash
 persistence/app/tests/_support/AcceptanceTester.php
 ```
 
 If the helper is just a function and doesn't need to make use of the `$I` tester
 then you can put them in:
 
-```
+```bash
 persistence/app/tests/_support/Helper/Acceptance.php
 ```
 
@@ -206,24 +213,24 @@ You can cause codeception to print out debug variables with:
 codecept_debug($somevariable);
 ```
 
-... and then run codeception with the `--debug` flag:
+and then run codeception with the `--debug` flag:
 
-```
+```bash
 vendor/bin/codecept run --debug tests/acceptance/YourTestCept.php
 ```
 
 ## CI
 
 The tests run in a similar way inside CI, the main differences are:
-* it uses the images that were built inside CI and pushed to gcloud
-* there are no docker-compose mounts so it's all self contained
-* no ports are exposed
 
-If you are debugging a problem with the CI setup,
-you can run the same command locally
+- it uses the images that were built inside CI and pushed to gcloud
+- there are no docker-compose mounts so it's all self contained
+- no ports are exposed
+
+If you are debugging a problem with the CI setup, you can run the same command locally.
 if you tell it where get the APP/OPENRESTY images from:
 
-```
+```bash
 export OPENRESTY_IMAGE=gcr.io/planet-4-151612/planet4-base-openresty:codeception
 export APP_IMAGE=gcr.io/planet-4-151612/planet4-base-app:codeception
 make ci

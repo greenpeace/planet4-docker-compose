@@ -87,7 +87,7 @@ For Linux users, these are either preinstalled or available through your distrib
 
 Linux users may need to do some [post-installation steps](https://docs.docker.com/install/linux/linux-postinstall/) to give docker permissions to user.
 
-<details><summary>Requirments installation notes for Ubuntu Linux</summary>
+<details><summary>Requirments installation notes for Ubuntu/Debian Linux</summary>
 
    ```bash
    # install basic packages
