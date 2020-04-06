@@ -1,10 +1,6 @@
-# Greenpeace Planet4 docker development environment
+# Greenpeace Planet 4 docker development environment
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/aa88aacdd6f7424682eb53a8711e419e)](https://app.codacy.com/app/Greenpeace/planet4-docker-compose?utm_source=github.com&utm_medium=referral&utm_content=greenpeace/planet4-docker-compose&utm_campaign=Badge_Grade_Settings) [![CircleCI](https://circleci.com/gh/greenpeace/planet4-docker-compose/tree/master.svg?style=shield)](https://circleci.com/gh/greenpeace/planet4-docker-compose/tree/master)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fgreenpeace%2Fplanet4-docker-compose.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fgreenpeace%2Fplanet4-docker-compose?ref=badge_shield)
-
-
-![Planet4](https://cdn-images-1.medium.com/letterbox/300/36/50/50/1*XcutrEHk0HYv-spjnOej2w.png?source=logoAvatar-ec5f4e3b2e43---fded7925f62)
+![Planet4](./planet4.png)
 
 <!-- Run this command to update TOC: doctoc --title '# Table of Contents' README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -49,7 +45,7 @@
 
 ## Introduction
 
-Planet4 is the new Greenpeace web platform. This repository attempts to provide as consistent a local development environment as possible, in accordance with [12factor](https://12factor.net) development principles.
+Planet 4 is the new Greenpeace web platform. This repository attempts to provide as consistent a local development environment as possible, in accordance with [12factor](https://12factor.net) development principles.
 
 ## Contents
 
@@ -220,8 +216,6 @@ make run
 
 From here, you can download a database export from GCS (for example: https://console.cloud.google.com/storage/browser/planet4-flibble-db-backup?project=planet-4-151612) and visit [phpMyAdmin](http://pma.www.planet4.test) to perform the import.
 
----
-
 ## Default Content
 
 ### Import default content
@@ -350,15 +344,13 @@ Document some of the useful builtin configuration options available in upstream 
 -   exec function limits
 -   Memory and performance tweaks
 
----
-
 ## Notes
 
 ### Updating
 
 To ensure you're running the latest version of both the infrastructure and the application you can just build all containers again. **Keep in mind that this deletes the persistence folder and therefor all you local code changes to the application.**
 
-```
+```bash
 make build
 ```
 
@@ -374,7 +366,7 @@ This one simple command will ensure you're always running the latest version of 
 
 Also, be aware that if you've only recently pushed new code to the repository there may be a delay of up to 30 minutes before the composer registry is updated.  You can always enter the relevant code directory and perform a `git pull` within the appropriate branch to speed things up.
 
-```
+```bash
 make clean
 make pull
 make run
@@ -424,4 +416,5 @@ To be continued...
 
 
 ## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fgreenpeace%2Fplanet4-docker-compose.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fgreenpeace%2Fplanet4-docker-compose?ref=badge_large)
+
+[GPL-3.0](LICENSE)
