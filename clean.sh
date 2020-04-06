@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -ea
 
-PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[.-]//g')}
+PROJECT=${PROJECT:-planet4)}
 
 COMPOSE_FILES=(
   "docker-compose.yml"

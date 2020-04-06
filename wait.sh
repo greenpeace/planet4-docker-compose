@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
+PROJECT=${PROJECT:-planet4}
 
 function ping() {
   local connect_timeout=2

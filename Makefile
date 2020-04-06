@@ -33,7 +33,7 @@ WP_USER_EMAIL ?= $(shell git config --get user.email)
 
 ELASTICSEARCH_HOST ?= http://elasticsearch:9200/
 
-PROJECT ?= $(shell basename "$(PWD)" | sed 's/[.-]//g')
+PROJECT ?= planet4
 export PROJECT
 
 # These vars are read by docker-compose
