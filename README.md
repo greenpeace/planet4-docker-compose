@@ -59,7 +59,7 @@ This repository contains needed files to set up a docker development environment
 - [PHPmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) for database administration
 - [ElasticHQ](https://hub.docker.com/r/elastichq/elasticsearch-hq/) for monitoring and managing Elasticsearch cluster
 
-By default, the quickstart command `make build` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
+By default, the quickstart command `make dev` is all you'll need to pull all required images and spin up a load balanced nginx/php/redis/mysql web application with automatic SSL generation in the comfort of your own office.
 
 - Traefik listens on Port 80, load balancing requests to:
 - OpenResty reverse proxy server, caching FastCGI requests from
@@ -70,23 +70,48 @@ By default, the quickstart command `make build` is all you'll need to pull all r
 
 ## Quickstart
 
-*This repository has been tested and is working on OSX, Linux and Windows WSL (Windows Subsystem for Linux).*
+*This repository has been tested and is working well on Linux and OSX. It should work on Windows WSL (Windows Subsystem for Linux), but not thoroughly tested*
 
 ### Requirements
 
-Firstly, check you have all the requirements on your system. For Linux users, these are either preinstalled or available through your distribution's package manager.
+Firstly, check you have all the requirements on your system.\
+For Linux users, these are either preinstalled or available through your distribution's package manager.
 
 - [git](https://www.git-scm.com/downloads)
-- [make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work.
+- [make](https://www.gnu.org/software/make/) - Instructions for installing make vary, for OSX users `xcode-select --install` might work
 - [docker](https://docs.docker.com/engine/installation/)
+- [docker-compose](https://github.com/docker/compose/releases) - This should be installed along with docker on OSX and Windows
 - [npm](https://www.npmjs.com/)
-- [envsubst](https://stackoverflow.com/questions/23620827/envsubst-command-not-found-on-mac-os-x-10-8/23622446#23622446)
+- [envsubst](https://stackoverflow.com/questions/23620827/envsubst-command-not-found-on-mac-os-x-10-8/23622446#23622446) - This should be pre-installed on most Linux distributions
+- `php-xml` and `php-mbstring` extensions
 
-For OsX and Windows users docker installation already includes docker-compose.
-Linux users have to install docker-compose separately and also check the Post-installation steps:
+Linux users may need to do some [post-installation steps](https://docs.docker.com/install/linux/linux-postinstall/) to give docker permissions to user.
 
-- [docker-compose](https://github.com/docker/compose/releases)
-- [post-installation](https://docs.docker.com/install/linux/linux-postinstall/)
+<details><summary>Requirments installation notes for Ubuntu Linux</summary>
+
+   ```bash
+   # install basic packages
+   sudo apt install -y curl git make
+
+   # install php packages
+   sudo apt install -y composer php-xml php-mbstring
+
+   # install node and npm
+   curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+   sudo apt install -y nodejs
+
+   # install docker
+   sudo apt install -y docker.io
+
+   # install docker-compose
+   sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   sudo chmod +x /usr/local/bin/docker-compose
+
+   # allow user to run docker
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
+</details>
 
 ### Contributor requirements
 
