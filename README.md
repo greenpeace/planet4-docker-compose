@@ -148,10 +148,10 @@ If you want to run docker-compose commands directly:
 eval $(make env)
 
 # View status of containers
-docker-compose -p planet4 ps
+docker-compose ps
 
 # View log output
-docker-compose -p planet4 logs -f
+docker-compose logs -f
 ```
 
 On first launch, the container bootstraps the installation with composer then after a few minutes all services will be ready and responding to requests.
@@ -170,7 +170,7 @@ To view the output of running containers:
 
 ```bash
 eval $(make env)
-docker-compose -p planet4 logs
+docker-compose logs
 ```
 
 If at any point the install process fails, with Composer showing a message such as `file could not be downloaded (HTTP/1.1 404 Not Found)`, this is a transient network error and re-running the install should fix the issue.

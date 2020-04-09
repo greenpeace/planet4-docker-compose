@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-PROJECT=${PROJECT:-planet4}
+PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
 
 if [[ $1 = "delete"  ]]
 then
