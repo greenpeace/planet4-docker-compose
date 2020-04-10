@@ -20,19 +20,6 @@ address = ":443"
 
 [entryPoints.https.tls]
 
-# Enable ACME (Let's Encrypt): automatic SSL
-[acme]
-caServer = "https://acme-staging.api.letsencrypt.org/directory"
-email = "letsencrypt@greenpeace.org"
-storage = "acme.json"
-# or "traefik/acme/account" if using KV store
-entryPoint = "https"
-onDemand = false
-onHostRule = true
-[acme.httpChallenge]
-entryPoint = "http"
-
-
 [docker]
 endpoint = "unix:///var/run/docker.sock"
 domain = "planet4.test"

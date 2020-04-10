@@ -66,7 +66,6 @@ By default, the quickstart command `make dev` is all you'll need to pull all req
 - a PHP-FPM application, all backed by
 - Redis key-value store and
 - MySQL database server.
-- Self-signed SSL certificates, with optional HTTP > HTTPS redirection
 
 ## Quickstart
 
@@ -156,7 +155,7 @@ docker-compose logs -f
 
 On first launch, the container bootstraps the installation with composer then after a few minutes all services will be ready and responding to requests.
 
-When the terminal is finished, and you see the line 'ready', navigate to [https://www.planet4.test](https://www.planet4.test).
+When the terminal is finished, and you see the line 'ready', navigate to [www.planet4.test](http://www.planet4.test).
 
 It's not necessary to re-run `make dev` each time you wish to start the local development environment. To start containers on subsequent runs, use:
 
@@ -209,17 +208,17 @@ All planet4 code will be under the Wordpress' content folder:
 
 ### Administrator login
 
-Backend administrator login is available at [https://www.planet4.test/wp-admin/](https://www.planet4.test/wp-admin/).
+Backend administrator login is available at [www.planet4.test/wp-admin/](http://www.planet4.test/wp-admin/).
 
 Login username is `admin` and the password is `admin`.
 
 ### Database access via phpMyAdmin
 
-[phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [https://pma.www.planet4.test](https://pma.www.planet4.test)
+[phpmyadmin](https://hub.docker.com/r/phpmyadmin/phpmyadmin/) login: [pma.www.planet4.test](http://pma.www.planet4.test)
 
 ### Elasticsearch access via ElasticHQ
 
-[elastichq](https://hub.docker.com/r/elastichq/elasticsearch-hq/) Access at [http://localhost:5000/](http://localhost:5000/)
+[elastichq](https://hub.docker.com/r/elastichq/elasticsearch-hq/) Access at [localhost:5000/](http://localhost:5000/)
 
 ---
 
@@ -313,7 +312,7 @@ The tests work a bit differently to the main ones, see [TESTING#NRO](TESTING.md#
 
 ### Configuring WP-Stateless GCS bucket storage
 
-If you want to use the Google Cloud Storage you'll have to configure [WP-Stateless](https://github.com/wpCloud/wp-stateless/). The plugin is installed and activated, however images will be stored locally until remote GCS storage is enabled in the administrator backend. [Log in](https://www.planet4.test/wp-login.php) with details gathered [from here](#login) and navigate to [Media > Stateless Setup](https://www.planet4.test/wp-admin/upload.php?page=stateless-setup).
+If you want to use the Google Cloud Storage you'll have to configure [WP-Stateless](https://github.com/wpCloud/wp-stateless/). The plugin is installed and activated, however images will be stored locally until remote GCS storage is enabled in the administrator backend. [Log in](http://www.planet4.test/wp-login.php) with details gathered [from here](#login) and navigate to [Media > Stateless Setup](http://www.planet4.test/wp-admin/upload.php?page=stateless-setup).
 
 You will need a Google account with access to GCS buckets to continue.
 
@@ -331,7 +330,7 @@ Congratulations, you're now serving media files directly from GCS buckets!
 
 ### Configuring FastCGI cache purges
 
-The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/) is installed to enable FastCGI cache purges. Log in to the backend as above, navigate to [Settings > Nginx Helper](https://www.planet4.test/wp-admin/options-general.php?page=nginx) and click:
+The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/) is installed to enable FastCGI cache purges. Log in to the backend as above, navigate to [Settings > Nginx Helper](http://www.planet4.test/wp-admin/options-general.php?page=nginx) and click:
 
 *   Enable Purge
 *   Redis Cache
@@ -340,7 +339,7 @@ The Wordpress plugin [nginx-helper](https://wordpress.org/plugins/nginx-helper/)
 
 ### Configuring ElasticSearch indexing
 
-The Elasticsearch host is configured during initial build. But if you want to confirm that the setting is right, navigate to [Settings > ElasticPress > Settings](https://www.planet4.test/wp-admin/admin.php?page=elasticpress-settings). The Host should be: `http://elasticsearch:9200`.
+The Elasticsearch host is configured during initial build. But if you want to confirm that the setting is right, navigate to [Settings > ElasticPress > Settings](http://www.planet4.test/wp-admin/admin.php?page=elasticpress-settings). The Host should be: `http://elasticsearch:9200`.
 
 Anytime you want to re-index Elasticsearch you can just run: `make elastic`.
 
@@ -407,13 +406,13 @@ If you are running any other services on your local device which respond on port
       - "8000:80"
 ```
 
-The first number is the port number on your host, the second number is mapped to port 80 on the openresty service container.  Now you can access the site at  [https://www.planet4.test:8000](https://www.planet4.test:8000) instead.
+The first number is the port number on your host, the second number is mapped to port 80 on the openresty service container.  Now you can access the site at  [www.planet4.test:8000](http://www.planet4.test:8000) instead.
 
 A more robust solution for hosting multiple services on port 80 is to use a reverse proxy  such as Traefik or [jwilder/openresty-proxy](https://github.com/jwilder/openresty-proxy) in a separate project, and use [Docker named networking](https://docs.docker.com/compose/networking/) features to isolate virtual networks.
 
 ### Traefik administration interface
 
-Traefik comes with a simple admin interface accessible at [http://www.planet4.test:8080](http://www.planet4.test:8080).
+Traefik comes with a simple admin interface accessible at [www.planet4.test:8080](http://www.planet4.test:8080).
 
 ### Performance
 
