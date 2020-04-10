@@ -191,6 +191,7 @@ build: hosts run unzipimages config elastic flush
 run:
 	@$(MAKE) -j init getdefaultcontent db/Dockerfile
 	cp ci/scripts/duplicate-db.sh defaultcontent/duplicate-db.sh
+	echo "COMPOSE_PROJECT_NAME=${PROJECT}" > .env
 	@./go.sh
 	@./wait.sh
 
