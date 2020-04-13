@@ -2,7 +2,7 @@
 description: Get a full Planet 4 development environment to your local machine
 ---
 
-# Development Environment
+# Installation
 
 {% hint style="info" %}
 If you want to improve this document, make a Pull Request to the [docker-compose](https://github.com/greenpeace/planet4-docker-compose) repository and edit the [relevant file](https://github.com/greenpeace/planet4-docker-compose/blob/master/docs/installation.md).
