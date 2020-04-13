@@ -27,33 +27,40 @@ For Linux users, these are either preinstalled or available through your distrib
 - [envsubst](https://stackoverflow.com/questions/23620827/envsubst-command-not-found-on-mac-os-x-10-8/23622446#23622446) - This should be pre-installed on most Linux distributions
 - `php-xml` and `php-mbstring` extensions
 
-Linux users may need to do some [post-installation steps](https://docs.docker.com/install/linux/linux-postinstall/) to give docker permissions to user.
+{% tabs %}
+{% tab title="Linux" %}
+```bash
+# install basic packages
+sudo apt install -y curl git make
 
-<details><summary>Requirments installation notes for Ubuntu/Debian Linux</summary>
+# install php packages
+sudo apt install -y composer php-xml php-mbstring
 
-   ```bash
-   # install basic packages
-   sudo apt install -y curl git make
+# install node and npm
+curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+sudo apt install -y nodejs
 
-   # install php packages
-   sudo apt install -y composer php-xml php-mbstring
+# install docker
+sudo apt install -y docker.io
 
-   # install node and npm
-   curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
-   sudo apt install -y nodejs
+# install docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 
-   # install docker
-   sudo apt install -y docker.io
+# allow user to run docker
+sudo usermod -aG docker $USER
+newgrp docker
+```
+{% endtab %}
 
-   # install docker-compose
-   sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-   sudo chmod +x /usr/local/bin/docker-compose
+{% tab title="OSX" %}
+_\(pending contribution\)_
+{% endtab %}
 
-   # allow user to run docker
-   sudo usermod -aG docker $USER
-   newgrp docker
-   ```
-</details>
+{% tab title="Windows" %}
+_\(pending contribution\)_
+{% endtab %}
+{% endtabs %}
 
 ## First run
 
