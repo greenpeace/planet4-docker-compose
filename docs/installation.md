@@ -5,16 +5,16 @@ description: Get a full Planet 4 development environment to your local machine
 # Installation
 
 {% hint style="info" %}
-If you want to improve this document, make a Pull Request to the [docker-compose](https://github.com/greenpeace/planet4-docker-compose) repository and edit the [relevant file](https://github.com/greenpeace/planet4-docker-compose/blob/master/docs/installation.md).
+📝 If you want to improve this document, make a Pull Request to the [docker-compose](https://github.com/greenpeace/planet4-docker-compose) repository and edit the [relevant file](https://github.com/greenpeace/planet4-docker-compose/blob/master/docs/installation.md).
 {% endhint %}
 
 We are using `docker` and `docker-compose` to provide as consistent a local development environment as possible, in accordance with [12factor](https://12factor.net/) development principles.
 
-{% hint style="info" %}
-This repository has been tested and is working well on Linux and OSX. It should work on Windows WSL (Windows Subsystem for Linux), but not thoroughly tested.
-{% endhint %}
-
 ## System Requirements
+
+{% hint style="info" %}
+💻 This repository has been tested and is working well on Linux and OSX. It should work on Windows WSL (Windows Subsystem for Linux), but not thoroughly tested.
+{% endhint %}
 
 Firstly, check you have all the requirements on your system.\
 For Linux users, these are either preinstalled or available through your distribution's package manager.
