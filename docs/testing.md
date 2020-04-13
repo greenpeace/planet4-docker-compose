@@ -4,6 +4,10 @@ description: Testing functionality with Acceptance tests
 
 # Acceptance Tests
 
+{% hint style="info" %}
+If you want to improve this document, make a Pull Request to the [docker-compose](https://github.com/greenpeace/planet4-docker-compose) repository and edit the [relevant file](https://github.com/greenpeace/planet4-docker-compose/blob/master/docs/testing.md).
+{% endhint %}
+
 For acceptance testing we use [codeception](https://codeception.com/) together with [WPBrowser](https://codeception.com/for/wordpress) for closer integration with WordPress.
 
 Features:
