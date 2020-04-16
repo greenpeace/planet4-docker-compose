@@ -1,0 +1,122 @@
+---
+version: '3'
+services:
+  traefik:
+    image: traefik:1.7
+    command: --web --docker --docker.domain=planet4.test --docker.watch
+    networks:
+      proxy:
+        aliases:
+          - ${APP_HOSTNAME:-www.planet4.test}
+          - www.planet4.fnord
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/traefik.toml
+    labels:
+      traefik.backend: "traefik"
+      traefik.frontend.rule: "Host:traefik.${APP_HOSTNAME:-www.planet4.test}"
+      traefik.docker.network: "planet4dockercompose_proxy"
+      traefik.enable: "true"
+
+  redis:
+    image: redis:4-stretch
+    networks:
+      - local
+    labels:
+      traefik.enable: "false"
+
+  db:
+    build:
+      context: defaultcontent
+      dockerfile: ../db/Dockerfile
+    env_file:
+      - ./db.env
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - db
+    labels:
+      traefik.enable: "false"
+
+  php-fpm:
+    image: ${APP_IMAGE:-gcr.io/planet-4-151612/wordpress:develop}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - local
+      - db
+      - proxy
+    dns:
+      - ${DNS_RESOLVER:-1.1.1.1}
+    volumes:
+      - ./persistence/app:/app/source:cached
+      - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
+    environment:
+      - APP_ENV=${APP_ENV:-develop}
+      - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
+      - APP_HOSTPATH=${APP_HOSTPATH:-}
+      # - DELETE_EXISTING_FILES=false
+      - GIT_REF=${GIT_REF:-develop}
+      - GIT_SOURCE=https://github.com/greenpeace/planet4-base-fork
+      # - MERGE_REF=develop
+      # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
+      - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
+      # - OVERWRITE_EXISTING_FILES=false
+      - WP_FORCE_SSL_ADMIN=false
+      - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
+      - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-www-planet4-test}
+      - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
+      # - WP_VERSION=${WP_VERSION:-latest}
+    env_file:
+      - ./app.env
+      - ./db.env
+    labels:
+      traefik.enable: "false"
+
+  openresty:
+    image: ${OPENRESTY_IMAGE:-gcr.io/planet-4-151612/openresty:develop}
+    depends_on:
+      - php-fpm
+      - traefik
+      - redis
+    networks:
+      - local
+      - proxy
+    volumes:
+      - ./persistence/app:/app/source:cached
+    environment:
+      - APP_ENV=${APP_ENV:-develop}
+      - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
+      - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
+      - APP_HOSTPATH=${APP_HOSTPATH:-}
+      - REDIS_FASTCGI_CACHE_ENABLED=true
+      - PHP_ENABLED=true
+    labels:
+      - "traefik.backend=test"
+      - "traefik.foo.frontend.rule=Host:${APP_HOSTNAME:-www.planet4.test}"
+      - "traefik.bar.frontend.rule=Host:www.planet4.fnord"
+      - "traefik.docker.network=planet4dockercompose_proxy"
+      - "traefik.enable=true"
+
+  elasticsearch:
+    image: gcr.io/planet-4-151612/elasticsearch:${ELASTICSEARCH_BUILD_TAG:-latest}
+    networks:
+      - local
+    environment:
+      - discovery.type=single-node
+    labels:
+      traefik.enable: "false"
+
+networks:
+  local:
+  db:
+  proxy:
+    driver: bridge
+
+volumes:
+  db:

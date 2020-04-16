@@ -4,8 +4,8 @@ description: Get a full Planet 4 development environment to your local machine
 
 # Installation
 
-{% hint style="info" %}
-📝 If you want to improve this document, make a Pull Request to the [docker-compose](https://github.com/greenpeace/planet4-docker-compose) repository and edit the [relevant file](https://github.com/greenpeace/planet4-docker-compose/blob/master/docs/installation.md).
+{% hint style="warning" %}
+✏️ If you want to improve this document, make a Pull Request to the [docker-compose](https://github.com/greenpeace/planet4-docker-compose) repository and edit the [relevant file](https://github.com/greenpeace/planet4-docker-compose/blob/master/docs/installation.md).
 {% endhint %}
 
 We are using `docker` and `docker-compose` to provide as consistent a local development environment as possible, in accordance with [12factor](https://12factor.net/) development principles.
@@ -104,6 +104,16 @@ It's not necessary to re-run `make dev` each time you wish to start the local de
 
 ```bash
 make run
+```
+
+### Lightweight configuration
+
+If the current setup is too heavy for your machine, there is a lighter version that skips creating some of the containers. Keep in mind though that this leaves out PhpMyAdmin, ElasticHQ and Sellenium containers, so it would be harder to debug things.
+
+To use it, you need to set the relevant environmental variable. For instance:
+
+```bash
+DOCKER_COMPOSE_FILE="docker-compose.light.yml" make run
 ```
 
 ## Troubleshooting
