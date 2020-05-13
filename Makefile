@@ -248,7 +248,7 @@ endif
 ifndef OPENRESTY_IMAGE
 	$(error OPENRESTY_IMAGE is not set)
 endif
-	@$(MAKE) lint run config ci-copyimages elastic flush
+	@$(MAKE) lint run config ci-copyimages elastic flush install-pcov
 
 db/Dockerfile:
 ifndef ENVSUBST
@@ -283,17 +283,34 @@ ci-copyimages: $(LOCAL_IMAGES)
 
 test: install-codeception test-env-info test-codeception
 
+# php-pcov allows for zero overhead analysis. Codeception will automatically use it as coverage driver if it's present.
+.PHONY: install-pcov
+install-pcov:
+	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install php-pcov'
+	docker cp dev-templates/pcov.ini $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/tmp/20-pcov.ini
+	docker-compose exec php-fpm sh -c 'cp /tmp/20-pcov.ini /etc/php/$${PHP_MAJOR_VERSION}/fpm/conf.d/20-pcov.ini'
+	docker-compose exec php-fpm sh -c 'mv /tmp/20-pcov.ini /etc/php/$${PHP_MAJOR_VERSION}/cli/conf.d/20-pcov.ini'
+	docker-compose exec php-fpm sh -c 'service php$${PHP_MAJOR_VERSION}-fpm reload'
+
 .PHONY: install-codeception
 install-codeception:
 	@docker-compose exec php-fpm bash -c 'cd tests && composer install --prefer-dist --no-progress'
+	@$(MAKE) probe-wp-index
+
+# Replace WP's index.php file with a version that includes c3.php at the start, which codeception uses to collect coverage.
+.PHONY: probe-wp-index
+probe-wp-index:
+	docker cp dev-templates/probed_index.php $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/public/index.php
 
 .PHONY: test-codeception-unit
 test-codeception-unit:
-	@docker-compose exec php-fpm tests/vendor/bin/codecept run wpunit --xml=junit.xml --html --debug
+	@docker-compose exec php-fpm tests/vendor/bin/codecept run wpunit --no-redirect --xml=junit.xml --html --debug --coverage --coverage-html coverage_unit
 
+# Run the acceptance test suite with coverage.
+# The confusingly named `--no-redirect` option is because of https://github.com/Codeception/Codeception/pull/5498 .
 .PHONY: test-codeception-acceptance
 test-codeception-acceptance:
-	@docker-compose exec php-fpm tests/vendor/bin/codecept run acceptance --xml=junit.xml --html
+	@docker-compose exec php-fpm tests/vendor/bin/codecept run acceptance --no-redirect --xml=junit.xml --html --coverage --coverage-html coverage_acceptance
 
 .PHONY: test-codeception
 test-codeception: test-codeception-acceptance
