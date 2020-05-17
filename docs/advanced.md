@@ -26,7 +26,7 @@ The default content is imported automatically for you.
 
 **Troubleshooting**
 
-If you want to revert back to the default content database you can delete the remove the database container and volume and recreate:
+If you want to revert back to the default content database you can delete the database container and volume and recreate:
 
 ```bash
 make revertdb
@@ -117,14 +117,14 @@ This docker environment relies on the mysql official image as well as on the [pl
 
 Both images provide environment variables which adjust aspects of the runtime configuration. For this environment to run only the database parameters such as hostname, database name, database users and passwords are required.
 
-Initial values for this environment variables are dummy but are good to go for development porpoises. They can be changed in the provided `app.env` and `db.env` files, or directly in the [docker-compose.yml](https://docs.docker.com/compose/compose-file/#environment) file itself.
+Initial values for this environment variables are dummy but are good to go for development purposes. They can be changed in the provided `app.env` and `db.env` files, or directly in the [docker-compose.yml](https://docs.docker.com/compose/compose-file/#environment) file itself.
 
 ### Some useful variables
 
 See [openresty-php-exim](https://github.com/greenpeace/planet4-docker/tree/develop/source/planet-4-151612/openresty-php-exim)
 
 -   `NEWRELIC_LICENSE` set to the license key in your NewRelic dashboard to automatically receive server and application metrics
--   `PHP_MEMORY_LIMIT` maximum memory each PHP process can consume before being termminated and restarted by the scheduler
+-   `PHP_MEMORY_LIMIT` maximum memory each PHP process can consume before being terminated and restarted by the scheduler
 -   `PHP_XDEBUG_REMOTE_HOST` in development mode enables remote [XDebug](https://xdebug.org/) debugging, tracing and profiling
 
 ### Development mode
@@ -140,7 +140,7 @@ Document some of the useful builtin configuration options available in upstream 
 
 ### Updating
 
-To ensure you're running the latest version of both the infrastructure and the application you can just build all containers again. **Keep in mind that this deletes the persistence folder and therefor all you local code changes to the application.**
+To ensure you're running the latest version of both the infrastructure and the application you can just build all containers again. **Keep in mind that this deletes the persistence folder and therefore all you local code changes to the application.**
 
 ```bash
 make build
