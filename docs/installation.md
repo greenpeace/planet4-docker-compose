@@ -77,7 +77,7 @@ cd planet4-docker-compose
 make dev
 ```
 
-If you want the aplication repositories to be cloned using ssh protocol, instead of https, you can use a variable:
+If you want the application repositories to be cloned using ssh protocol, instead of https, you can use a variable:
 
 ```bash
 GIT_PROTO="ssh" make dev
@@ -108,7 +108,7 @@ make run
 
 ### Lightweight configuration
 
-If the current setup is too heavy for your machine, there is a lighter version that skips creating some of the containers. Keep in mind though that this leaves out PhpMyAdmin, ElasticHQ and Sellenium containers, so it would be harder to debug things.
+If the current setup is too heavy for your machine, there is a lighter version that skips creating some of the containers. Keep in mind though that this leaves out PhpMyAdmin, ElasticHQ and Selenium containers, so it would be harder to debug things.
 
 To use it, you need to set the relevant environmental variable. For instance:
 
