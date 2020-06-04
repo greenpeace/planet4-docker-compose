@@ -37,7 +37,7 @@ sudo apt install -y curl git make
 sudo apt install -y composer php-xml php-mbstring
 
 # install node and npm
-curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # install docker
