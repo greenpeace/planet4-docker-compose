@@ -488,4 +488,5 @@ nro-test-codeception:
 jstests: installnpm assets runjstests
 
 runjstests:
+	docker-compose exec -T php-fpm /app/source/tasks/other/install-deps.sh
 	docker-compose exec php-fpm env TERM=xterm-256color bash -l /app/source/tasks/other/run-js-tests.sh
