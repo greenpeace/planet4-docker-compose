@@ -485,8 +485,10 @@ nro-test-codeception:
 		'
 
 .PHONY: jstests
-jstests: installnpm assets runjstests
+jstests: installnpm installdeps assets runjstests
+
+installdeps:
+	docker-compose exec -T php-fpm /app/source/tasks/other/install-deps.sh
 
 runjstests:
-	docker-compose exec -T php-fpm /app/source/tasks/other/install-deps.sh
 	docker-compose exec php-fpm env TERM=xterm-256color bash -l /app/source/tasks/other/run-js-tests.sh
