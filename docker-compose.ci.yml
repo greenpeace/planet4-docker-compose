@@ -23,6 +23,7 @@ services:
     networks:
       - local
       - db
+      - proxy
     dns:
       - ${DNS_RESOLVER:-1.1.1.1}
     environment:
