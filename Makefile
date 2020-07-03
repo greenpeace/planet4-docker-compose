@@ -1,3 +1,4 @@
+-include .env
 # include optional configuration (used for NRO configuration)
 -include Makefile.include
 
@@ -44,6 +45,17 @@ COMPOSE_ENV := COMPOSE_FILE=$(COMPOSE_FILE) COMPOSE_PROJECT_NAME=$(COMPOSE_PROJE
 
 NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
 REWRITE := /%category%/%post_id%/%postname%/
+
+# ============================================================================
+
+LOCAL_APP_PATH ?= ./persistence/app
+LOCAL_WP_PATH ?= $(LOCAL_APP_PATH)/public
+LOCAL_UPLOAD_PATH ?= $(LOCAL_WP_PATH)/wp-content/uploads
+LOCAL_PLUGINS_PATH ?= $(LOCAL_WP_PATH)/wp-content/plugins
+LOCAL_THEMES_PATH ?= $(LOCAL_WP_PATH)/wp-content/themes
+LOCAL_P4MT_PATH ?= $(LOCAL_THEMES_PATH)/planet4-master-theme
+LOCAL_P4GBKS_PATH ?= $(LOCAL_PLUGINS_PATH)/planet4-plugin-gutenberg-blocks
+LOCAL_P4GEN_PATH ?= $(LOCAL_PLUGINS_PATH)/planet4-plugin-gutenberg-engagingnetworks
 
 # ============================================================================
 
@@ -168,7 +180,7 @@ updatedefaultcontent: cleandefaultcontent getdefaultcontent
 
 .PHONY: unzipimages
 unzipimages:
-	@unzip $(LOCAL_IMAGES) -d persistence/app/public/wp-content/uploads
+	@unzip $(LOCAL_IMAGES) -d $(LOCAL_UPLOAD_PATH)
 
 # ============================================================================
 
@@ -204,10 +216,18 @@ dev: hosts run unzipimages config installnpm repos elastic flush status
 
 .PHONY: repos
 repos:
-	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-engagingnetworks
-	@./repos.sh
+	if [[ $(LOCAL_P4MT_PATH) == ./persistence/* ]] ; then \
+		rm -fr $(LOCAL_P4MT_PATH); \
+	fi
+	if [[ $(LOCAL_P4GBKS_PATH) == ./persistence/* ]] ; then \
+		rm -fr $(LOCAL_P4GBKS_PATH); \
+	fi
+	if [[ $(LOCAL_P4GEN_PATH) == ./persistence/* ]] ; then \
+		rm -fr $(LOCAL_P4GEN_PATH); \
+	fi
+	LOCAL_P4MT_PATH=${LOCAL_P4MT_PATH} \
+	LOCAL_P4GBKS_PATH=${LOCAL_P4GBKS_PATH} \
+	LOCAL_P4GEN_PATH=${LOCAL_P4GEN_PATH} ./repos.sh
 	docker-compose exec -T php-fpm /app/source/tasks/other/install-deps.sh
 
 dev-install-xdebug:
@@ -334,15 +354,16 @@ test-env-info:
 pull:
 	docker-compose pull
 
-persistence/app:
-	mkdir -p persistence/app
+$(LOCAL_APP_PATH):
+	mkdir -p $(LOCAL_APP_PATH)
 
 .PHONY: appdata
-appdata: persistence/app
+appdata: $(LOCAL_APP_PATH)
+	mkdir -p persistence
 	docker cp $(shell docker create $(APP_IMAGE) | tee .tmp-id):/app/source persistence
 	docker rm -v $(shell cat .tmp-id)
-	rm -fr persistence/app
-	mv persistence/source persistence/app
+	rm -fr $(LOCAL_APP_PATH)
+	mv persistence/source $(LOCAL_APP_PATH)
 
 .PHONY : stop
 stop:

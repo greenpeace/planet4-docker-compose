@@ -9,10 +9,10 @@ touch acme.json
 chmod 600 acme.json
 
 echo "Building services ..."
-docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" build
+docker-compose --verbose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" build
 
 echo "Starting services ..."
-docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" up -d \
+docker-compose --verbose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE:-docker-compose.yml}" up -d \
   --remove-orphans \
   --scale openresty="$SCALE_OPENRESTY" \
   --scale php-fpm="$SCALE_APP"
