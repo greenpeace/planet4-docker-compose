@@ -1,0 +1,9 @@
+version: '3'
+services:
+  php-fpm:
+    volumes:    
+      - app:/app/source:nocopy
+      - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
+  openresty:
+    volumes:
+      - app:/app/source:nocopy

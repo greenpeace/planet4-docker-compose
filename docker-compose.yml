@@ -54,7 +54,7 @@ services:
     dns:
       - ${DNS_RESOLVER:-1.1.1.1}
     volumes:
-      - ./persistence/app:/app/source:cached
+      - app:/app/source
       - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
       - APP_ENV=${APP_ENV:-develop}
@@ -90,7 +90,7 @@ services:
       - local
       - proxy
     volumes:
-      - ./persistence/app:/app/source:cached
+      - app:/app/source
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - PAGESPEED_ENABLED=${PAGESPEED_ENABLED:-false}
@@ -168,3 +168,9 @@ networks:
 volumes:
   db:
   pma:
+  app:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: "${PWD}/persistence/app"
