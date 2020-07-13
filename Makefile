@@ -206,7 +206,6 @@ dev: hosts run unzipimages config installnpm repos elastic flush status
 repos:
 	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
 	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-engagingnetworks
 	@./repos.sh
 	docker-compose exec -T php-fpm /app/source/tasks/other/install-deps.sh
 
