@@ -223,6 +223,55 @@ and then run codeception with the `--debug` flag:
 vendor/bin/codecept run --debug tests/acceptance/YourTestCept.php
 ```
 
+### Using Gherkin
+
+Planet4 uses [Gherkin](https://en.wikipedia.org/wiki/Cucumber_(software)#Gherkin_language) to describe some features.
+Gherkin is [supported by Codeception](https://codeception.com/docs/07-BDD#Gherkin) natively,
+and **features are played with the other acceptance tests**.
+
+To describe a new Feature, create a file `acceptance/myfeature.feature`.
+It should include a description and at least one scenario.
+A short example:
+```gherkin
+Feature: writing posts
+  In order to publish content
+  I need to be able to create posts
+
+  Scenario: Create a simple post
+    Given I am logged in as administrator
+    When I add a new post
+    And I add a title "My Post"
+    And I publish the post
+    Then I see a success validation message
+```
+
+Your feature can then be played individually with:
+```bash
+# use `run -vv` to get more details of the steps executed
+vendor/bin/codecept run acceptance myfeature.feature
+```
+To implement those tests:
+- **Steps** are described in `_support/Step/Acceptance`
+  - [Use annotations](https://codeception.com/docs/07-BDD#Step-Definitions) to match steps and methods
+  - Any step with parameters should include an example (using `@example` annotation)
+  - New step files have to be listed in `acceptance.suite.yml`, in section `gherkin.contexts.default`
+- Other **Pages** interactions (anything but Steps) go into `_support/Page/Acceptance`
+- **Selectors** (CSS, XPath) should be extracted in constant files in `_support/Selector`
+
+You can list available steps with:
+ ```bash
+ vendor/bin/codecept -c ../codeception.yml p4:steps acceptance
+```
+And available selectors with:
+```bash
+vendor/bin/codecept -c ../codeception.yml p4:selectors
+```
+
+Related reading:
+- [BDD in Codeception](https://codeception.com/docs/07-BDD)
+- [4 rules for writing good Gherkin](https://techbeacon.com/app-dev-testing/better-behavior-driven-development-4-rules-writing-good-gherkin)
+- [PR introducing Gherkin](https://github.com/greenpeace/planet4-base-fork/pull/81)
+
 ## CI
 
 The tests run in a similar way inside CI, the main differences are:
