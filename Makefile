@@ -499,3 +499,12 @@ nro-test-codeception:
 			codeceptionify.sh . && \
 			codecept run --xml=junit.xml --html \
 		'
+
+.PHONY: jstests
+jstests: installnpm installdeps assets runjstests
+
+installdeps:
+	docker-compose exec -T php-fpm /app/source/tasks/other/install-deps.sh
+
+runjstests:
+	docker-compose exec php-fpm env TERM=xterm-256color bash -l /app/source/tasks/other/run-js-tests.sh
