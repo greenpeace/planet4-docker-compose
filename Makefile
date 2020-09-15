@@ -299,9 +299,17 @@ ci-%: export DOCKER_COMPOSE_FILE := docker-compose.ci.yml
 artifacts/codeception:
 	@mkdir -p $@
 
+artifacts/pa11y:
+	@mkdir -p $@
+
 .PHONY: ci-extract-artifacts
 ci-extract-artifacts: artifacts/codeception
-	@docker cp $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/tests/_output/. $^
+	docker cp $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/tests/_output/. artifacts/codeception;
+	@echo Extracted artifacts into $^
+
+.PHONY: ci-extract-a11y-artifacts
+ci-extract-a11y-artifacts: artifacts/pa11y
+	docker cp $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/pa11y/. artifacts/pa11y;
 	@echo Extracted artifacts into $^
 
 .PHONY: ci-copyimages
@@ -363,6 +371,37 @@ test-env-info:
 	@docker-compose exec php-fpm sh -c 'echo "Themes" && wp theme list'
 	@docker-compose exec php-fpm sh -c 'echo "Plugins" && wp plugin list'
 	@docker-compose exec php-fpm sh -c 'echo "Greenpeace Packages" && wp option get greenpeace_packages --format=yaml'
+
+# ============================================================================
+
+# PA11Y TASKS
+
+PA11Y_DIR = pa11y
+PA11Y_CONF = $(PA11Y_DIR)/.pa11yci
+PA11Y_LOCAL_CONF ?= $(PA11Y_DIR)/.pa11yci.local
+PA11Y_REPORT_JSON = $(PA11Y_DIR)/pa11y-ci-results.json
+
+## Run accessibility tests
+.PHONY: test-pa11y
+test-pa11y:
+	docker-compose exec php-fpm sh -c "./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_LOCAL_CONF)"
+
+.PHONY: test-pa11y-ci
+test-pa11y-ci: install-pa11y
+	docker-compose exec php-fpm sh -c "./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_CONF) -j -T 1000 > $(PA11Y_REPORT_JSON)"
+	docker-compose exec php-fpm sh -c "./node_modules/pa11y-ci-reporter-html/bin/pa11y-ci-reporter-html.js -s $(PA11Y_REPORT_JSON) -d $(PA11Y_DIR)"
+
+## Install accessibility tests
+.PHONY: install-pa11y
+install-pa11y: installnpm install-puppeteer-deps
+	docker-compose exec php-fpm sh -c 'npm install pa11y-ci pa11y-ci-reporter-html'
+
+install-puppeteer-deps:
+	docker-compose exec php-fpm apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
+	libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
+	libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
+	libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
+	ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
 
 # ============================================================================
 
@@ -460,7 +499,7 @@ php-shell:
 
 .PHONY: installnpm
 installnpm:
-  # Update packages
+	# Update packages
 	docker-compose exec php-fpm apt update
 	# Install NPM
 	docker-compose exec php-fpm apt install npm -y
