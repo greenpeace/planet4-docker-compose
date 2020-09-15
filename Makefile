@@ -189,11 +189,27 @@ build: hosts run unzipimages config elastic flush
 
 .PHONY: run
 run:
-	@$(MAKE) -j init getdefaultcontent db/Dockerfile
-	cp ci/scripts/duplicate-db.sh defaultcontent/duplicate-db.sh
-	@./go.sh
+	@$(MAKE) start || $(MAKE) up
+
+.PHONY: start
+start:
+	@docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE}" start
 	@./wait.sh
 
+.PHONY: stop
+stop:
+	@docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE}" stop
+
+.PHONY: up
+up:
+	$(MAKE) -j init getdefaultcontent db/Dockerfile
+	cp ci/scripts/duplicate-db.sh defaultcontent/duplicate-db.sh
+	./go.sh
+	@./wait.sh
+
+.PHONY: down
+down:
+	@./down.sh
 # ============================================================================
 
 # DEVELOPER ENVIRONMENT
@@ -343,9 +359,6 @@ appdata: persistence/app
 	rm -fr persistence/app
 	mv persistence/source persistence/app
 
-.PHONY : stop
-stop:
-	./stop.sh
 
 .PHONY : stateless
 stateless: clean getdefaultcontent start-stateless config config-stateless status
