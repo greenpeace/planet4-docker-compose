@@ -3,7 +3,9 @@
 
 SHELL := /bin/bash
 
+## Database fixtures version
 CONTENT_DB_VERSION ?= 0.1.65
+## Images fixtures version
 CONTENT_IMAGE_VERSION ?= 1-25
 
 SCALE_OPENRESTY ?=1
@@ -18,7 +20,9 @@ ifeq ($(APP_HOSTPATH),<nil>)
 # So if APP_HOSTPATH is set, but blank, clean this value
 APP_HOSTPATH :=
 endif
+## Docker compose file used
 DOCKER_COMPOSE_FILE ?= docker-compose.yml
+## Docker file added for nro tests
 DOCKER_COMPOSE_TOOLS_FILE ?= docker-compose.tools.yml
 
 MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
@@ -28,9 +32,11 @@ ROOT_PASS := $(shell grep MYSQL_ROOT_PASSWORD db.env | cut -d'=' -f2)
 WP_ADMIN_USER := admin
 WP_ADMIN_PASS := admin
 
+## Wordpress username
 WP_USER ?= $(shell whoami)
+## Wordpress user email address
 WP_USER_EMAIL ?= $(shell git config --get user.email)
-
+## Elastic Search host
 ELASTICSEARCH_HOST ?= http://elasticsearch:9200/
 
 PROJECT ?= $(shell basename "$(PWD)" | sed 's/[.-]//g')
@@ -44,12 +50,19 @@ COMPOSE_ENV := COMPOSE_FILE=$(COMPOSE_FILE) COMPOSE_PROJECT_NAME=$(COMPOSE_PROJE
 
 NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
 REWRITE := /%category%/%post_id%/%postname%/
+## Protocol used for cloning repos
+GIT_PROTO ?= https
+## NRO theme git repository
+NRO_REPO ?=
+## NRO theme name
+NRO_THEME ?=
 
 # ============================================================================
 
 CONTENT_PATH 		:= defaultcontent
 export CONTENT_PATH
 
+## Remote content repository
 CONTENT_BASE 		?= https://storage.googleapis.com/planet4-default-content
 CONTENT_DB 			?= planet4-defaultcontent_wordpress-v$(CONTENT_DB_VERSION).sql.gz
 CONTENT_IMAGES 	?= planet4-default-content-$(CONTENT_IMAGE_VERSION)-images.zip
@@ -131,6 +144,7 @@ NRO_APP_HOSTNAME ?= www.planet4.test
 NRO_APP_HOSTPATH ?=
 endif
 
+## Configure local shell environment
 .PHONY: env
 env:
 	@echo export $(COMPOSE_ENV)
@@ -138,8 +152,8 @@ env:
 # ============================================================================
 
 # CLEAN GENERATED ASSETS
-
-.PHONY : clean
+## Remove containers, images, volumes, repos, default content
+.PHONY: clean
 clean:
 	./clean.sh
 
@@ -187,19 +201,23 @@ hosts:
 .PHONY: build
 build: hosts run unzipimages config elastic flush
 
+## Run containers. Will either start or build them first if they don't exist
 .PHONY: run
 run:
 	@$(MAKE) start || $(MAKE) up
 
+## Start containers
 .PHONY: start
 start:
 	@docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE}" start
 	@./wait.sh
 
+## Stop containers. Keeps containers modifications intact
 .PHONY: stop
 stop:
 	@docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE}" stop
 
+## Build and starts containers
 .PHONY: up
 up:
 	$(MAKE) -j init getdefaultcontent db/Dockerfile
@@ -208,16 +226,20 @@ up:
 	@./wait.sh
 
 .PHONY: down
+## Stop and remove containers. Drops all containers modifications
 down:
 	@./down.sh
+
 # ============================================================================
 
 # DEVELOPER ENVIRONMENT
 
+## Create containers, install developer tools, build assets
 .PHONY: dev
 dev: hosts run unzipimages config installnpm repos elastic flush status
 	@echo "Ready"
 
+## Delete and rebuild planet4 main theme and plugins
 .PHONY: repos
 repos:
 	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
@@ -296,6 +318,7 @@ ci-copyimages: $(LOCAL_IMAGES)
 
 # CODECEPTION TASKS
 
+## Run tests with Codeception
 test: install-codeception test-env-info test-codeception
 
 # php-pcov allows for zero overhead analysis. Codeception will automatically use it as coverage driver if it's present.
@@ -411,6 +434,7 @@ pmapass:
 wpadmin:
 	@docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
 
+## Display container statuses
 .PHONY: status
 status:
 	@docker-compose ps
@@ -429,6 +453,7 @@ status:
 flush:
 	@docker-compose exec redis redis-cli flushdb
 
+## Enter a shell in the php-fpm container
 .PHONY: php-shell
 php-shell:
 	@docker-compose exec php-fpm bash
@@ -442,10 +467,12 @@ installnpm:
 	# Update Node version
 	docker-compose exec php-fpm sh -c 'npm cache clean -f && npm install -g n && n stable'
 
+## Build master-theme and gutenberg-blocks assets
 .PHONY: assets
 assets:
 	docker-compose exec -T php-fpm /app/source/tasks/other/build-assets.sh
 
+## Watch and automatically rebuild assets on modification
 .PHONY: watch
 watch:
 	docker-compose exec -T php-fpm /app/source/tasks/other/watch.sh
@@ -457,6 +484,7 @@ revertdb:
 	@docker volume rm $(COMPOSE_PROJECT_NAME)_db
 	@docker-compose up -d
 
+## Enable NRO theme (uses NRO_REPO, NRO_THEME, NRO_BRANCH)
 .PHONY: nro-enable
 nro-enable:
 	@[[ ! -z "$(NRO_REPO)" ]] || (\
@@ -486,6 +514,7 @@ nro-enable:
 	"
 	@make flush
 
+## Disable NRO theme
 .PHONY: nro-disable
 nro-disable:
 	@docker-compose exec php-fpm sh -c " \
@@ -512,3 +541,48 @@ nro-test-codeception:
 			codeceptionify.sh . && \
 			codecept run --xml=junit.xml --html \
 		'
+
+## Display this help message
+.PHONY: help
+help:
+	@printf "    ____  __                 __     __ __     \n"
+	@printf "   / __ \\/ /___ _____  ___  / /_   / // /    Contribute on Github!\n"
+	@printf "  / /_/ / / __ \`/ __ \\/ _ \\/ __/  / // /_      https://github.com/greenpeace/planet4\n"
+	@printf " / ____/ / /_/ / / / /  __/ /_   /__  __/    Read about what we do in the Handbook!\n"
+	@printf "/_/   /_/\\__,_/_/ /_/\\___/\\__/     /_/         https://planet4.greenpeace.org/create/contribute/\n"
+
+	@printf "\nUsage:\n"
+	@printf "  [variables] make target\n"
+
+	@printf "\nAvailable variables:\n"
+	@awk '/^([A-Z\-_0-9]+) ?\?= ?(.*)/ { \
+		helpMessage = match(lastLine, /^## (.*)/); \
+		if (helpMessage) { \
+			helpVar = $$1; \
+			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
+			$$1=$$2=""; \
+			printf "  %-26s %-32s [%s]\n", helpVar, helpMessage, substr($$0, 3); \
+		} \
+	} \
+	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort
+
+	@printf "\nAvailable targets:\n"
+	@awk '/^(.PHONY: ?.*)|^([a-zA-Z\-_0-9]+:)/ { \
+		helpMessage = match(lastLine, /^## (.*)/); \
+		if (helpMessage) { \
+			helpCommand = substr($$1, 0, index($$1, ":")) == ".PHONY:" ? $$2 : substr($$1, 0, index($$1, ":")-1); \
+			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
+			printf "  %-15s %s\n", helpCommand, helpMessage; \
+		} \
+	} \
+	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort
+
+	@printf "\n"
+	@if [ ! -f "Makefile.include" ]; then \
+		printf ">> Overwrite variables and add targets by editing file \`Makefile.include\` <<\n";\
+	fi
+	@if [ ! -d "./persistence/app" ]; then \
+		printf ">> Is it your first start? Build everything with \`make dev\` <<\n";\
+	fi
+	@printf ">> Documentation: https://support.greenpeace.org/planet4/ <<\n"
+	@printf "\n"
