@@ -55,6 +55,8 @@ services:
       - ${DNS_RESOLVER:-1.1.1.1}
     volumes:
       - ./persistence/app:/app/source:cached
+      # Separate mount points for assets and npm which are not needed by PHP (not mapped === dir excluded from volume).
+      - /app/source/public/wp-content/themes/planet4-master-theme/node_modules/
       - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
       - APP_ENV=${APP_ENV:-develop}
@@ -79,6 +81,40 @@ services:
       - ./db.env
     labels:
       traefik.enable: "false"
+
+  node-npm-theme:
+    image: mhart/alpine-node
+    volumes:
+      - ./persistence/app/public/wp-content/themes/planet4-master-theme:/var/workdir
+    networks:
+      - local
+    working_dir: /var/workdir
+    command: npm i
+
+
+  node-build-theme:
+    image: mhart/alpine-node
+    depends_on:
+      - node-npm-theme
+    volumes:
+      - ./persistence/app/public/wp-content/themes/planet4-master-theme:/var/workdir
+    networks:
+      - local
+    working_dir: /var/workdir
+    command: npm run build
+
+  node-watch-theme:
+    image: mhart/alpine-node
+    volumes:
+      - ./persistence/app/public/wp-content/themes/planet4-master-theme:/var/workdir
+    networks:
+      - local
+    working_dir: /var/workdir
+    command: npm start
+
+#  node-builder-plugin:
+#    image: node
+#    volumes: ./persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks
 
   openresty:
     image: ${OPENRESTY_IMAGE:-gcr.io/planet-4-151612/openresty:develop}
