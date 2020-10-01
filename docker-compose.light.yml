@@ -71,7 +71,7 @@ services:
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
       - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-www-planet4-test}
       - WP_STATELESS_MEDIA_ENABLED=${WP_STATELESS_MEDIA_ENABLED:-true}
-      # - WP_VERSION=${WP_VERSION:-latest}
+      - WP_VERSION=5.4.2
     env_file:
       - ./app.env
       - ./db.env
