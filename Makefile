@@ -256,7 +256,7 @@ endif
 ifndef ENVSUBST
 	$(error Command: 'envsubst' not found, please install using your package manager)
 endif
-	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install php-xdebug'
+	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install -yq php-xdebug'
 	envsubst < dev-templates/xdebug.tmpl > dev-templates/xdebug.out
 	docker cp dev-templates/xdebug.out $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/tmp/20-xdebug.ini
 	docker-compose exec php-fpm sh -c 'mv /tmp/20-xdebug.ini /etc/php/$${PHP_MAJOR_VERSION}/fpm/conf.d/20-xdebug.ini'
@@ -332,7 +332,7 @@ test: install-codeception test-env-info test-codeception
 # php-pcov allows for zero overhead analysis. Codeception will automatically use it as coverage driver if it's present.
 .PHONY: install-pcov
 install-pcov:
-	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install php-pcov'
+	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install -yq php-pcov'
 	docker cp dev-templates/pcov.ini $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/tmp/20-pcov.ini
 	docker-compose exec php-fpm sh -c 'cp /tmp/20-pcov.ini /etc/php/$${PHP_MAJOR_VERSION}/fpm/conf.d/20-pcov.ini'
 	docker-compose exec php-fpm sh -c 'mv /tmp/20-pcov.ini /etc/php/$${PHP_MAJOR_VERSION}/cli/conf.d/20-pcov.ini'
