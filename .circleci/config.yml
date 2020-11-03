@@ -48,4 +48,5 @@ workflows:
   version: 2
   test:
     jobs:
-      - codeception
+      - codeception:
+          context: org-global
