@@ -4,7 +4,7 @@
 SHELL := /bin/bash
 
 ## Database fixtures version
-CONTENT_DB_VERSION ?= 0.0.36
+CONTENT_DB_VERSION ?= 0.0.37
 ## Images fixtures version
 CONTENT_IMAGE_VERSION ?= 1-25
 
