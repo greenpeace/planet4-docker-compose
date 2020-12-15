@@ -69,14 +69,13 @@ It's not necessary to re-run `make dev` each time you wish to start the local de
 make run
 ```
 
-### Lightweight configuration
+### Full environment
 
-If the current setup is too heavy for your machine, there is a lighter version that skips creating some of the containers. Keep in mind though that this leaves out PhpMyAdmin, ElasticHQ and Selenium containers, so it would be harder to debug things.
-
-To use it, you need to set the relevant environmental variable. For instance:
+In order to keep the environment light, the default setup skips some containers that are useful for debugging and testing.
+Namely: PhpMyAdmin, ElasticHQ and Selenium. If you need them, you can use the full environment config by setting an environment variable:
 
 ```bash
-DOCKER_COMPOSE_FILE="docker-compose.light.yml" make run
+DOCKER_COMPOSE_FILE="docker-compose.full.yml" make run
 ```
 
 ## Troubleshooting
