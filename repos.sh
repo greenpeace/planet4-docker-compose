@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -ea
 
-if [[ $GIT_PROTO = "ssh" ]]
+if [[ "${GIT_PROTO}" = "ssh" ]]
 then
   GIT_DOMAIN="git@github.com:"
 else

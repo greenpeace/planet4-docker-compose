@@ -14,16 +14,14 @@ SCALE_APP ?=1
 export SCALE_APP
 export SCALE_OPENRESTY
 
-APP_HOSTPATH        ?= test
+APP_USER ?= app
+export APP_USER
+APP_HOSTPATH ?= test
 # YAML interprets 'empty' values as 'nil'
 ifeq ($(APP_HOSTPATH),<nil>)
 # So if APP_HOSTPATH is set, but blank, clean this value
 APP_HOSTPATH :=
 endif
-## Docker compose file used
-DOCKER_COMPOSE_FILE ?= docker-compose.yml
-## Docker file added for nro tests
-DOCKER_COMPOSE_TOOLS_FILE ?= docker-compose.tools.yml
 
 MYSQL_USER := $(shell grep MYSQL_USER db.env | cut -d'=' -f2)
 MYSQL_PASS := $(shell grep MYSQL_PASSWORD db.env | cut -d'=' -f2)
@@ -39,19 +37,15 @@ WP_USER_EMAIL ?= $(shell git config --get user.email)
 ## Elastic Search host
 ELASTICSEARCH_HOST ?= http://elasticsearch:9200/
 
-PROJECT ?= $(shell basename "$(PWD)" | sed 's/[.-]//g')
-export PROJECT
-
-# These vars are read by docker-compose
-# See https://docs.docker.com/compose/reference/envvars/
-export COMPOSE_FILE = $(PWD)/$(DOCKER_COMPOSE_FILE)
-export COMPOSE_PROJECT_NAME=$(PROJECT)
-COMPOSE_ENV := COMPOSE_FILE=$(COMPOSE_FILE) COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME)
+DEFAULT_COMPOSE_FILE := docker-compose.yml
+DEFAULT_COMPOSE_PROJECT_NAME := $(shell basename "$(PWD)" | sed 's/[.-]//g')
+## Docker file added for nro tests
+DOCKER_COMPOSE_TOOLS_FILE ?= docker-compose.tools.yml
 
 NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
 REWRITE := /%category%/%post_id%/%postname%/
 ## Protocol used for cloning repos
-GIT_PROTO ?= https
+export GIT_PROTO ?= https
 ## NRO theme git repository
 NRO_REPO ?=
 ## NRO theme name
@@ -86,6 +80,9 @@ COMPOSER := $(shell command -v composer 2> /dev/null)
 SHELLCHECK := $(shell command -v shellcheck 2> /dev/null)
 YAMLLINT := $(shell command -v yamllint 2> /dev/null)
 
+# Check enabled services in docker-compose config
+ELASTIC_ENABLED ?= $(docker-compose ps --services | grep elasticsearch)
+
 # ============================================================================
 
 .DEFAULT_GOAL := all
@@ -102,6 +99,10 @@ init: .git/hooks/pre-commit
 	@find .git/hooks -type l -exec rm {} \;
 	@find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
 
+
+.PHONY:info
+info:
+	docker-compose ps --services
 # ============================================================================
 
 # SELF TESTS
@@ -144,18 +145,40 @@ NRO_APP_HOSTNAME ?= www.planet4.test
 NRO_APP_HOSTPATH ?=
 endif
 
-## Configure local shell environment
+## Configure local environment
 .PHONY: env
+.ONESHELL:
 env:
-	@echo export $(COMPOSE_ENV)
+	@echo "# docker-compose env variables" > .env
+	@echo "COMPOSE_FILE=\"$${COMPOSE_FILE:-${DEFAULT_COMPOSE_FILE}}\"" >> .env
+	@echo "COMPOSE_PROJECT_NAME=\"$${COMPOSE_PROJECT_NAME:-${DEFAULT_COMPOSE_PROJECT_NAME}}\"" >> .env
+	@cat .env
+
+.PHONY: envcheck
+envcheck:
+	@if [ -f .env ]; then \
+		echo  ".env file already exists"; \
+	else \
+		$(MAKE) env; fi
 
 # ============================================================================
 
 # CLEAN GENERATED ASSETS
 ## Remove containers, images, volumes, repos, default content
 .PHONY: clean
-clean:
-	./clean.sh
+clean: clean-containers clean-persistence clean-content
+
+## Remove current containers and orphans
+clean-containers:
+	docker-compose down --remove-orphans --rmi local -v || true
+
+## Remove persistence directory
+clean-persistence:
+	./scripts/clean-persistence.sh
+
+## Remove default content
+clean-content:
+	./scripts/clean-content.sh
 
 # ============================================================================
 
@@ -168,6 +191,7 @@ $(LOCAL_DB): $(CONTENT_PATH)
 	curl --fail $(REMOTE_DB) > $@
 
 $(LOCAL_IMAGES): $(CONTENT_PATH)
+	echo "Getting default content images..."
 	curl --fail $(REMOTE_IMAGES) > $@
 
 .PHONY: getdefaultcontent
@@ -181,8 +205,8 @@ cleandefaultcontent:
 updatedefaultcontent: cleandefaultcontent getdefaultcontent
 
 .PHONY: unzipimages
-unzipimages:
-	@unzip $(LOCAL_IMAGES) -d persistence/app/public/wp-content/uploads
+unzipimages: $(LOCAL_IMAGES)
+	@unzip -q $(LOCAL_IMAGES) -d persistence/app/public/wp-content/uploads
 
 # ============================================================================
 
@@ -204,18 +228,18 @@ build: hosts run unzipimages config elastic flush
 ## Run containers. Will either start or build them first if they don't exist
 .PHONY: run
 run:
-	@$(MAKE) start || $(MAKE) up
+	@$(MAKE) start --no-print-directory || $(MAKE) up --no-print-directory
 
 ## Start containers
 .PHONY: start
 start:
-	@docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE}" start
-	@./wait.sh
+	@docker-compose start \
+	&& ./wait.sh
 
 ## Stop containers. Keeps containers modifications intact
 .PHONY: stop
 stop:
-	@docker-compose -p "${PROJECT}" -f "${DOCKER_COMPOSE_FILE}" stop
+	@docker-compose stop --time 30
 
 ## Build and starts containers
 .PHONY: up
@@ -236,31 +260,77 @@ down:
 
 ## Create containers, install developer tools, build assets
 .PHONY: dev
-dev: hosts run unzipimages config installnpm repos elastic flush status
+dev: hosts envcheck repos run unzipimages config deps elastic flush status
+	@if command -v xattr &> /dev/null; then \
+		$(MAKE) fix-ownership; \
+	fi
 	@echo "Ready"
 
-## Delete and rebuild planet4 main theme and plugins
+
+## Delete and rebuild planet4 main theme and plugin
 .PHONY: repos
-repos:
+repos: clean-repos clone-repos
+
+.PHONY: deps
+deps: install-deps assets
+
+## Update base, master-theme and gutenberg-blocks, rebuild assets
+.PHONY: update
+.ONESHELL:
+update: update-base update-deps
+	@echo "Update done."
+
+## Delete planet4 main theme and plugin
+.PHONY: clean-repos
+clean-repos:
 	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
 	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks
-	@./repos.sh
-	docker-compose exec -T php-fpm /app/source/tasks/other/install-deps.sh
+
+.PHONY: clone-repos
+clone-repos:
+	./repos.sh
+
+.PHONY: update-repos
+update-repos:
+	./scripts/update-repos.sh
+
+.PHONY: install-deps
+install-deps:
+	./scripts/install-deps.sh
+
+.PHONY: update-deps
+update-deps:
+	./scripts/update-repos.sh
+	./scripts/install-deps.sh
+	./scripts/build-assets.sh
+
+.PHONY: update-base
+update-base:
+	docker-compose exec -u "${APP_USER}" php-fpm sh -c \
+		"cd /app/source && git checkout develop && git pull"
 
 dev-install-xdebug:
 ifeq (Darwin, $(shell uname -s))
 	$(eval export XDEBUG_REMOTE_HOST=$(shell ipconfig getifaddr en0))
 else
-	$(eval export XDEBUG_REMOTE_HOST=$(shell docker network inspect ${PROJECT}_local --format '{{(index .IPAM.Config 0).Gateway }}'))
+	$(eval export XDEBUG_REMOTE_HOST=$(shell docker network inspect ${COMPOSE_PROJECT_NAME}_local --format '{{(index .IPAM.Config 0).Gateway }}'))
 endif
 ifndef ENVSUBST
 	$(error Command: 'envsubst' not found, please install using your package manager)
 endif
 	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install -yq php-xdebug'
 	envsubst < dev-templates/xdebug.tmpl > dev-templates/xdebug.out
-	docker cp dev-templates/xdebug.out $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/tmp/20-xdebug.ini
+	docker cp dev-templates/xdebug.out $(shell docker-compose ps -q php-fpm):/tmp/20-xdebug.ini
 	docker-compose exec php-fpm sh -c 'mv /tmp/20-xdebug.ini /etc/php/$${PHP_MAJOR_VERSION}/fpm/conf.d/20-xdebug.ini'
 	docker-compose exec php-fpm sh -c 'service php$${PHP_MAJOR_VERSION}-fpm reload'
+
+# MacOS handles mixed ownership of files poorly and can freeze on some operations
+# This command restores proper ownership
+# Using find+chown is up to 10 times faster than chown on macos
+fix-ownership:
+	@echo "Fixing ownership of files..."
+	docker-compose exec php-fpm bash -c \
+		"[[ -e public ]] && find public ! -user ${APP_USER} -exec chown -f ${APP_USER} {} \;"
 
 # ============================================================================
 
@@ -270,14 +340,16 @@ endif
 elastic: elastic-index flush
 
 elastic-index:
-	docker-compose exec php-fpm wp elasticpress index --setup --quiet --url=www.planet4.test
+	if [[ "${ELASTIC_ENABLED}" != "" ]]; then \
+		docker-compose exec php-fpm wp elasticpress index --setup --quiet --url=www.planet4.test;\
+	fi
 
 # ============================================================================
 
 # CONTINUOUS INTEGRATION TASKS
 
 .PHONY: ci
-ci: export DOCKER_COMPOSE_FILE := docker-compose.ci.yml
+ci: export COMPOSE_FILE := docker-compose.ci.yml
 ci:
 ifndef APP_IMAGE
 	$(error APP_IMAGE is not set)
@@ -294,7 +366,7 @@ endif
 	envsubst < $@.in > $@
 
 .PHONY: ci-%
-ci-%: export DOCKER_COMPOSE_FILE := docker-compose.ci.yml
+ci-%: export COMPOSE_FILE := docker-compose.ci.yml
 
 artifacts/codeception:
 	@mkdir -p $@
@@ -304,12 +376,12 @@ artifacts/pa11y:
 
 .PHONY: ci-extract-artifacts
 ci-extract-artifacts: artifacts/codeception
-	docker cp $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/tests/_output/. artifacts/codeception;
+	docker cp $(shell docker-compose ps -q php-fpm):/app/source/tests/_output/. artifacts/codeception;
 	@echo Extracted artifacts into $^
 
 .PHONY: ci-extract-a11y-artifacts
 ci-extract-a11y-artifacts: artifacts/pa11y
-	docker cp $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/pa11y/. artifacts/pa11y;
+	docker cp $(shell docker-compose ps -q php-fpm):/app/source/pa11y/. artifacts/pa11y;
 	@echo Extracted artifacts into $^
 
 .PHONY: ci-copyimages
@@ -317,8 +389,8 @@ ci-copyimages: $(LOCAL_IMAGES)
 	$(eval TMPDIR := $(shell mktemp -d))
 	mkdir -p "$(TMPDIR)/images"
 	@unzip $(LOCAL_IMAGES) -d "$(TMPDIR)/images"
-	@docker cp "$(TMPDIR)/images/." $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/public/wp-content/uploads
-	@docker cp "$(TMPDIR)/images/." $(shell $(COMPOSE_ENV) docker-compose ps -q openresty):/app/source/public/wp-content/uploads
+	@docker cp "$(TMPDIR)/images/." $(shell docker-compose ps -q php-fpm):/app/source/public/wp-content/uploads
+	@docker cp "$(TMPDIR)/images/." $(shell docker-compose ps -q openresty):/app/source/public/wp-content/uploads
 	@echo "Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads"
 	@rm -fr "$TMPDIR"
 
@@ -333,20 +405,20 @@ test: install-codeception test-env-info test-codeception
 .PHONY: install-pcov
 install-pcov:
 	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install -yq php-pcov'
-	docker cp dev-templates/pcov.ini $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/tmp/20-pcov.ini
+	docker cp dev-templates/pcov.ini $(shell docker-compose ps -q php-fpm):/tmp/20-pcov.ini
 	docker-compose exec php-fpm sh -c 'cp /tmp/20-pcov.ini /etc/php/$${PHP_MAJOR_VERSION}/fpm/conf.d/20-pcov.ini'
 	docker-compose exec php-fpm sh -c 'mv /tmp/20-pcov.ini /etc/php/$${PHP_MAJOR_VERSION}/cli/conf.d/20-pcov.ini'
 	docker-compose exec php-fpm sh -c 'service php$${PHP_MAJOR_VERSION}-fpm reload'
 
 .PHONY: install-codeception
 install-codeception:
-	@docker-compose exec php-fpm bash -c 'cd tests && composer install --prefer-dist --no-progress'
+	@docker-compose exec -u "${APP_USER}" php-fpm bash -c 'cd tests && composer install --prefer-dist --no-progress'
 	@$(MAKE) probe-wp-index
 
 # Replace WP's index.php file with a version that includes c3.php at the start, which codeception uses to collect coverage.
 .PHONY: probe-wp-index
 probe-wp-index:
-	docker cp dev-templates/probed_index.php $(shell $(COMPOSE_ENV) docker-compose ps -q php-fpm):/app/source/public/index.php
+	docker cp dev-templates/probed_index.php $(shell docker-compose ps -q php-fpm):/app/source/public/index.php
 
 .PHONY: test-codeception-unit
 test-codeception-unit:
@@ -376,32 +448,34 @@ test-env-info:
 
 # PA11Y TASKS
 
-PA11Y_DIR = pa11y
+PA11Y_DIR = /app/source/pa11y
 PA11Y_CONF = $(PA11Y_DIR)/.pa11yci
 PA11Y_LOCAL_CONF ?= $(PA11Y_DIR)/.pa11yci.local
 PA11Y_REPORT_JSON = $(PA11Y_DIR)/pa11y-ci-results.json
+CHROME_BIN=/usr/bin/chromium-browser
 
 ## Run accessibility tests
 .PHONY: test-pa11y
 test-pa11y:
-	docker-compose exec php-fpm sh -c "./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_LOCAL_CONF)"
+	docker-compose exec -e CHROME_BIN="${CHROME_BIN}" node sh -c \
+		"cd /app/source && ./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_LOCAL_CONF)"
 
 .PHONY: test-pa11y-ci
 test-pa11y-ci: install-pa11y
-	docker-compose exec php-fpm sh -c "./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_CONF) -j -T 1000 > $(PA11Y_REPORT_JSON)"
-	docker-compose exec php-fpm sh -c "./node_modules/pa11y-ci-reporter-html/bin/pa11y-ci-reporter-html.js -s $(PA11Y_REPORT_JSON) -d $(PA11Y_DIR)"
+	docker-compose exec node sh -c \
+		"./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_CONF) -j -T 1000 > $(PA11Y_REPORT_JSON)"
+	docker-compose exec node sh -c \
+		"./node_modules/pa11y-ci-reporter-html/bin/pa11y-ci-reporter-html.js -s $(PA11Y_REPORT_JSON) -d $(PA11Y_DIR)"
 
 ## Install accessibility tests
 .PHONY: install-pa11y
-install-pa11y: installnpm install-puppeteer-deps
-	docker-compose exec php-fpm sh -c 'npm install pa11y-ci pa11y-ci-reporter-html'
+install-pa11y: install-puppeteer-deps
+	docker-compose exec -e CHROME_BIN="${CHROME_BIN}" node sh -c \
+		'cd /app/source && npm install pa11y-ci pa11y-ci-reporter-html'
 
+# Install local chromium bin
 install-puppeteer-deps:
-	docker-compose exec php-fpm apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
-	libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
-	libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
-	libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
-	ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
+	docker-compose exec node apk add udev ttf-freefont chromium
 
 # ============================================================================
 
@@ -427,7 +501,7 @@ stateless: clean getdefaultcontent start-stateless config config-stateless statu
 
 .PHONY: start-stateless
 start-stateless:
-	DOCKER_COMPOSE_FILE=docker-compose.stateless.yml \
+	COMPOSE_FILE=docker-compose.stateless.yml \
 	./go.sh
 	./wait.sh
 
@@ -473,53 +547,52 @@ pmapass:
 wpadmin:
 	@docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
 
-## Display container statuses
+## Display containers statuses and docker-compose env
 .PHONY: status
 status:
+	@cat .env
+	@echo
 	@docker-compose ps
 	@echo
-	@$(MAKE) pass
+	@$(MAKE) pass --no-print-directory
 	@echo
 	@echo " Frontend - http://www.planet4.test"
 	@echo " Backend  - http://www.planet4.test/admin"
 	@echo
-	@echo "Execute the following command to configure your local shell environment"
-	@echo
-	@$(MAKE) env
-	@echo
 
 .PHONY: flush
 flush:
-	@docker-compose exec redis redis-cli flushdb
+	docker-compose exec redis redis-cli flushdb
 
 ## Enter a shell in the php-fpm container
 .PHONY: php-shell
 php-shell:
 	@docker-compose exec php-fpm bash
 
-.PHONY: installnpm
-installnpm:
-	# Update packages
-	docker-compose exec php-fpm apt update
-	# Install NPM
-	docker-compose exec php-fpm apt install npm -y
-	# Update Node version
-	docker-compose exec php-fpm sh -c 'npm cache clean -f && npm install -g n && n stable'
-
 ## Build master-theme and gutenberg-blocks assets
 .PHONY: assets
 assets:
-	docker-compose exec -T php-fpm /app/source/tasks/other/build-assets.sh
+	./scripts/build-assets.sh
 
-## Watch and automatically rebuild assets on modification
+## Watch and rebuild plugin and theme assets on modification
 .PHONY: watch
 watch:
-	docker-compose exec -T php-fpm /app/source/tasks/other/watch.sh
+	./scripts/watch.sh
+
+## Watch and rebuild theme assets on modification
+.PHONY: watch-theme
+watch-theme:
+	./scripts/watch.sh --theme-only
+
+## Watch and rebuild plugin assets on modification
+.PHONY: watch-plugin
+watch-plugin:
+	./scripts/watch.sh --plugin-only
 
 .PHONY: revertdb
 revertdb:
-	@docker stop $(shell $(COMPOSE_ENV) docker-compose ps -q db)
-	@docker rm $(shell $(COMPOSE_ENV) docker-compose ps -q db)
+	@docker stop $(shell docker-compose ps -q db)
+	@docker rm $(shell docker-compose ps -q db)
 	@docker volume rm $(COMPOSE_PROJECT_NAME)_db
 	@docker-compose up -d
 
@@ -540,7 +613,7 @@ nro-enable:
 	@echo "NRO repo $(NRO_REPO)"
 	@echo "NRO theme $(NRO_THEME)"
 	@echo "NRO dirname $(NRO_DIRNAME)"
-	@docker-compose exec php-fpm sh -c " \
+	@docker-compose exec -u "${APP_USER}" php-fpm sh -c " \
 		mkdir -p sites && \
 		(cd sites && (test -d $(NRO_DIRNAME) || git clone $(NRO_REPO) $(NRO_DIRNAME))) && \
 		(cd "sites/$(NRO_DIRNAME)" && git checkout $(NRO_BRANCH)) && \
@@ -556,7 +629,7 @@ nro-enable:
 ## Disable NRO theme
 .PHONY: nro-disable
 nro-disable:
-	@docker-compose exec php-fpm sh -c " \
+	@docker-compose exec -u "${APP_USER}" php-fpm sh -c " \
 		composer config extra.merge-plugin.require "composer-local.json" && \
 		composer update && \
 		composer run-script copy:themes && \
@@ -568,10 +641,7 @@ nro-disable:
 
 .PHONY: nro-test-codeception
 nro-test-codeception:
-	@docker-compose \
-		-f $(DOCKER_COMPOSE_FILE) \
-		-f $(DOCKER_COMPOSE_TOOLS_FILE) \
-		run \
+	@docker-compose run \
 		-e APP_HOSTNAME=$(NRO_APP_HOSTNAME) \
 		-e APP_HOSTPATH=$(NRO_APP_HOSTPATH) \
 		--user $(id -u):$(id -g) --rm --no-deps \
@@ -611,7 +681,7 @@ help:
 		if (helpMessage) { \
 			helpCommand = substr($$1, 0, index($$1, ":")) == ".PHONY:" ? $$2 : substr($$1, 0, index($$1, ":")-1); \
 			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
-			printf "  %-15s %s\n", helpCommand, helpMessage; \
+			printf "  %-19s %s\n", helpCommand, helpMessage; \
 		} \
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort

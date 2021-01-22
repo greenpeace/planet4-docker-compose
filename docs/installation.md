@@ -75,7 +75,7 @@ In order to keep the environment light, the default setup skips some containers 
 Namely: PhpMyAdmin, ElasticHQ and Selenium. If you need them, you can use the full environment config by setting an environment variable:
 
 ```bash
-DOCKER_COMPOSE_FILE="docker-compose.full.yml" make run
+COMPOSE_FILE="docker-compose.full.yml" make run
 ```
 
 ## Troubleshooting
