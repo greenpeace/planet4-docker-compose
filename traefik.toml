@@ -19,6 +19,9 @@ address = ":80"
 address = ":443"
 
 [entryPoints.https.tls]
+    [[entryPoints.https.tls.certificates]]
+    certFile = "/certs/planet4.test.crt"
+    keyFile = "/certs/planet4.test.key"
 
 [docker]
 endpoint = "unix:///var/run/docker.sock"

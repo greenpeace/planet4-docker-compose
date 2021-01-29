@@ -2,6 +2,7 @@
 .tmp-id
 acme.json
 artifacts
+certs
 defaultcontent
 persistence
 secrets
