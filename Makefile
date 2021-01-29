@@ -232,6 +232,10 @@ hosts:
 .PHONY: build
 build: hosts run unzipimages config elastic flush
 
+.PHONY: certs
+certs:
+	./scripts/setup-certs.sh
+
 ## Run containers. Will either start or build them first if they don't exist
 .PHONY: run
 run: envcheck
