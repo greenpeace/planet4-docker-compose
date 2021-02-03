@@ -46,12 +46,15 @@ If you want the application repositories to be cloned using ssh protocol, instea
 GIT_PROTO="ssh" make dev
 ```
 
+or for a more permanent solution, add to a file `Makefile.include`:
+```bash
+GIT_PROTO := 'ssh'
+```
+
+
 If you want to run docker-compose commands directly:
 
 ```bash
-# Set your shell environment variables correctly
-eval $(make env)
-
 # View status of containers
 docker-compose ps
 
@@ -78,12 +81,16 @@ Namely: PhpMyAdmin, ElasticHQ and Selenium. If you need them, you can use the fu
 COMPOSE_FILE="docker-compose.full.yml" make run
 ```
 
+For a more permanent solution, edit a file `.env` and change the variable there:
+```bash
+COMPOSE_FILE="docker-compose.full.yml"
+```
+
 ## Troubleshooting
 
 To view the output of running containers:
 
 ```bash
-eval $(make env)
 docker-compose logs
 ```
 
@@ -103,6 +110,11 @@ To update all containers, run:
 
 ```bash
 make run
+```
+
+Other commands are listed under:
+```bash
+make help
 ```
 
 ## Editing source code
