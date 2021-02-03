@@ -19,7 +19,7 @@ services:
     labels:
       traefik.backend: "traefik"
       traefik.frontend.rule: "Host:traefik.${APP_HOSTNAME:-www.planet4.test}"
-      traefik.docker.network: "planet4dockercompose_proxy"
+      traefik.docker.network: "${COMPOSE_PROJECT_NAME}_proxy"
       traefik.enable: "true"
 
   redis:
@@ -108,7 +108,7 @@ services:
       - "traefik.backend=test"
       - "traefik.foo.frontend.rule=Host:${APP_HOSTNAME:-www.planet4.test}"
       - "traefik.bar.frontend.rule=Host:www.planet4.fnord"
-      - "traefik.docker.network=planet4dockercompose_proxy"
+      - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_proxy"
       - "traefik.enable=true"
 
   phpmyadmin:
@@ -129,7 +129,7 @@ services:
     labels:
       traefik.backend: "pma"
       traefik.frontend.rule: "Host:pma.www.planet4.test"
-      traefik.docker.network: "planet4dockercompose_proxy"
+      traefik.docker.network: "${COMPOSE_PROJECT_NAME}_proxy"
       traefik.enable: "true"
 
   elasticsearch:

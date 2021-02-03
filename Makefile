@@ -80,9 +80,6 @@ COMPOSER := $(shell command -v composer 2> /dev/null)
 SHELLCHECK := $(shell command -v shellcheck 2> /dev/null)
 YAMLLINT := $(shell command -v yamllint 2> /dev/null)
 
-# Check enabled services in docker-compose config
-ELASTIC_ENABLED ?= $(docker-compose ps --services | grep elasticsearch)
-
 # ============================================================================
 
 .DEFAULT_GOAL := all
@@ -168,15 +165,15 @@ envcheck:
 .PHONY: clean
 clean: clean-containers clean-persistence clean-content
 
-## Remove current containers and orphans
+# Remove current containers and orphans
 clean-containers:
 	docker-compose down --remove-orphans --rmi local -v || true
 
-## Remove persistence directory
+# Remove persistence directory
 clean-persistence:
 	./scripts/clean-persistence.sh
 
-## Remove default content
+# Remove default content
 clean-content:
 	./scripts/clean-content.sh
 
@@ -280,7 +277,7 @@ deps: install-deps assets
 update: update-base update-deps
 	@echo "Update done."
 
-## Delete planet4 main theme and plugin
+# Delete planet4 main theme and plugin
 .PHONY: clean-repos
 clean-repos:
 	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
@@ -339,8 +336,8 @@ fix-ownership:
 .PHONY: elastic
 elastic: elastic-index flush
 
-elastic-index:
-	if [[ "${ELASTIC_ENABLED}" != "" ]]; then \
+elastic-index: check-services
+	@if [[ "${ELASTIC_ENABLED}" != "" ]]; then \
 		docker-compose exec php-fpm wp elasticpress index --setup --quiet --url=www.planet4.test;\
 	fi
 
@@ -471,7 +468,7 @@ test-pa11y-ci: install-pa11y
 .PHONY: install-pa11y
 install-pa11y: install-puppeteer-deps
 	docker-compose exec -e CHROME_BIN="${CHROME_BIN}" node sh -c \
-		'cd /app/source && npm install pa11y-ci pa11y-ci-reporter-html'
+		"cd /app/source && npm install pa11y-ci pa11y-ci-reporter-html"
 
 # Install local chromium bin
 install-puppeteer-deps:
@@ -547,17 +544,30 @@ pmapass:
 wpadmin:
 	@docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
 
+.PHONY : check-services
+check-services:
+	@$(eval SERVICES := $(shell docker-compose ps --services))
+	@$(eval ELASTIC_ENABLED := $(shell echo ${SERVICES} | grep elasticsearch))
+	@$(eval ELASTICHQ_ENABLED := $(shell echo ${SERVICES} | grep elastichq))
+	@$(eval PHPMYADMIN_ENABLED := $(shell echo ${SERVICES} | grep phpmyadmin))
+
 ## Display containers statuses and docker-compose env
 .PHONY: status
-status:
+status: check-services
 	@cat .env
 	@echo
 	@docker-compose ps
 	@echo
 	@$(MAKE) pass --no-print-directory
 	@echo
-	@echo " Frontend - http://www.planet4.test"
-	@echo " Backend  - http://www.planet4.test/admin"
+	@echo " Frontend - https://www.planet4.test"
+	@echo " Backend  - https://www.planet4.test/admin"
+	@if [[ "${ELASTICHQ_ENABLED}" != "" ]]; then \
+		echo " ElasticHQ - http://localhost:5000"; \
+	fi
+	@if [ "${PHPMYADMIN_ENABLED}" != "" ]; then \
+		echo " phpMyAdmin - http://pma.www.planet4.test/"; \
+	fi
 	@echo
 
 .PHONY: flush
@@ -579,12 +589,12 @@ assets:
 watch:
 	./scripts/watch.sh
 
-## Watch and rebuild theme assets on modification
+# Watch and rebuild theme assets on modification
 .PHONY: watch-theme
 watch-theme:
 	./scripts/watch.sh --theme-only
 
-## Watch and rebuild plugin assets on modification
+# Watch and rebuild plugin assets on modification
 .PHONY: watch-plugin
 watch-plugin:
 	./scripts/watch.sh --plugin-only
@@ -661,16 +671,19 @@ help:
 	@printf "/_/   /_/\\__,_/_/ /_/\\___/\\__/     /_/         https://planet4.greenpeace.org/create/contribute/\n"
 
 	@printf "\nUsage:\n"
-	@printf "  [variables] make target\n"
+	@printf "  [variables] make <target>\n"
 
 	@printf "\nAvailable variables:\n"
-	@awk '/^([A-Z\-_0-9]+) ?\?= ?(.*)/ { \
+	@awk '/^(export )?([A-Z\-_0-9]+) ?\?= ?(.*)/ { \
 		helpMessage = match(lastLine, /^## (.*)/); \
 		if (helpMessage) { \
-			helpVar = $$1; \
+			isExport = substr($$1, 0, 6) == "export"; \
+			helpVar = isExport ? $$2 : $$1; \
 			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
 			$$1=$$2=""; \
-			printf "  %-26s %-32s [%s]\n", helpVar, helpMessage, substr($$0, 3); \
+			if (isExport) { $$3 = ""; } \
+			sub(/^[\\t ]+/, "", $$0); \
+			printf "  %-26s %-32s [%s]\n", helpVar, helpMessage, $$0; \
 		} \
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort
