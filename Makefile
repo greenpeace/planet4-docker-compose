@@ -224,7 +224,7 @@ build: hosts run unzipimages config elastic flush
 
 ## Run containers. Will either start or build them first if they don't exist
 .PHONY: run
-run:
+run: envcheck
 	@$(MAKE) start --no-print-directory || $(MAKE) up --no-print-directory
 
 ## Start containers
@@ -257,7 +257,7 @@ down:
 
 ## Create containers, install developer tools, build assets
 .PHONY: dev
-dev: hosts envcheck repos run unzipimages config deps elastic flush status
+dev: hosts repos run unzipimages config deps elastic flush status
 	@if command -v xattr &> /dev/null; then \
 		$(MAKE) fix-ownership; \
 	fi
@@ -385,7 +385,7 @@ ci-extract-a11y-artifacts: artifacts/pa11y
 ci-copyimages: $(LOCAL_IMAGES)
 	$(eval TMPDIR := $(shell mktemp -d))
 	mkdir -p "$(TMPDIR)/images"
-	@unzip $(LOCAL_IMAGES) -d "$(TMPDIR)/images"
+	@unzip -q $(LOCAL_IMAGES) -d "$(TMPDIR)/images"
 	@docker cp "$(TMPDIR)/images/." $(shell docker-compose ps -q php-fpm):/app/source/public/wp-content/uploads
 	@docker cp "$(TMPDIR)/images/." $(shell docker-compose ps -q openresty):/app/source/public/wp-content/uploads
 	@echo "Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads"
@@ -409,7 +409,7 @@ install-pcov:
 
 .PHONY: install-codeception
 install-codeception:
-	@docker-compose exec -u "${APP_USER}" php-fpm bash -c 'cd tests && composer install --prefer-dist --no-progress'
+	@docker-compose exec php-fpm bash -c 'cd tests && composer install --prefer-dist --no-progress'
 	@$(MAKE) probe-wp-index
 
 # Replace WP's index.php file with a version that includes c3.php at the start, which codeception uses to collect coverage.

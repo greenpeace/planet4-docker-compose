@@ -39,7 +39,7 @@ function check_services() {
       echo
       docker ps -a | >&2 grep -E "Exited"
       echo
-      docker-compose -p "${COMPOSE_PROJECT_NAME}" logs "$s" | >&2 tail -20
+      docker-compose logs "$s" | >&2 tail -20
       echo
       >&2 echo "ERROR: $s is not running"
       echo
@@ -73,7 +73,7 @@ function main() {
     if [[ $loop -lt 1 ]]
     then
       >&2 echo "[ERROR] Timeout waiting for docker-compose to start"
-      >&2 docker-compose -p "${COMPOSE_PROJECT_NAME}" logs
+      >&2 docker-compose logs
       return 1
     fi
 
