@@ -547,6 +547,7 @@ wpadmin:
 .PHONY : check-services
 check-services:
 	@$(eval SERVICES := $(shell docker-compose ps --services))
+	@$(eval TRAEFIK_ENABLED := $(shell echo ${SERVICES} | grep traefik))
 	@$(eval ELASTIC_ENABLED := $(shell echo ${SERVICES} | grep elasticsearch))
 	@$(eval ELASTICHQ_ENABLED := $(shell echo ${SERVICES} | grep elastichq))
 	@$(eval PHPMYADMIN_ENABLED := $(shell echo ${SERVICES} | grep phpmyadmin))
@@ -560,13 +561,16 @@ status: check-services
 	@echo
 	@$(MAKE) pass --no-print-directory
 	@echo
-	@echo " Frontend - https://www.planet4.test"
-	@echo " Backend  - https://www.planet4.test/admin"
+	@echo " Frontend - http://www.planet4.test"
+	@echo " Backend  - http://www.planet4.test/admin"
 	@if [[ "${ELASTICHQ_ENABLED}" != "" ]]; then \
 		echo " ElasticHQ - http://localhost:5000"; \
 	fi
 	@if [ "${PHPMYADMIN_ENABLED}" != "" ]; then \
 		echo " phpMyAdmin - http://pma.www.planet4.test/"; \
+	fi
+	@if [ "${TRAEFIK_ENABLED}" != "" ]; then \
+		echo " Traefik - http://localhost:8080/"; \
 	fi
 	@echo
 
