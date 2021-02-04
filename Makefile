@@ -147,8 +147,8 @@ endif
 .ONESHELL:
 env:
 	@echo "# docker-compose env variables" > .env
-	@echo "COMPOSE_FILE=\"$${COMPOSE_FILE:-${DEFAULT_COMPOSE_FILE}}\"" >> .env
-	@echo "COMPOSE_PROJECT_NAME=\"$${COMPOSE_PROJECT_NAME:-${DEFAULT_COMPOSE_PROJECT_NAME}}\"" >> .env
+	@echo "COMPOSE_FILE=$${COMPOSE_FILE:-${DEFAULT_COMPOSE_FILE}}" >> .env
+	@echo "COMPOSE_PROJECT_NAME=$${COMPOSE_PROJECT_NAME:-${DEFAULT_COMPOSE_PROJECT_NAME}}" >> .env
 	@cat .env
 
 .PHONY: envcheck
