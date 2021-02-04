@@ -96,10 +96,6 @@ init: .git/hooks/pre-commit
 	@find .git/hooks -type l -exec rm {} \;
 	@find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
 
-
-.PHONY:info
-info:
-	docker-compose ps --services
 # ============================================================================
 
 # SELF TESTS
@@ -144,7 +140,6 @@ endif
 
 ## Configure local environment
 .PHONY: env
-.ONESHELL:
 env:
 	@echo "# docker-compose env variables" > .env
 	@echo "COMPOSE_FILE=$${COMPOSE_FILE:-${DEFAULT_COMPOSE_FILE}}" >> .env
