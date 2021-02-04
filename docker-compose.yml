@@ -110,7 +110,7 @@ services:
       - "traefik.enable=true"
 
   node:
-    image: ${NODE_IMAGE:-node:14.15-alpine3.12}
+    image: ${NODE_IMAGE:-node:lts-alpine}
     tty: true
     networks:
       - local
