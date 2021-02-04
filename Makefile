@@ -515,26 +515,6 @@ config:
 config-stateless:
 	@docker-compose exec php-fpm wp plugin activate wp-stateless
 
-.PHONY : pass
-pass:
-	@make pmapass
-	@make wppass
-
-.PHONY : wppass
-wppass:
-	@printf "Wordpress credentials:\n"
-	@printf "User:  %s\n" $(WP_ADMIN_USER)
-	@printf "Pass:  %s\n" $(WP_ADMIN_PASS)
-	@printf "\n"
-
-.PHONY : pmapass
-pmapass:
-	@printf "Database credentials:\n"
-	@printf "User:  %s\n" $(MYSQL_USER)
-	@printf "Pass:  %s\n----\n" $(MYSQL_PASS)
-	@printf "User:  root\n"
-	@printf "Pass:  %s\n----\n" $(ROOT_PASS)
-
 .PHONY : wpadmin
 wpadmin:
 	@docker-compose exec -T php-fpm wp user create ${WP_USER} ${WP_USER_EMAIL} --role=administrator
@@ -547,26 +527,42 @@ check-services:
 	@$(eval ELASTICHQ_ENABLED := $(shell echo ${SERVICES} | grep elastichq))
 	@$(eval PHPMYADMIN_ENABLED := $(shell echo ${SERVICES} | grep phpmyadmin))
 
-## Display containers statuses and docker-compose env
-.PHONY: status
-status: check-services
-	@cat .env
-	@echo
-	@docker-compose ps
-	@echo
-	@$(MAKE) pass --no-print-directory
-	@echo
-	@echo " Frontend - http://www.planet4.test"
-	@echo " Backend  - http://www.planet4.test/admin"
+.PHONY: credentials
+credentials:
+	@printf "\n"
+	@printf " %-11s | %-9s | %-17s \n" "" User Password
+	@printf "%0.s-" {1..47} && printf "\n"
+	@printf " %-11s | %-9s | %-17s \n" Wordpress $(WP_ADMIN_USER) $(WP_ADMIN_PASS)
+	@printf "%0.s-" {1..47} && printf "\n"
+	@printf " %-11s | %-9s | %-17s \n" Database $(MYSQL_USER) $(MYSQL_PASS)
+	@printf " %-11s | %-9s | %-17s \n" "" root $(ROOT_PASS)
+	@printf "\n"
+
+.PHONY: links
+links: check-services
+	@printf " %-10s - %-21s\n" Frontend http://www.planet4.test
+	@printf " %-10s - %-21s\n" Backend http://www.planet4.test/admin
 	@if [[ "${ELASTICHQ_ENABLED}" != "" ]]; then \
-		echo " ElasticHQ - http://localhost:5000"; \
+		printf " %-10s - %-21s\n" ElasticHQ http://localhost:5000; \
 	fi
 	@if [ "${PHPMYADMIN_ENABLED}" != "" ]; then \
-		echo " phpMyAdmin - http://pma.www.planet4.test/"; \
+		printf " %-10s - %-21s\n" phpMyAdmin http://pma.www.planet4.test/; \
 	fi
 	@if [ "${TRAEFIK_ENABLED}" != "" ]; then \
-		echo " Traefik - http://localhost:8080/"; \
+		printf " %-10s - %-21s\n" Traefik http://localhost:8080/; \
 	fi
+
+## Display containers statuses and docker-compose env
+.PHONY: status
+status:
+	@printf "\n*** .env file ***\n\n"
+	@cat .env
+	@printf "\n*** Docker compose status ***\n\n"
+	@docker-compose ps
+	@printf "\n*** Credentials ***\n"
+	@$(MAKE) credentials --no-print-directory
+	@printf "*** Links ***\n\n"
+	@$(MAKE) links --no-print-directory
 	@echo
 
 .PHONY: flush
