@@ -3,6 +3,8 @@
 
 NAME=planet4.test
 
+mkdir -p certs
+
 ######################
 # Become a Certificate Authority
 ######################
@@ -16,6 +18,8 @@ openssl req -x509 -new -nodes \
   -sha256 \
   -days 825 \
   -out certs/myCA.pem
+# Also create a .crt file for Mac users.
+openssl x509 -outform der -in certs/myCA.pem -out certs/myCA.crt
 
 ######################
 # Create CA-signed certs
