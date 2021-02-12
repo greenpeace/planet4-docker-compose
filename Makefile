@@ -305,7 +305,8 @@ dev-install-xdebug:
 ifeq (Darwin, $(shell uname -s))
 	$(eval export XDEBUG_REMOTE_HOST=$(shell ipconfig getifaddr en0))
 else
-	$(eval export XDEBUG_REMOTE_HOST=$(shell docker network inspect ${COMPOSE_PROJECT_NAME}_local --format '{{(index .IPAM.Config 0).Gateway }}'))
+	$(eval include .env)
+	$(eval export XDEBUG_REMOTE_HOST=$(shell docker network inspect "${COMPOSE_PROJECT_NAME}_local" --format '{{(index .IPAM.Config 0).Gateway }}'))
 endif
 ifndef ENVSUBST
 	$(error Command: 'envsubst' not found, please install using your package manager)
@@ -596,6 +597,7 @@ watch-plugin:
 
 .PHONY: revertdb
 revertdb:
+	$(eval include .env)
 	@docker stop $(shell docker-compose ps -q db)
 	@docker rm $(shell docker-compose ps -q db)
 	@docker volume rm $(COMPOSE_PROJECT_NAME)_db
