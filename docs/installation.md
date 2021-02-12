@@ -24,6 +24,7 @@ For Linux users, these are either preinstalled or available through your distrib
 - [docker](https://docs.docker.com/engine/installation/)
 - [docker-compose](https://github.com/docker/compose/releases) - This should be installed along with docker on OSX and Windows
 - [envsubst](https://stackoverflow.com/questions/23620827/envsubst-command-not-found-on-mac-os-x-10-8/23622446#23622446) - This should be pre-installed on most Linux distributions
+- [unzip](https://linuxhint.com/unzip_command_-linux/)
 
 ## First run
 
