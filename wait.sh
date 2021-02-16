@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT=${PROJECT:-$(basename "${PWD}" | sed 's/[\w.-]//g')}
+if [ -z "${COMPOSE_PROJECT_NAME:-}" ]; then
+  # shellcheck disable=SC1091
+  source .env
+fi
 
 function ping() {
   local connect_timeout=2
   local string=greenpeace
 
-  local network=${PROJECT}_proxy
+  local network=${COMPOSE_PROJECT_NAME}_proxy
   local endpoint=${APP_HOSTNAME:-http://www.planet4.test}
 
   if [[ -n "${APP_HOSTPATH:-}" ]]
@@ -26,20 +29,17 @@ function ping() {
 }
 
 function check_services() {
-  local services=(
-    "openresty"
-    "php-fpm"
-    "db"
-    "redis"
-  )
+  # shellcheck disable=SC2207
+  services=( $(docker-compose ps --services) )
+
   for s in "${services[@]}"
   do
-    if ! grep -q "$(docker-compose -p "${PROJECT}" ps -q "$s")" <<< "$(docker ps -q --no-trunc)"
+    if ! grep -q "$(docker-compose ps -q "$s")" <<< "$(docker ps -q --no-trunc)"
     then
       echo
       docker ps -a | >&2 grep -E "Exited"
       echo
-      docker-compose -p "${PROJECT}" logs "$s" | >&2 tail -20
+      docker-compose logs "$s" | >&2 tail -20
       echo
       >&2 echo "ERROR: $s is not running"
       echo
@@ -73,7 +73,7 @@ function main() {
     if [[ $loop -lt 1 ]]
     then
       >&2 echo "[ERROR] Timeout waiting for docker-compose to start"
-      >&2 docker-compose -p "${PROJECT}" logs
+      >&2 docker-compose logs
       return 1
     fi
 
