@@ -454,7 +454,9 @@ test-pa11y:
 		"cd /app/source && ./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_LOCAL_CONF)"
 
 .PHONY: test-pa11y-ci
-test-pa11y-ci: install-pa11y
+test-pa11y-ci:
+	docker-compose exec -e CHROME_BIN="${CHROME_BIN}" node sh -c \
+		"npm install pa11y-ci pa11y-ci-reporter-html"
 	docker-compose exec node sh -c \
 		"./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_CONF) -j -T 1000 > $(PA11Y_REPORT_JSON)"
 	docker-compose exec node sh -c \

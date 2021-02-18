@@ -26,6 +26,8 @@ services:
       - proxy
     dns:
       - ${DNS_RESOLVER:-1.1.1.1}
+    volumes:
+      - ./app:/app/source:cached
     environment:
       - APP_ENV=${APP_ENV:-develop}
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
@@ -64,6 +66,20 @@ services:
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       - REDIS_FASTCGI_CACHE_ENABLED=true
       - PHP_ENABLED=true
+
+  node:
+    image: ${NODE_IMAGE:-node:lts-alpine}
+    tty: true
+    networks:
+      - local
+      - proxy
+    dns:
+      - ${DNS_RESOLVER:-1.1.1.1}
+    volumes:
+      - ./app:/app/source:cached
+    environment:
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=${PUPPETEER_SKIP_CHROMIUM_DOWNLOAD:-true}
+      - PUPPETEER_SKIP_DOWNLOAD=${PUPPETEER_SKIP_DOWNLOAD:-true}
 
   elasticsearch:
     image: gcr.io/planet-4-151612/elasticsearch:${ELASTICSEARCH_BUILD_TAG:-latest}
