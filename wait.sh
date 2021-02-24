@@ -49,6 +49,13 @@ function check_services() {
 }
 
 function main() {
+    local services=(
+    "openresty"
+    "php-fpm"
+    "db"
+    "redis"
+  )
+
   # ~6 seconds * 100 == 10+ minutes
   # Actual interval varies depending on platform due to docker calls
   local interval=1
@@ -73,7 +80,13 @@ function main() {
     if [[ $loop -lt 1 ]]
     then
       >&2 echo "[ERROR] Timeout waiting for docker-compose to start"
-      >&2 docker-compose logs
+      for s in "${services[@]}"
+      do
+        if ! grep -q "$(docker-compose -p "${PROJECT}" ps -q "$s")" <<< "$(docker ps -q --no-trunc)"
+        then
+          docker-compose logs "$s" | >&2 tail -20
+        fi
+      done
       return 1
     fi
 
