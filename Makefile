@@ -133,7 +133,7 @@ endif
 ifdef NRO_REPO
 # gives us the basename of the repo e.g. "planet4-netherlands"
 NRO_DIRNAME := $(shell echo $(NRO_REPO) | sed 's/^.*\///g; s/\.git$$//g')
-NRO_BRANCH ?= develop
+NRO_BRANCH ?= main
 NRO_APP_HOSTNAME ?= www.planet4.test
 NRO_APP_HOSTPATH ?=
 endif
@@ -613,7 +613,7 @@ nro-enable:
 		echo && \
 		echo "NRO_REPO := <put the Git URL for the NRO repo here>" && \
 		echo "NRO_THEME := <put the theme name for the NRO here>" && \
-		echo "NRO_BRANCH := <optionally, the branch you want, default is develop>" && \
+		echo "NRO_BRANCH := <optionally, the branch you want, default is main>" && \
 		echo && \
 		exit 1 \
 	)
