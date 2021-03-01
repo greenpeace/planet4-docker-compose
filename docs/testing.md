@@ -30,7 +30,7 @@ There are two environments in which the tests run:
 
 - this developer environment
 - CI environment
-  - see [CircleCI configuration](https://github.com/greenpeace/planet4-base-fork/blob/master/.circleci/config.yml#L44) in base
+  - see [CircleCI configuration](https://github.com/greenpeace/planet4-base/blob/master/.circleci/config.yml#L44) in base
 
 Both of the environments start by loading the [default content](https://www-dev.greenpeace.org/defaultcontent/) so you can write tests against that content.
 
@@ -270,7 +270,7 @@ vendor/bin/codecept -c ../codeception.yml p4:selectors
 Related reading:
 - [BDD in Codeception](https://codeception.com/docs/07-BDD)
 - [4 rules for writing good Gherkin](https://techbeacon.com/app-dev-testing/better-behavior-driven-development-4-rules-writing-good-gherkin)
-- [PR introducing Gherkin](https://github.com/greenpeace/planet4-base-fork/pull/81)
+- [PR introducing Gherkin](https://github.com/greenpeace/planet4-base/pull/81)
 
 ## CI
 

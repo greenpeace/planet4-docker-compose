@@ -113,7 +113,7 @@ Anytime you want to re-index Elasticsearch you can just run: `make elastic`.
 
 ## Environment variables
 
-This docker environment relies on the mysql official image as well as on the [planet4-base-fork](https://github.com/greenpeace/planet4-base-fork) application image.
+This docker environment relies on the mysql official image as well as on the [planet4-base](https://github.com/greenpeace/planet4-base) application image.
 
 Both images provide environment variables which adjust aspects of the runtime configuration. For this environment to run only the database parameters such as hostname, database name, database users and passwords are required.
 
