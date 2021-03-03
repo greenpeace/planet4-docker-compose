@@ -44,9 +44,25 @@ jobs:
           when: on_fail
           command: TYPE="Codeception" notify-job-failure.sh
 
+  localdev:
+    machine:
+      image: ubuntu-2004:202101-01
+    environment:
+      APP_IMAGE: gcr.io/planet-4-151612/wordpress:main
+      OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-openresty:main
+    steps:
+      - checkout
+      - run:
+          name: Create local dev environment
+          command: make dev
+      - run:
+          name: Basic checks
+          command: ./scripts/status-report.sh
+
 workflows:
   version: 2
   test:
     jobs:
+      - localdev
       - codeception:
           context: org-global
