@@ -31,7 +31,7 @@ services:
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       # - DELETE_EXISTING_FILES=false
-      - GIT_REF=${GIT_REF:-develop}
+      - GIT_REF=${GIT_REF:-main}
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base
       # - MERGE_REF=develop
       # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
