@@ -32,7 +32,7 @@ services:
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       # - DELETE_EXISTING_FILES=false
       - GIT_REF=${GIT_REF:-develop}
-      - GIT_SOURCE=https://github.com/greenpeace/planet4-base-fork
+      - GIT_SOURCE=https://github.com/greenpeace/planet4-base
       # - MERGE_REF=develop
       # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
