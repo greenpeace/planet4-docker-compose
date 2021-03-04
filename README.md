@@ -25,16 +25,6 @@ By default, the quickstart command `make dev` is all you'll need to pull all req
 - Redis key-value store and
 - MySQL database server.
 
-This guide is split into the section below:
+### 👷 Installation
 
-### 👷 [Installation](docs/installation.md)
-
-Step-by-step guide on how to get the development environment up and running to your local machine.
-
-### 🔧 [Testing](docs/testing.md)
-
-Detailed information on how to run the test suite locally.
-
-### 💪 [Advanced Topics](docs/advanced.md)
-
-Dive into more advanced topics (eg. how to run production containers, configure wp-stateless and elasticsearch, update containers, etc).
+For a step-by-step guide on how to get the development environment up and running checkout our [Installation Guide](https://support.greenpeace.org/planet4/development/installation).
