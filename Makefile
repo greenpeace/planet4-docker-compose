@@ -299,7 +299,7 @@ update-deps:
 .PHONY: update-base
 update-base:
 	docker-compose exec -u "${APP_USER}" php-fpm sh -c \
-		"cd /app/source && git checkout develop && git pull"
+		"cd /app/source && git checkout main && git pull"
 
 dev-install-xdebug:
 ifeq (Darwin, $(shell uname -s))

@@ -33,7 +33,7 @@ services:
       # - DELETE_EXISTING_FILES=false
       - GIT_REF=${GIT_REF:-main}
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base
-      # - MERGE_REF=develop
+      # - MERGE_REF=main
       # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
       # - OVERWRITE_EXISTING_FILES=false

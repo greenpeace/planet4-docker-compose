@@ -2,7 +2,7 @@
 version: '3'
 services:
   codeception:
-    image: gcr.io/planet-4-151612/p4-codeception:develop
+    image: gcr.io/planet-4-151612/p4-codeception:main
     working_dir: /app/source
     command: /bin/false  # only needed when running specific commands
     environment:

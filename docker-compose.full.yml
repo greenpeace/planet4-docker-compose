@@ -43,7 +43,7 @@ services:
       traefik.enable: "false"
 
   php-fpm:
-    image: ${APP_IMAGE:-gcr.io/planet-4-151612/wordpress:develop}
+    image: ${APP_IMAGE:-gcr.io/planet-4-151612/wordpress:main}
     depends_on:
       - db
       - redis
@@ -66,7 +66,7 @@ services:
       # - DELETE_EXISTING_FILES=false
       - GIT_REF=${GIT_REF:-main}
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base
-      # - MERGE_REF=develop
+      # - MERGE_REF=main
       # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
       # - OVERWRITE_EXISTING_FILES=false
@@ -84,7 +84,7 @@ services:
       traefik.enable: "false"
 
   openresty:
-    image: ${OPENRESTY_IMAGE:-gcr.io/planet-4-151612/openresty:develop}
+    image: ${OPENRESTY_IMAGE:-gcr.io/planet-4-151612/openresty:main}
     depends_on:
       - php-fpm
       - traefik

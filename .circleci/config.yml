@@ -16,8 +16,8 @@ jobs:
   codeception:
     <<: *defaults
     environment:
-      APP_IMAGE: gcr.io/planet-4-151612/planet4-base-app:develop
-      OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-openresty:develop
+      APP_IMAGE: gcr.io/planet-4-151612/planet4-base-app:main
+      OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-openresty:main
     steps:
       - checkout
       - restore_cache:
