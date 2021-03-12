@@ -68,6 +68,7 @@ REMOTE_IMAGES		:= $(CONTENT_BASE)/$(CONTENT_IMAGES)
 
 LOCAL_DB				:= $(CONTENT_PATH)/$(CONTENT_DB)
 LOCAL_IMAGES		:= $(CONTENT_PATH)/$(CONTENT_IMAGES)
+UPLOADS_PATH    := persistence/app/public/wp-content/uploads
 
 # ============================================================================
 
@@ -176,8 +177,8 @@ clean-content:
 
 # DEFAULT CONTENT TASKS
 
-$(CONTENT_PATH):
-	mkdir -p $@
+$(CONTENT_PATH) $(UPLOADS_PATH):
+	@mkdir -p $@
 
 $(LOCAL_DB): $(CONTENT_PATH)
 	curl --fail $(REMOTE_DB) > $@
@@ -197,8 +198,8 @@ cleandefaultcontent:
 updatedefaultcontent: cleandefaultcontent getdefaultcontent
 
 .PHONY: unzipimages
-unzipimages: $(LOCAL_IMAGES)
-	@unzip -q $(LOCAL_IMAGES) -d persistence/app/public/wp-content/uploads
+unzipimages: $(LOCAL_IMAGES) $(UPLOADS_PATH)
+	@unzip -q $(LOCAL_IMAGES) -d $(UPLOADS_PATH)
 
 # ============================================================================
 
@@ -569,6 +570,7 @@ status:
 .PHONY: flush
 flush:
 	docker-compose exec redis redis-cli flushdb
+	docker-compose exec php-fpm wp timber clear_cache
 
 ## Enter a shell in the php-fpm container
 .PHONY: php-shell
