@@ -61,8 +61,20 @@ jobs:
 
 workflows:
   version: 2
+
   test:
     jobs:
       - localdev
       - codeception:
           context: org-global
+
+  cron-test:
+    jobs:
+      - localdev
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
