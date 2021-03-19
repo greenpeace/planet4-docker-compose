@@ -33,8 +33,13 @@ jobs:
           key: composer-v1-{{ .Branch }}-{{ .Revision }}-{{ .BuildNum }}
           paths:
             - defaultcontent
-      - run: make test
-      - run: make ci-extract-artifacts
+      - run:
+          name: Run acceptance tests
+          command: make test
+      - run:
+          name: Generate artifacts
+          command: make ci-extract-artifacts
+          when: always
       - store_test_results:
           path: artifacts
       - store_artifacts:

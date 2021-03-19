@@ -351,7 +351,7 @@ endif
 ifndef OPENRESTY_IMAGE
 	$(error OPENRESTY_IMAGE is not set)
 endif
-	@$(MAKE) lint run config ci-copyimages elastic flush install-pcov
+	@$(MAKE) lint run config ci-copyimages elastic flush test-install
 
 db/Dockerfile:
 ifndef ENVSUBST
@@ -393,7 +393,10 @@ ci-copyimages: $(LOCAL_IMAGES)
 # CODECEPTION TASKS
 
 ## Run tests with Codeception
-test: install-codeception test-env-info test-codeception
+test: test-env-info test-codeception
+
+## Install Codeception dependencies
+test-install: install-codeception install-pcov
 
 # php-pcov allows for zero overhead analysis. Codeception will automatically use it as coverage driver if it's present.
 .PHONY: install-pcov
