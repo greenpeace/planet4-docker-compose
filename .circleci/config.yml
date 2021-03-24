@@ -63,6 +63,58 @@ jobs:
       - run:
           name: Basic checks
           command: ./scripts/status-report.sh
+      - run:
+          name: Create release from install
+          command: |
+              mkdir -p /tmp/workspace/build
+              export DEVRELEASE_VERSION="$(date +'%Y%m%d')"
+              # <sudo> to bypass permissions issues with wflogs files
+              RELEASE=$(sudo -E make create-dev-export)
+              echo "${RELEASE}" > /tmp/workspace/build/release.txt
+              mv "${RELEASE}" /tmp/workspace/build/
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - build/*
+
+  dev-from-release:
+    machine:
+      image: ubuntu-2004:202101-01
+    environment:
+      APP_IMAGE: gcr.io/planet-4-151612/wordpress:main
+      OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-openresty:main
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - checkout
+      - run:
+          name: Create local environment from release
+          command: |
+              cp /tmp/workspace/build/* .
+              LOCAL_DEVRELEASE=$(cat /tmp/workspace/build/release.txt) make dev-from-release
+      - run:
+          name: Basic checks
+          command: ./scripts/status-report.sh
+
+  publish-release:
+    <<: *defaults
+    environment:
+      GOOGLE_PROJECT_ID: planet-4-151612
+      BUCKET_NAME: planet4-default-content
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: activate-gcloud-account.sh
+      - run:
+          name: Push dev release to cloud storage
+          command: |
+              RELEASE=$(cat /tmp/workspace/build/release.txt)
+              LATEST="planet4-persistence-latest.gz"
+              gsutil cp -a public-read /tmp/workspace/build/${RELEASE} gs://${BUCKET_NAME}
+              mv /tmp/workspace/build/${RELEASE} /tmp/workspace/build/${LATEST}
+              gsutil cp -a public-read /tmp/workspace/build/${LATEST} gs://${BUCKET_NAME}
 
 workflows:
   version: 2
@@ -70,12 +122,26 @@ workflows:
   test:
     jobs:
       - localdev
+      - dev-from-release:
+          requires:
+            - localdev
       - codeception:
           context: org-global
 
-  cron-test:
+  nightly-test-and-release:
     jobs:
       - localdev
+      - dev-from-release:
+          requires:
+            - localdev
+      - codeception:
+          context: org-global
+      - publish-release:
+          context: org-global
+          requires:
+            - localdev
+            - dev-from-release
+            - codeception
     triggers:
       - schedule:
           cron: "0 0 * * *"
