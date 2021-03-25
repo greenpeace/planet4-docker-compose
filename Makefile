@@ -392,6 +392,11 @@ ci-copyimages: $(LOCAL_IMAGES)
 
 # CODECEPTION TASKS
 
+selenium-run:
+	echo "Starting Selenium"
+	@docker-compose -f docker-compose.full.yml up -d selenium
+	@sleep 3
+
 ## Run tests with Codeception
 test: test-env-info test-codeception
 
@@ -428,7 +433,7 @@ test-codeception-acceptance:
 	@docker-compose exec php-fpm tests/vendor/bin/codecept run acceptance --no-redirect --xml=junit.xml --html --coverage --coverage-html coverage_acceptance
 
 .PHONY: test-codeception
-test-codeception: test-codeception-acceptance
+test-codeception: selenium-run test-codeception-acceptance
 
 .PHONY: test-codeception-failed
 test-codeception-failed:
