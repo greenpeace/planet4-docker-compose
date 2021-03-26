@@ -9,7 +9,7 @@ services:
   db:
     build:
       context: defaultcontent
-      dockerfile: ../db/Dockerfile
+      dockerfile: ../dockerfiles/db/Dockerfile
     env_file:
       - ./db.env
     networks:

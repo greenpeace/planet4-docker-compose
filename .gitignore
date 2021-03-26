@@ -5,7 +5,7 @@ artifacts
 defaultcontent
 persistence
 secrets
-db/Dockerfile
+dockerfiles/*/Dockerfile
 hosts.backup
 Makefile.include
 xdebug.out

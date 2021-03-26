@@ -51,6 +51,8 @@ NRO_REPO ?=
 ## NRO theme name
 NRO_THEME ?=
 
+export NPM_BIN := pnpm
+
 # ============================================================================
 
 CONTENT_PATH 		:= defaultcontent
@@ -105,11 +107,11 @@ init: .git/hooks/pre-commit
 lint: init
 	@$(MAKE) -j lint-docker lint-sh lint-yaml lint-ci
 
-lint-docker: db/Dockerfile
+lint-docker: dockerfiles/db/Dockerfile
 ifndef DOCKER
 	$(error "docker is not installed: https://docs.docker.com/install/")
 endif
-	@docker run --rm -i hadolint/hadolint < db/Dockerfile
+	@docker run --rm -i hadolint/hadolint < dockerfiles/db/Dockerfile
 
 lint-sh:
 ifndef SHELLCHECK
@@ -237,7 +239,7 @@ stop:
 ## Build and starts containers
 .PHONY: up
 up:
-	$(MAKE) -j init getdefaultcontent db/Dockerfile
+	$(MAKE) -j init getdefaultcontent dockerfiles/node/Dockerfile dockerfiles/db/Dockerfile
 	cp ci/scripts/duplicate-db.sh defaultcontent/duplicate-db.sh
 	./go.sh
 	@./wait.sh
@@ -353,7 +355,13 @@ ifndef OPENRESTY_IMAGE
 endif
 	@$(MAKE) lint run config ci-copyimages elastic flush test-install
 
-db/Dockerfile:
+dockerfiles/db/Dockerfile:
+ifndef ENVSUBST
+	$(error Command: 'envsubst' not found, please install using your package manager)
+endif
+	envsubst < $@.in > $@
+
+dockerfiles/node/Dockerfile:
 ifndef ENVSUBST
 	$(error Command: 'envsubst' not found, please install using your package manager)
 endif
@@ -468,7 +476,7 @@ test-pa11y-ci: install-pa11y
 .PHONY: install-pa11y
 install-pa11y: install-puppeteer-deps
 	docker-compose exec -e CHROME_BIN="${CHROME_BIN}" node sh -c \
-		"cd /app/source && npm install pa11y-ci pa11y-ci-reporter-html"
+		"cd /app/source && $(NPM_BIN) install pa11y-ci pa11y-ci-reporter-html"
 
 # Install local chromium bin
 install-puppeteer-deps:

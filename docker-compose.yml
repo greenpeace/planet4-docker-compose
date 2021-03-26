@@ -32,7 +32,7 @@ services:
   db:
     build:
       context: defaultcontent
-      dockerfile: ../db/Dockerfile
+      dockerfile: ../dockerfiles/db/Dockerfile
     env_file:
       - ./db.env
     volumes:
@@ -110,8 +110,12 @@ services:
       - "traefik.enable=true"
 
   node:
-    image: ${NODE_IMAGE:-node:lts-alpine}
+    build:
+      context: .
+      dockerfile: dockerfiles/node/Dockerfile
     tty: true
+    user: "node"
+    working_dir: /app/source
     networks:
       - local
       - proxy
