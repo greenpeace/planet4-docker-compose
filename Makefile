@@ -430,6 +430,8 @@ test-codeception-unit:
 # The confusingly named `--no-redirect` option is because of https://github.com/Codeception/Codeception/pull/5498 .
 .PHONY: test-codeception-acceptance
 test-codeception-acceptance:
+	@docker-compose exec php-fpm rsync -a --delete public/wp-content/themes/planet4-master-theme/tests/acceptance/ public/wp-content/plugins/planet4-plugin-gutenberg-blocks/tests/acceptance/ tests/acceptance/
+	@docker-compose exec php-fpm rsync -a --delete public/wp-content/themes/planet4-master-theme/tests/data/ tests/_data/
 	@docker-compose exec php-fpm tests/vendor/bin/codecept run acceptance --no-redirect --xml=junit.xml --html --coverage --coverage-html coverage_acceptance
 
 .PHONY: test-codeception
