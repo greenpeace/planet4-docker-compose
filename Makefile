@@ -214,6 +214,23 @@ hosts:
 	echo "May require sudo password to configure the /etc/hosts file ..."; \
 	echo -e "\n# Planet4 local development environment\n127.0.0.1\twww.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /etc/hosts; \
 	else echo "Hosts file already configured"; fi
+	if [[ ! -z "$$(uname -r | grep microsoft)" ]]; then \
+		$(MAKE) windows-hosts; \
+	fi
+
+.ONESHELL:
+.PHONY: windows-hosts
+windows-hosts:
+	@if [[ ! -w "/mnt/c/Windows/System32/drivers/etc/hosts" ]]; then
+		echo "Windows hosts file is not accessible, be sure to add Planet4 configuration to it:"
+		echo "127.0.0.1    www.planet4.test pma.www.planet4.test traefik.www.planet4.test"
+	elif ! grep -q "127.0.0.1[[:space:]]\+www.planet4.test" /mnt/c/Windows/System32/drivers/etc/hosts; then
+		cp /mnt/c/Windows/System32/drivers/etc/hosts hosts.windows.backup
+		echo "Your Windows hosts file has been backed up to $(PWD)/hosts.windows.backup"
+		echo ""
+		echo "May require sudo password to configure the Windows hosts file ..."
+		echo -e "\n# Planet4 local development environment\n127.0.0.1\twww.planet4.test pma.www.planet4.test traefik.www.planet4.test" | sudo tee -a /mnt/c/Windows/System32/drivers/etc/hosts
+	else echo "Windows hosts file already configured"; fi
 
 .PHONY: build
 build: hosts run unzipimages config elastic flush
