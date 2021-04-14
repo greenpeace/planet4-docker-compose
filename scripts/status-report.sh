@@ -167,6 +167,8 @@ function filter_logs() {
     "NOTICE: PHP message: PHP Warning:  filectime(): stat failed"
     # Xdebug running without client
     "NOTICE: PHP message: Xdebug: [Step Debug] Could not connect to debugging client."
+    # APM installation
+    "Sending events to APM Server failed."
     # FPM regular messages
     "NOTICE: using inherited socket fd"
     "NOTICE: fpm is running, pid"

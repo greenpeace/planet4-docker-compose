@@ -27,7 +27,7 @@ jobs:
             - composer-v1-{{ .Branch }}
             - composer-v1
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: false
       - run: make ci
       - save_cache:
           key: composer-v1-{{ .Branch }}-{{ .Revision }}-{{ .BuildNum }}
