@@ -51,6 +51,8 @@ NRO_REPO ?=
 ## NRO theme name
 NRO_THEME ?=
 
+XDEBUG_MODE ?= debug
+XDEBUG_START_WITH_REQUEST ?= yes
 # ============================================================================
 
 CONTENT_PATH 		:= defaultcontent
@@ -220,7 +222,7 @@ build: hosts run unzipimages config elastic flush
 
 ## Run containers. Will either start or build them first if they don't exist
 .PHONY: run
-run: envcheck
+run: envcheck $(CONTENT_PATH)
 	@$(MAKE) start --no-print-directory || $(MAKE) up --no-print-directory
 
 ## Start containers
@@ -302,21 +304,30 @@ update-base:
 	docker-compose exec -u "${APP_USER}" php-fpm sh -c \
 		"cd /app/source && git checkout main && git pull"
 
+.PHONY: dev-install-xdebug xdebug-mode
 dev-install-xdebug:
+	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install -yq php$${PHP_MAJOR_VERSION}-xdebug'
+	$(MAKE) xdebug-mode --no-print-directory
+
+xdebug-mode: check-envsubst
 ifeq (Darwin, $(shell uname -s))
 	$(eval export XDEBUG_REMOTE_HOST=$(shell ipconfig getifaddr en0))
 else
 	$(eval include .env)
 	$(eval export XDEBUG_REMOTE_HOST=$(shell docker network inspect "${COMPOSE_PROJECT_NAME}_local" --format '{{(index .IPAM.Config 0).Gateway }}'))
 endif
-ifndef ENVSUBST
-	$(error Command: 'envsubst' not found, please install using your package manager)
-endif
-	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install -yq php-xdebug'
+	$(eval export XDEBUG_MODE=${XDEBUG_MODE})
+	$(eval export XDEBUG_START_WITH_REQUEST=${XDEBUG_START_WITH_REQUEST})
 	envsubst < dev-templates/xdebug.tmpl > dev-templates/xdebug.out
 	docker cp dev-templates/xdebug.out $(shell docker-compose ps -q php-fpm):/tmp/20-xdebug.ini
 	docker-compose exec php-fpm sh -c 'mv /tmp/20-xdebug.ini /etc/php/$${PHP_MAJOR_VERSION}/fpm/conf.d/20-xdebug.ini'
 	docker-compose exec php-fpm sh -c 'service php$${PHP_MAJOR_VERSION}-fpm reload'
+
+.PHONY: check-envsubst
+check-envsubst:
+ifndef ENVSUBST
+	$(error Command: 'envsubst' not found, please install using your package manager)
+endif
 
 # MacOS handles mixed ownership of files poorly and can freeze on some operations
 # This command restores proper ownership
@@ -353,10 +364,7 @@ ifndef OPENRESTY_IMAGE
 endif
 	@$(MAKE) lint run config ci-copyimages elastic flush test-install
 
-db/Dockerfile:
-ifndef ENVSUBST
-	$(error Command: 'envsubst' not found, please install using your package manager)
-endif
+db/Dockerfile: check-envsubst
 	envsubst < $@.in > $@
 
 .PHONY: ci-%
