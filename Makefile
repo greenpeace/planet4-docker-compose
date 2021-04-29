@@ -3,10 +3,10 @@
 
 SHELL := /bin/bash
 
-## Database fixtures version
-CONTENT_DB_VERSION ?= 0.1.4
-## Images fixtures version
-CONTENT_IMAGE_VERSION ?= 1-25
+# Remove entering/leaving directory messages
+ifndef VERBOSE
+MAKEFLAGS += --no-print-directory
+endif
 
 SCALE_OPENRESTY ?=1
 SCALE_APP ?=1
@@ -53,24 +53,37 @@ NRO_THEME ?=
 
 XDEBUG_MODE ?= debug
 XDEBUG_START_WITH_REQUEST ?= yes
+
 # ============================================================================
 
-CONTENT_PATH 		:= defaultcontent
+# Downloaded content
+
+## Database fixtures version
+CONTENT_DB_VERSION ?= 0.1.4
+## Images fixtures version
+CONTENT_IMAGE_VERSION ?= 1-25
+## Dev version used for quick install
+DEVRELEASE_VERSION ?= latest
+
+CONTENT_PATH := defaultcontent
 export CONTENT_PATH
+UPLOADS_PATH := persistence/app/public/wp-content/uploads
 
 ## Remote content repository
-CONTENT_BASE 		?= https://storage.googleapis.com/planet4-default-content
-CONTENT_DB 			?= planet4-defaultcontent_wordpress-v$(CONTENT_DB_VERSION).sql.gz
-CONTENT_IMAGES 	?= planet4-default-content-$(CONTENT_IMAGE_VERSION)-images.zip
+CONTENT_BASE 	    ?= https://storage.googleapis.com/planet4-default-content
+CONTENT_DB 		    ?= planet4-defaultcontent_wordpress-v$(CONTENT_DB_VERSION).sql.gz
+CONTENT_IMAGES    ?= planet4-default-content-$(CONTENT_IMAGE_VERSION)-images.zip
+SOURCE_DEVRELEASE ?= planet4-persistence-$(DEVRELEASE_VERSION).gz
 
 export CONTENT_DB
 
-REMOTE_DB				:= $(CONTENT_BASE)/$(CONTENT_DB)
-REMOTE_IMAGES		:= $(CONTENT_BASE)/$(CONTENT_IMAGES)
+REMOTE_DB		      := $(CONTENT_BASE)/$(CONTENT_DB)
+REMOTE_IMAGES     := $(CONTENT_BASE)/$(CONTENT_IMAGES)
+REMOTE_DEVRELEASE := $(CONTENT_BASE)/$(SOURCE_DEVRELEASE)
 
-LOCAL_DB				:= $(CONTENT_PATH)/$(CONTENT_DB)
-LOCAL_IMAGES		:= $(CONTENT_PATH)/$(CONTENT_IMAGES)
-UPLOADS_PATH    := persistence/app/public/wp-content/uploads
+LOCAL_DB				 := $(CONTENT_PATH)/$(CONTENT_DB)
+LOCAL_IMAGES		 := $(CONTENT_PATH)/$(CONTENT_IMAGES)
+LOCAL_DEVRELEASE ?= $(CONTENT_PATH)/$(SOURCE_DEVRELEASE)
 
 # ============================================================================
 
@@ -201,7 +214,7 @@ updatedefaultcontent: cleandefaultcontent getdefaultcontent
 
 .PHONY: unzipimages
 unzipimages: $(LOCAL_IMAGES) $(UPLOADS_PATH)
-	@unzip -q $(LOCAL_IMAGES) -d $(UPLOADS_PATH)
+	@unzip -qo $(LOCAL_IMAGES) -d $(UPLOADS_PATH)
 
 # ============================================================================
 
@@ -223,7 +236,7 @@ build: hosts run unzipimages config elastic flush
 ## Run containers. Will either start or build them first if they don't exist
 .PHONY: run
 run: envcheck $(CONTENT_PATH)
-	@$(MAKE) start --no-print-directory || $(MAKE) up --no-print-directory
+	@$(MAKE) start || $(MAKE) up
 
 ## Start containers
 .PHONY: start
@@ -494,7 +507,7 @@ install-puppeteer-deps:
 # KITCHEN SINK
 
 .PHONY : pull
-pull:
+pull: envcheck $(CONTENT_PATH)
 	docker-compose pull
 
 persistence/app:
@@ -516,6 +529,39 @@ start-stateless:
 	COMPOSE_FILE=docker-compose.stateless.yml \
 	./go.sh
 	./wait.sh
+
+# ============================================================================
+
+# LOCAL DEV RELEASE
+
+.PHONY: create-dev-export dev-from-release update-from-release main-repos-editable
+
+$(LOCAL_DEVRELEASE):
+	curl --fail $(REMOTE_DEVRELEASE) > $@
+
+## Creates an exportable tar from local source
+create-dev-export:
+	@tar --exclude='$(UPLOADS_PATH)' -zcf $(SOURCE_DEVRELEASE) persistence
+	echo $(SOURCE_DEVRELEASE)
+
+## Creates a local instance from a pre-built source
+dev-from-release: $(CONTENT_PATH) $(LOCAL_DEVRELEASE) hosts
+	tar -xf $(LOCAL_DEVRELEASE)
+	chmod -R 777 persistence/app/public/wp-content/wflogs
+	$(MAKE) unzipimages
+	$(MAKE) run
+	$(MAKE) config
+	$(MAKE) status
+
+update-from-release: $(LOCAL_DEVRELEASE)
+	tar -xf $(LOCAL_DEVRELEASE)
+	chmod -R 777 persistence/app/public/wp-content/wflogs
+
+## Recreate main repos in a dev-enabled state
+main-repos-editable:
+	$(MAKE) repos
+	$(MAKE) deps
+	$(MAKE) status
 
 # ============================================================================
 
@@ -583,9 +629,9 @@ status:
 	@printf "\n*** Docker compose status ***\n\n"
 	@docker-compose ps
 	@printf "\n*** Credentials ***\n"
-	@$(MAKE) credentials --no-print-directory
+	@$(MAKE) credentials
 	@printf "*** Links ***\n\n"
-	@$(MAKE) links --no-print-directory
+	@$(MAKE) links
 	@echo
 
 .PHONY: flush

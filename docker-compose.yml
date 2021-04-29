@@ -112,6 +112,7 @@ services:
 
   node:
     image: ${NODE_IMAGE:-node:lts-alpine}
+    user: "node"
     tty: true
     networks:
       - local
