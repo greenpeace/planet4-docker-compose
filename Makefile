@@ -350,6 +350,10 @@ fix-ownership:
 	docker-compose exec php-fpm bash -c \
 		"[[ -e public ]] && find public ! -user ${APP_USER} -exec chown -f ${APP_USER} {} \;"
 
+fix-node-permissions:
+	@docker-compose exec -u root node sh -c 'chown -R node /app/source/public/wp-content/themes/planet4-master-theme/node_modules'
+	docker-compose exec -u root node sh -c 'chown -R node /app/source/public/wp-content/plugins/planet4-plugin-gutenberg-blocks/node_modules'
+
 # ============================================================================
 
 # ELASTICSEARCH
@@ -541,27 +545,25 @@ $(LOCAL_DEVRELEASE):
 
 ## Creates an exportable tar from local source
 create-dev-export:
-	@tar --exclude='$(UPLOADS_PATH)' -zcf $(SOURCE_DEVRELEASE) persistence
+	@tar --exclude='$(UPLOADS_PATH)' \
+		--exclude='node_modules' \
+		--exclude='persistence/app/public/wp-config.php' \
+		-zcf $(SOURCE_DEVRELEASE) persistence
 	echo $(SOURCE_DEVRELEASE)
 
 ## Creates a local instance from a pre-built source
 dev-from-release: $(CONTENT_PATH) $(LOCAL_DEVRELEASE) hosts
-	tar -xf $(LOCAL_DEVRELEASE)
+	@tar -xf $(LOCAL_DEVRELEASE)
 	chmod -R 777 persistence/app/public/wp-content/wflogs
 	$(MAKE) unzipimages
 	$(MAKE) run
+	$(MAKE) fix-node-permissions
 	$(MAKE) config
 	$(MAKE) status
 
 update-from-release: $(LOCAL_DEVRELEASE)
 	tar -xf $(LOCAL_DEVRELEASE)
 	chmod -R 777 persistence/app/public/wp-content/wflogs
-
-## Recreate main repos in a dev-enabled state
-main-repos-editable:
-	$(MAKE) repos
-	$(MAKE) deps
-	$(MAKE) status
 
 # ============================================================================
 
