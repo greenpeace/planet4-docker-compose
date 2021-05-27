@@ -4,6 +4,10 @@
 
 Planet 4 is the new Greenpeace web platform. This repository attempts to provide as consistent a local development environment as possible, in accordance with [12factor](https://12factor.net/) development principles.
 
+## 👷 [Installation](https://support.greenpeace.org/planet4/development/installation)
+
+[Installation Guide](https://support.greenpeace.org/planet4/development/installation): a step-by-step guide on how to get the development environment up and running
+
 ## Contents
 
 This repository contains needed files to set up a docker development environment that consists of:
@@ -25,6 +29,3 @@ By default, the quickstart command `make dev` is all you'll need to pull all req
 - Redis key-value store and
 - MySQL database server.
 
-### 👷 Installation
-
-For a step-by-step guide on how to get the development environment up and running checkout our [Installation Guide](https://support.greenpeace.org/planet4/development/installation).
