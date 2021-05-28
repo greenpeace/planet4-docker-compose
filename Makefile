@@ -105,7 +105,7 @@ all: build config status
 	@echo "Ready"
 
 .PHONY: init
-init: .git/hooks/pre-commit
+init: .git/hooks/pre-commit .git/hooks/post-commit
 
 .git/hooks/%:
 	@chmod 755 .githooks/*
@@ -118,7 +118,7 @@ init: .git/hooks/pre-commit
 
 .PHONY : lint
 lint: init
-	@$(MAKE) -j lint-docker lint-sh lint-yaml lint-ci
+	@$(MAKE) -j lint-docker lint-sh lint-yaml
 
 lint-docker: db/Dockerfile
 ifndef DOCKER
@@ -138,11 +138,8 @@ ifndef YAMLLINT
 endif
 	@find . ! -path './persistence/*' -type f -name '*.yml' | xargs yamllint
 
-lint-ci:
-ifndef CIRCLECI
-	$(error "circleci is not installed: https://circleci.com/docs/2.0/local-cli/#installation")
-endif
-	@circleci config validate >/dev/null
+lint-commit:
+	@npx commitlint -V --from master
 
 # ============================================================================
 
