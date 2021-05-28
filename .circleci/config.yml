@@ -1,4 +1,6 @@
 ---
+version: 2.1
+
 docker_auth: &docker_auth
   username: $DOCKERHUB_USERNAME
   password: $DOCKERHUB_PASSWORD
@@ -9,8 +11,6 @@ defaults: &defaults
       auth:
         <<: *docker_auth
   working_directory: /home/circleci/app
-
-version: 2
 
 jobs:
   codeception:
@@ -116,9 +116,19 @@ jobs:
               mv /tmp/workspace/build/${RELEASE} /tmp/workspace/build/${LATEST}
               gsutil cp -a public-read /tmp/workspace/build/${LATEST} gs://${BUCKET_NAME}
 
-workflows:
-  version: 2
+  lint:
+    <<: *defaults
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
+      - run:
+          name: Lint
+          command: |
+            make lint
+            make lint-commit
 
+workflows:
   test:
     jobs:
       - localdev
@@ -127,6 +137,7 @@ workflows:
             - localdev
       - codeception:
           context: org-global
+      - lint
 
   nightly-test-and-release:
     jobs:
