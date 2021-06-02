@@ -67,6 +67,15 @@ function check_existing_db() {
   fi
 }
 
+# Check gcloud auth
+function check_auth() {
+  echo "Checking gcloud authentication ..."
+  if [[ $(gcloud auth list --filter=status:ACTIVE --format="value(account)" | wc -l) -lt 1 ]]; then
+    echo "No gcloud account is currently active, " \
+      "please use <gcloud auth login> to enable automatic database import."
+  fi
+}
+
 # Switch GCloud project
 function switch_project() {
   echo "Setting gcloud project to ${PROJECT_ID} ..."
@@ -152,6 +161,7 @@ function import_db() {
 
 check_existing_db
 if [[ ${GSUTIL} ]]; then
+  check_auth
   switch_project
   find_db
   download_db

@@ -189,12 +189,6 @@ jobs:
 workflows:
   test:
     jobs:
-      # - localdev
-      # - dev-from-release:
-      #     requires:
-      #       - localdev
-      # - codeception:
-      #     context: org-global
       - localdev:
           context: org-global
       - dev-from-release:
