@@ -60,7 +60,7 @@ services:
       - excluded:/app/source/node_modules/
       - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
-      - APP_ENV=${APP_ENV:-develop}
+      - APP_ENV=${APP_ENV:-local}
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       # - DELETE_EXISTING_FILES=false

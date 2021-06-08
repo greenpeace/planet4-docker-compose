@@ -2,10 +2,11 @@
 .tmp-id
 acme.json
 artifacts
-defaultcontent
+defaultcontent/*
+!defaultcontent/.gitkeep
 persistence
 secrets
 db/Dockerfile
 hosts.backup
 Makefile.include
-xdebug.out
+dev-templates/*.out

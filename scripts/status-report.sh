@@ -81,7 +81,7 @@ function check_homepage() {
   # Check homepage content
   hp_status_code=$(echo "${homepage_content}" | grep "< HTTP/1.1")
   hp_title=$(echo "${homepage_content}" | grep -Pzo "(?s)<title>.*</title>" | tr -d '\n\0')
-  hp_php_errors=$(echo "${homepage_content}" | grep -Pzo "(Warning|Error|Notice|Deprecated)(.*)\n")
+  hp_php_errors=$(echo "${homepage_content}" | grep -Pzo "<b>(Warning|Error|Notice|Deprecated)</b>(.*)\n")
   if [[ "${hp_status_code}" == "" ]]; then
     errors_found=1
     echo "Status code: $(nok)"
@@ -116,7 +116,7 @@ function check_login() {
   # Check login content
   lg_status_code=$(echo "${login_content}" | grep "< HTTP/1.1")
   lg_form=$(echo "${login_content}" | grep "<form name=\"loginform\"")
-  lg_php_errors=$(echo "${login_content}" | grep -Pzo "(Warning|Error|Notice|Deprecated)(.*)\n" | tr -d '\0')
+  lg_php_errors=$(echo "${login_content}" | grep -Pzo "<b>(Warning|Error|Notice|Deprecated)</b>(.*)\n" | tr -d '\0')
   if [[ "${lg_status_code}" == "" ]]; then
     errors_found=1
     echo "Status code: $(nok)"
@@ -165,6 +165,8 @@ function filter_logs() {
     # Warnings during install
     "NOTICE: PHP message: PHP Warning:  Redis::connect(): php_network_getaddresses: getaddrinfo failed"
     "NOTICE: PHP message: PHP Warning:  filectime(): stat failed"
+    # Warning during NRO install
+    "ssmtp: Cannot open smtp:25"
     # Xdebug running without client
     "NOTICE: PHP message: Xdebug: [Step Debug] Could not connect to debugging client."
     # APM installation

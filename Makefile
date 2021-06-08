@@ -1,7 +1,17 @@
 # include optional configuration (used for NRO configuration)
 -include Makefile.include
 
-SHELL := /bin/bash
+ifdef CUSTOM_SHELL
+	SHELL := $(CUSTOM_SHELL)
+else
+	SHELL := /bin/bash
+endif
+
+ifdef CUSTOM_MAKE
+	MAKE := $(CUSTOM_MAKE)
+else
+	MAKE := make
+endif
 
 # Remove entering/leaving directory messages
 ifndef VERBOSE
@@ -46,10 +56,6 @@ NGINX_HELPER_JSON := $(shell cat options/rt_wp_nginx_helper_options.json)
 REWRITE := /%category%/%post_id%/%postname%/
 ## Protocol used for cloning repos
 export GIT_PROTO ?= https
-## NRO theme git repository
-NRO_REPO ?=
-## NRO theme name
-NRO_THEME ?=
 
 XDEBUG_MODE ?= debug
 XDEBUG_START_WITH_REQUEST ?= yes
@@ -79,7 +85,6 @@ export CONTENT_DB
 
 REMOTE_DB		      := $(CONTENT_BASE)/$(CONTENT_DB)
 REMOTE_IMAGES     := $(CONTENT_BASE)/$(CONTENT_IMAGES)
-REMOTE_DEVRELEASE := $(CONTENT_BASE)/$(SOURCE_DEVRELEASE)
 
 LOCAL_DB				 := $(CONTENT_PATH)/$(CONTENT_DB)
 LOCAL_IMAGES		 := $(CONTENT_PATH)/$(CONTENT_IMAGES)
@@ -95,6 +100,7 @@ ENVSUBST := $(shell command -v envsubst 2> /dev/null)
 COMPOSER := $(shell command -v composer 2> /dev/null)
 SHELLCHECK := $(shell command -v shellcheck 2> /dev/null)
 YAMLLINT := $(shell command -v yamllint 2> /dev/null)
+GSUTIL := $(shell command -v gsutil 2> /dev/null)
 
 # ============================================================================
 
@@ -120,6 +126,9 @@ init: .git/hooks/pre-commit .git/hooks/post-commit
 lint: init
 	@$(MAKE) -j lint-docker lint-sh lint-yaml
 
+lint-in-ci: init
+	@$(MAKE) -j lint-docker lint-sh lint-yaml
+
 lint-docker: db/Dockerfile
 ifndef DOCKER
 	$(error "docker is not installed: https://docs.docker.com/install/")
@@ -143,26 +152,18 @@ lint-commit:
 
 # ============================================================================
 
-ifdef NRO_REPO
-# gives us the basename of the repo e.g. "planet4-netherlands"
-NRO_DIRNAME := $(shell echo $(NRO_REPO) | sed 's/^.*\///g; s/\.git$$//g')
-NRO_BRANCH ?= main
-NRO_APP_HOSTNAME ?= www.planet4.test
-NRO_APP_HOSTPATH ?=
-endif
-
 ## Configure local environment
 .PHONY: env
 env:
-	@echo "# docker-compose env variables" > .env
-	@echo "COMPOSE_FILE=$${COMPOSE_FILE:-${DEFAULT_COMPOSE_FILE}}" >> .env
-	@echo "COMPOSE_PROJECT_NAME=$${COMPOSE_PROJECT_NAME:-${DEFAULT_COMPOSE_PROJECT_NAME}}" >> .env
-	@cat .env
+	@echo "Creating .env file"
+	echo "# docker-compose env variables" > .env
+	echo "COMPOSE_FILE=$${COMPOSE_FILE:-${DEFAULT_COMPOSE_FILE}}" >> .env
+	echo "COMPOSE_PROJECT_NAME=$${COMPOSE_PROJECT_NAME:-${DEFAULT_COMPOSE_PROJECT_NAME}}" >> .env
 
 .PHONY: envcheck
 envcheck:
 	@if [ -f .env ]; then \
-		echo  ".env file already exists"; \
+		echo  ".env file exists"; \
 	else \
 		$(MAKE) env; fi
 
@@ -192,11 +193,12 @@ clean-content:
 $(CONTENT_PATH) $(UPLOADS_PATH):
 	@mkdir -p $@
 
-$(LOCAL_DB): $(CONTENT_PATH)
+$(LOCAL_DB):
+	@echo "Downloading default database to $(LOCAL_DB) ..."
 	curl --fail $(REMOTE_DB) > $@
 
-$(LOCAL_IMAGES): $(CONTENT_PATH)
-	echo "Getting default content images..."
+$(LOCAL_IMAGES):
+	@echo "Downloading default content images to $(LOCAL_IMAGES) ..."
 	curl --fail $(REMOTE_IMAGES) > $@
 
 .PHONY: getdefaultcontent
@@ -204,7 +206,7 @@ getdefaultcontent: $(LOCAL_DB) $(LOCAL_IMAGES)
 
 .PHONY: cleandefaultcontent
 cleandefaultcontent:
-	@rm -rf $(CONTENT_PATH)
+	@rm -rf $(CONTENT_PATH)/*
 
 .PHONY: updatedefaultcontent
 updatedefaultcontent: cleandefaultcontent getdefaultcontent
@@ -232,8 +234,18 @@ build: hosts run unzipimages config elastic flush
 
 ## Run containers. Will either start or build them first if they don't exist
 .PHONY: run
-run: envcheck $(CONTENT_PATH)
-	@$(MAKE) start || $(MAKE) up
+run: envcheck
+	@services=$$(docker-compose ps --services); \
+	stopped=$$(docker-compose ps --services  --filter status=stopped); \
+	running=$$(docker-compose ps --services --filter status=running); \
+	if [[ "$${services}" == "$${running}" ]]; then \
+		$(MAKE) status; \
+		exit 0; \
+	elif [[ "$${services}" == "$${stopped}" ]]; then \
+		$(MAKE) start; \
+	else \
+		$(MAKE) up; \
+	fi
 
 ## Start containers
 .PHONY: start
@@ -244,12 +256,12 @@ start:
 ## Stop containers. Keeps containers modifications intact
 .PHONY: stop
 stop:
-	@docker-compose stop --time 30
+	@docker-compose stop --time 10
 
 ## Build and starts containers
 .PHONY: up
 up:
-	$(MAKE) -j init getdefaultcontent db/Dockerfile
+	@$(MAKE) -j init getdefaultcontent db/Dockerfile
 	cp ci/scripts/duplicate-db.sh defaultcontent/duplicate-db.sh
 	./go.sh
 	@./wait.sh
@@ -267,7 +279,7 @@ down:
 .PHONY: dev
 dev: check-content-before-install hosts repos run unzipimages config deps elastic flush status
 	@if command -v xattr &> /dev/null; then \
-		$(MAKE) fix-ownership; \
+		$(MAKE) fix-public-permissions; \
 	fi
 	@echo "Ready"
 
@@ -288,12 +300,12 @@ update: update-base update-deps
 # Delete planet4 main theme and plugin
 .PHONY: clean-repos
 clean-repos:
-	rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
+	@rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
 	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks
 
 .PHONY: clone-repos
 clone-repos:
-	./repos.sh
+	@./repos.sh
 
 .PHONY: update-repos
 update-repos:
@@ -380,14 +392,22 @@ check-content-before-install: envcheck
 # MacOS handles mixed ownership of files poorly and can freeze on some operations
 # This command restores proper ownership
 # Using find+chown is up to 10 times faster than chown on macos
-fix-ownership:
-	@echo "Fixing ownership of files..."
+fix-public-permissions:
+	@echo "Fixing permissions of /app/source/public ..."
 	docker-compose exec php-fpm bash -c \
 		"[[ -e public ]] && find public ! -user ${APP_USER} -exec chown -f ${APP_USER} {} \;"
 
 fix-node-permissions:
 	@docker-compose exec -u root node sh -c 'chown -R node /app/source/public/wp-content/themes/planet4-master-theme/node_modules'
 	docker-compose exec -u root node sh -c 'chown -R node /app/source/public/wp-content/plugins/planet4-plugin-gutenberg-blocks/node_modules'
+
+fix-app-permissions:
+	@echo "Fixing permissions of /app ..."
+	docker-compose exec php-fpm sh -c \
+		'find /app ! -user ${APP_USER} -exec chown -f ${APP_USER} {} \;'
+
+fix-wflogs-permissions:
+	@chmod -R 777 persistence/app/public/wp-content/wflogs
 
 # ============================================================================
 
@@ -414,7 +434,7 @@ endif
 ifndef OPENRESTY_IMAGE
 	$(error OPENRESTY_IMAGE is not set)
 endif
-	@$(MAKE) lint run config ci-copyimages elastic flush test-install
+	@$(MAKE) lint-in-ci run config ci-copyimages elastic flush test-install
 
 db/Dockerfile: check-envsubst
 	envsubst < $@.in > $@
@@ -576,7 +596,8 @@ start-stateless:
 .PHONY: create-dev-export dev-from-release update-from-release main-repos-editable
 
 $(LOCAL_DEVRELEASE):
-	curl --fail $(REMOTE_DEVRELEASE) > $@
+	@echo "Downloading dev release to $(LOCAL_DEVRELEASE) ..."
+	curl --fail $(CONTENT_BASE)/$$(basename $(LOCAL_DEVRELEASE)) > $@
 
 ## Creates an exportable tar from local source
 create-dev-export:
@@ -587,18 +608,19 @@ create-dev-export:
 	echo $(SOURCE_DEVRELEASE)
 
 ## Creates a local instance from a pre-built source
-dev-from-release: $(CONTENT_PATH) $(LOCAL_DEVRELEASE) hosts
+dev-from-release: $(LOCAL_DEVRELEASE) hosts
 	@tar -xf $(LOCAL_DEVRELEASE)
-	chmod -R 777 persistence/app/public/wp-content/wflogs
+	$(MAKE) fix-wflogs-permissions
 	$(MAKE) unzipimages
 	$(MAKE) run
 	$(MAKE) fix-node-permissions
+	$(MAKE) fix-app-permissions
 	$(MAKE) config
 	$(MAKE) status
 
 update-from-release: $(LOCAL_DEVRELEASE)
-	tar -xf $(LOCAL_DEVRELEASE)
-	chmod -R 777 persistence/app/public/wp-content/wflogs
+	@tar -xf $(LOCAL_DEVRELEASE)
+	$(MAKE) fix-wflogs-permissions
 
 # ============================================================================
 
@@ -606,7 +628,8 @@ update-from-release: $(LOCAL_DEVRELEASE)
 
 .PHONY: config
 config: check-services
-	docker-compose exec -T php-fpm wp option set rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
+	@echo "Configuring instance ..."
+	docker-compose exec -T php-fpm wp option update rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
 	docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
 	docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
 	docker-compose exec php-fpm wp user update $(WP_ADMIN_USER) --user_pass=$(WP_ADMIN_PASS) --role=administrator
@@ -674,8 +697,10 @@ status:
 
 .PHONY: flush
 flush:
+	@echo "Clearing all cache ..."
 	docker-compose exec redis redis-cli flushdb
-	docker-compose exec php-fpm wp timber clear_cache
+	docker-compose exec php-fpm wp timber clear_cache &>/dev/null
+	docker-compose exec php-fpm wp cache flush
 
 ## Enter a shell in the php-fpm container
 .PHONY: php-shell
@@ -710,24 +735,59 @@ revertdb:
 	@docker volume rm $(COMPOSE_PROJECT_NAME)_db
 	@docker-compose up -d
 
-## Enable NRO theme (uses NRO_REPO, NRO_THEME, NRO_BRANCH)
-.PHONY: nro-enable
-nro-enable:
-	@[[ ! -z "$(NRO_REPO)" ]] || (\
-		echo "You need to specify some variables before you can use this!" && \
-		echo && \
-		echo "Create/edit a file called Makefile.include, then add:" && \
-		echo && \
-		echo "NRO_REPO := <put the Git URL for the NRO repo here>" && \
-		echo "NRO_THEME := <put the theme name for the NRO here>" && \
-		echo "NRO_BRANCH := <optionally, the branch you want, default is main>" && \
-		echo && \
-		exit 1 \
-	)
-	@echo "NRO repo $(NRO_REPO)"
-	@echo "NRO theme $(NRO_THEME)"
-	@echo "NRO dirname $(NRO_DIRNAME)"
-	@docker-compose exec -u "${APP_USER}" php-fpm sh -c " \
+.PHONY: use-db-default
+use-db-default:
+	@$(eval include db.env)
+	$(MAKE) use-db-$(MYSQL_DATABASE)
+
+.ONESHELL:
+.PHONY: use-db-%
+use-db-%: DB_NAME=$*
+use-db-%:
+	echo "Switching database to $(DB_NAME)"
+	docker-compose exec php-fpm wp config set DB_NAME $(DB_NAME)
+	$(MAKE) flush
+
+
+# ============================================================================
+
+# NRO DEVELOPMENT
+
+.PHONY: check-nro-config nro-from-release nro-import-db nro-drop-db nro-enable nro-disable nro-list-variables
+.PHONY: nro-enable-img-proxy nro-disable-img-proxy
+
+## NRO name
+NRO_NAME ?=
+## NRO theme git repository
+NRO_REPO ?= https://github.com/greenpeace/planet4-$(NRO_NAME).git
+## NRO theme branch
+NRO_BRANCH ?= main
+## NRO theme name
+NRO_THEME ?= planet4-child-theme-$(NRO_NAME)
+
+NRO_DIRNAME := planet4-$(NRO_NAME)
+NRO_APP_HOSTNAME ?= www.planet4.test
+NRO_APP_HOSTPATH ?=
+NRO_IMG_BUCKET ?= planet4-$(NRO_NAME)-stateless
+
+NRO_DATABASE := planet4_$(NRO_NAME)
+NRO_DB_PROJECT ?= planet-4-151612
+NRO_DB_BUCKET ?= planet4-$(NRO_NAME)-master-db-backup
+NRO_DB_VERSION ?=
+NRO_DB_DUMP ?=
+NRO_DB_IMPORT := $(shell if [[ ! -z "$(NRO_DB_VERSION)" ]] || [[ ! -z "$(NRO_DB_DUMP)" ]]; then echo "true"; else echo ""; fi)
+
+# Install a dev instance from a tar file and activates an NRO on it
+# Fix permissions on /app folder for wp commands and macos glitches
+## Install NRO instance (uses NRO_NAME)
+nro-from-release: dev-from-release
+	@$(MAKE) nro-enable
+
+## Enable NRO theme (uses NRO_NAME)
+nro-enable: check-nro-config
+	@echo "Activating NRO $(NRO_NAME) ..."
+	$(if $(NRO_DB_IMPORT), $(MAKE) nro-import-db && $(MAKE) use-db-$(NRO_DATABASE))
+	docker-compose exec -u "${APP_USER}" php-fpm sh -c " \
 		mkdir -p sites && \
 		(cd sites && (test -d $(NRO_DIRNAME) || git clone $(NRO_REPO) $(NRO_DIRNAME))) && \
 		(cd "sites/$(NRO_DIRNAME)" && git checkout $(NRO_BRANCH)) && \
@@ -736,22 +796,90 @@ nro-enable:
 		composer run-script copy:themes && \
 		composer run-script copy:plugins && \
 		composer run-script plugin:activate  && \
-		composer run-script theme:activate $(NRO_THEME) \
+		composer run-script theme:activate $(NRO_THEME) &&
+		composer run-script site:custom \
 	"
-	@make flush
+	$(MAKE) config
+	$(if $(NRO_IMG_BUCKET), $(MAKE) nro-enable-img-proxy)
+	$(MAKE) flush
+	$(MAKE) status
 
 ## Disable NRO theme
-.PHONY: nro-disable
 nro-disable:
-	@docker-compose exec -u "${APP_USER}" php-fpm sh -c " \
+	@$(MAKE) nro-disable-img-proxy
+	$(MAKE) use-db-default
+	docker-compose exec php-fpm sh -c " \
+	wp plugin deactivate --all && wp plugin delete --all"
+	docker-compose exec -u "${APP_USER}" php-fpm sh -c " \
 		composer config extra.merge-plugin.require "composer-local.json" && \
 		composer update && \
 		composer run-script copy:themes && \
 		composer run-script copy:plugins && \
 		composer run-script plugin:activate  && \
-		composer run-script theme:activate planet4-master-theme \
-	"
-	@make flush
+		composer run-script theme:activate planet4-master-theme"
+	$(MAKE) repos && $(MAKE) deps
+	$(MAKE) flush
+
+# NRO database operations
+
+MYSQL_AS_ROOT := mysql -uroot -p$(ROOT_PASS)
+
+## Import a backup database
+nro-import-db:
+	@echo "Importing database to $(NRO_DATABASE)"
+	./scripts/import-db.sh \
+		--nro "${NRO_NAME}" \
+		--project "${NRO_DB_PROJECT}" \
+		--bucket "${NRO_DB_BUCKET}" \
+		--database "${NRO_DATABASE}" \
+		--version "${NRO_DB_VERSION}" \
+		--dump "${NRO_DB_DUMP}" \
+		--mysql-user "${MYSQL_USER}" \
+		--mysql-root-pass "${ROOT_PASS}" \
+		--dest "$(CONTENT_PATH)"
+
+nro-drop-db:
+	@echo "Dropping database $(NRO_DATABASE)"
+	docker-compose exec db $(MYSQL_AS_ROOT) -e 'drop database $(NRO_DATABASE)'
+
+# Nginx image proxy
+
+nro-enable-img-proxy:
+	@echo "Enabling image proxy to $(NRO_IMG_BUCKET) bucket ..."
+	$(eval export NRO_IMG_BUCKET=$(NRO_IMG_BUCKET))
+	envsubst '$$NRO_IMG_BUCKET' < dev-templates/nginx_imgproxy.tmpl > dev-templates/nginx_imgproxy.out
+	docker cp dev-templates/nginx_imgproxy.out \
+		$(shell docker-compose ps -q openresty):/etc/nginx/server.d/20_img-proxy.conf
+	docker-compose exec openresty nginx -s reload
+
+nro-disable-img-proxy:
+	@docker-compose exec openresty sh -c 'rm -f /etc/nginx/server.d/20_img-proxy.conf && nginx -s reload'
+	echo "Image proxy disabled."
+
+check-nro-config:
+ifeq ($(strip $(NRO_NAME)),)
+	@echo "You need to specify some variables before you can use this!"
+	echo
+	echo "Create/edit a file called Makefile.include, then add:"
+	echo
+	echo "NRO_NAME := <put the name of your NRO here, ie: netherlands>"
+	echo
+	echo "Other values will be generated from this one. Optionally, you can specify:"
+	echo "NRO_DB_DUMP := <a gzipped dump of a database to import>"
+	echo "NRO_REPO := <put the Git URL for the NRO repo here>"
+	echo "NRO_THEME := <put the theme name for the NRO here>"
+	echo "NRO_BRANCH := <the branch you want, default is main>"
+	echo
+	exit 1
+else
+	@$(MAKE) nro-list-variables
+endif
+
+nro-list-variables:
+	$(info NRO variables:)
+	$(foreach v,                     \
+		$(filter NRO_%,$(sort $(.VARIABLES))), \
+		$(info * $(v) = $($(v))))
 
 .PHONY: nro-test-codeception
 nro-test-codeception:
@@ -764,6 +892,16 @@ nro-test-codeception:
 			codeceptionify.sh . && \
 			codecept run --xml=junit.xml --html \
 		'
+
+.PHONY: check-gsutil
+check-gsutil:
+ifndef GSUTIL
+	$(error Command: 'gsutil' not found, please check <https://cloud.google.com/storage/docs/gsutil_install>)
+endif
+
+# ============================================================================
+
+# HELP SECTION
 
 ## Display this help message
 .PHONY: help

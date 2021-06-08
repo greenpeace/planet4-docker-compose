@@ -1,0 +1,13 @@
+location ~ /wp-content/uploads/.*
+{
+    try_files $uri @fallback;
+}
+
+location @fallback
+{
+    resolver 8.8.8.8;
+    rewrite ^/wp-content/uploads/(.*)$ /static/${NRO_IMG_BUCKET}/$1 break;
+    #proxy_set_header Host greenpeace.org;
+    proxy_ssl_server_name on;
+    proxy_pass http://www.greenpeace.org;
+}
