@@ -64,9 +64,9 @@ services:
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       # - DELETE_EXISTING_FILES=false
-      - ELASTIC_APM_ENABLED=${ELASTIC_APM_ENABLED:-false}
       - GIT_REF=${GIT_REF:-main}
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base
+      - INSTALL_APM_AGENT=${INSTALL_APM_AGENT:-false}
       # - MERGE_REF=develop
       # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
       - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
