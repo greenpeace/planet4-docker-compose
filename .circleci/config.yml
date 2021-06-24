@@ -267,6 +267,7 @@ workflows:
           context: org-global
           notify: true
       - dev-from-release:
+          context: org-global
           notify: true
           requires:
             - localdev
