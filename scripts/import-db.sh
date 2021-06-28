@@ -149,6 +149,7 @@ function import_db() {
   fi
 
   echo "Importing database content from ${DUMP_PATH} ..."
+  mysql_root_exec -e 'SET GLOBAL max_allowed_packet=16777216'
   zcat < "${DUMP_PATH}" | mysql_root_exec_notty "${DB_NAME}"
   # Fix GTID_PURGED value issue
   mysql_root_exec -D "${DB_NAME}" -e 'RESET MASTER'
