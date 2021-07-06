@@ -89,7 +89,7 @@ jobs:
       APP_IMAGE: gcr.io/planet-4-151612/wordpress:main
       OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-openresty:main
       GOOGLE_PROJECT_ID: planet-4-151612
-      NRO_NAME: finland
+      NRO_NAME: japan
       NRO_DB_VERSION: latest
     parameters:
       notify:
@@ -171,7 +171,7 @@ jobs:
       APP_IMAGE: gcr.io/planet-4-151612/wordpress:main
       OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-openresty:main
       GOOGLE_PROJECT_ID: planet-4-151612
-      NRO_NAME: finland
+      NRO_NAME: japan
       NRO_DB_VERSION: latest
     parameters:
       notify:
