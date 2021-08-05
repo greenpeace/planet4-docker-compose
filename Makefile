@@ -475,7 +475,7 @@ ci-copyimages: $(LOCAL_IMAGES)
 selenium-run:
 	echo "Starting Selenium"
 	@docker-compose -f docker-compose.full.yml up -d selenium
-	@sleep 3
+	@sleep 15
 
 ## Run tests with Codeception
 test: test-env-info test-codeception
