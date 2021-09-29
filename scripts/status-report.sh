@@ -160,11 +160,11 @@ function filter_logs() {
 
   logs=$(docker-compose logs php-fpm 2>/dev/null)
   known_logs=(
-    # Codebase errors (to fix)
-    "PHP Notice:  Undefined index: youtube_id"
     # Warnings during install
     "NOTICE: PHP message: PHP Warning:  Redis::connect(): php_network_getaddresses: getaddrinfo failed"
     "NOTICE: PHP message: PHP Warning:  filectime(): stat failed"
+    # WP-Stateless trying to read an invalid file
+    "NOTICE: PHP message: PHP Notice:  file_get_contents(): read of 8192 bytes failed with errno=21 Is a directory"
     # Warning during NRO install
     "ssmtp: Cannot open smtp:25"
     # Xdebug running without client
