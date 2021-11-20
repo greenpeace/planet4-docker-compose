@@ -22,7 +22,7 @@ services:
       traefik.enable: "true"
 
   redis:
-    image: redis:4-stretch
+    image: ${REDIS_IMAGE:-redis:4-stretch}
     networks:
       - local
     labels:
