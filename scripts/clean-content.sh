@@ -6,13 +6,13 @@ CONTENT_PATH=${CONTENT_PATH:-defaultcontent}
 if [ -d "${CONTENT_PATH}" ]
 then
   echo
-  echo "Deleting ${CONTENT_PATH} directory ..."
+  echo "Deleting ${CONTENT_PATH} directory content..."
   read -p "Are you sure? [y/N] " -n 1 -r
   if [[ $REPLY =~ ^[Yy]$ ]]
   then
     echo
     set -x >/dev/null
-    rm -fr "${CONTENT_PATH}"
+    rm -fr "${CONTENT_PATH:?}"/*
     set +x >/dev/null
   fi
 fi

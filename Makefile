@@ -277,7 +277,7 @@ down:
 
 ## Create containers, install developer tools, build assets
 .PHONY: dev
-dev: check-content-before-install hosts repos run unzipimages config deps elastic flush status
+dev: check-before-install hosts repos run unzipimages config deps elastic flush status
 	@if command -v xattr &> /dev/null; then \
 		$(MAKE) fix-public-permissions; \
 	fi
@@ -345,49 +345,31 @@ endif
 	docker-compose exec php-fpm sh -c 'mv /tmp/20-xdebug.ini /etc/php/$${PHP_MAJOR_VERSION}/fpm/conf.d/20-xdebug.ini'
 	docker-compose exec php-fpm sh -c 'service php$${PHP_MAJOR_VERSION}-fpm reload'
 
-.PHONY: check-envsubst
+.PHONY: check-before-install check-envsubst check-compose-version check-existing-content check-ports-availability
+check-before-install: check-envsubst check-compose-version check-existing-content check-ports-availability
+
 check-envsubst:
 ifndef ENVSUBST
 	$(error Command: 'envsubst' not found, please install using your package manager)
 endif
 
-.ONESHELL:
-check-content-before-install: envcheck
+# Filter out docker compose V2 until full compatibility
+check-compose-version:
+	@version=$$(docker-compose --version | grep -Eo '2\.[[:digit:]]{1,3}');
+	if [[ ! -z $${version} ]]; then\
+		echo "You are using docker compose version $${version}, please use version 1.* instead.";\
+		exit 1;\
+	fi
+
+check-existing-content: envcheck
 	@export $$(sed -e '/^\#/d' .env | xargs)
 	@export $$(sed -e '/^\#/d' app.env | xargs)
-	content_exists=false
-	echo "Checking content for project $${COMPOSE_PROJECT_NAME} ..."
-	if [[ ! -z "$$(ls -A persistence)" ]]; then
-		content_exists=true
-		echo "- Some content is already in the ./persistence folder."
-	fi
-	if [[ $$(docker container ls -a --format '{{.Names}}' | grep "^$${COMPOSE_PROJECT_NAME}_" | wc -l) -gt 0 ]]; then
-		content_exists=true
-		echo "- Some containers already exist for this project:"
-		docker container ls -a --filter name="$${COMPOSE_PROJECT_NAME}_" \
-												--format 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.CreatedAt}}'
-	fi
-	if [[ $$(docker volume ls --format '{{.Name}}' | grep "^$${COMPOSE_PROJECT_NAME}_" | wc -l) -gt 0 ]]; then
-		content_exists=true
-		echo "- Some volumes already exist for this project:"
-		docker volume ls --filter name="$${COMPOSE_PROJECT_NAME}_"
-	fi
-	if [[ $$(docker network ls --format '{{.Name}}' | grep "^$${COMPOSE_PROJECT_NAME}_" | wc -l) -gt 0 ]]; then
-		content_exists=true
-		echo "- Some networks already exist for this project:"
-		docker network ls --filter name="$${COMPOSE_PROJECT_NAME}_"
-	fi
-	if [[ "$${APP_ENV}" == "develop" ]] && [[ "$${content_exists}" == true ]]; then
-		printf "\n"
-		echo "You should run <make clean> before continuing, as this situation could lead to unexpected results."
-		read -p "Do you still want to continue ? [y/N]: " -n 1 -r continue
-		printf "\n"
-		if [[ "$${continue}" != "y" ]] && [[ "$${continue}" != "Y" ]]; then
-		  printf "Aborting. \n"
-			exit 1
-		fi
-	fi
-	printf "OK.\n"
+	./scripts/check-existing-content.sh --project "$${COMPOSE_PROJECT_NAME}" --env "$${APP_ENV}"
+
+check-ports-availability: envcheck
+	@export $$(sed -e '/^\#/d' .env | xargs)
+	@export $$(sed -e '/^\#/d' app.env | xargs)
+	./scripts/check-ports-availability.sh --env "$${APP_ENV}"
 
 # MacOS handles mixed ownership of files poorly and can freeze on some operations
 # This command restores proper ownership

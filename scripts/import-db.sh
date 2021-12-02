@@ -100,7 +100,7 @@ function find_db() {
   if [[ -n "${DUMP_NAME}" ]]; then
     DUMP_URL=$(gsutil ls -r "gs://${DB_BUCKET}/**/${DUMP_NAME}")
   elif [[ "${DB_VERSION}" == "latest" ]]; then
-    DUMP_URL=$(gsutil ls -rl "gs://${DB_BUCKET}/**" | sort -k2n | \
+    DUMP_URL=$(gsutil ls -rl "gs://${DB_BUCKET}/**" | head -n -1 | sort -k2 | \
                tail -n1 | awk 'END {$1=$2=""; sub(/^[ \t]+/, ""); print }')
   else
     DUMP_PREFIX="planet4-${NRO_NAME}-master-v${DB_VERSION}"
