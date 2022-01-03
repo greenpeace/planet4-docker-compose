@@ -54,7 +54,6 @@ services:
       - APP_ENV=${APP_ENV:-develop}
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
-      - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
       - WP_FORCE_SSL_ADMIN=false
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
       - WP_STATELESS_MEDIA_BUCKET=${APP_HOSTNAME:-www-planet4-test}

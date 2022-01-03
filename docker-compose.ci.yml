@@ -35,7 +35,6 @@ services:
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base
       # - MERGE_REF=develop
       # - MERGE_SOURCE=https://github.com/greenpeace/planet4-flibble
-      - NEWRELIC_LICENSE=${NEWRELIC_LICENSE:-false}
       # - OVERWRITE_EXISTING_FILES=false
       - WP_FORCE_SSL_ADMIN=false
       - WP_REDIS_ENABLED=${WP_REDIS_ENABLED:-true}
