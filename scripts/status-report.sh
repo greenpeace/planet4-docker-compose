@@ -163,6 +163,8 @@ function filter_logs() {
     # Warnings during install
     "NOTICE: PHP message: PHP Warning:  Redis::connect(): php_network_getaddresses: getaddrinfo failed"
     "NOTICE: PHP message: PHP Warning:  filectime(): stat failed"
+    # Assets not ready, cf https://github.com/greenpeace/planet4-master-theme/pull/1543
+    "NOTICE: PHP message: PHP Notice:  File /app/source/public/wp-content/themes/planet4-master-theme/assets/build/style.min.css does not exist or is not accessible"
     # WP-Stateless trying to read an invalid file
     "NOTICE: PHP message: PHP Notice:  file_get_contents(): read of 8192 bytes failed with errno=21 Is a directory"
     # Warning during NRO install
