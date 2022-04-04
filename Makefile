@@ -751,7 +751,7 @@ NRO_APP_HOSTNAME ?= www.planet4.test
 NRO_APP_HOSTPATH ?=
 NRO_IMG_BUCKET ?= planet4-$(NRO_NAME)-stateless
 
-NRO_DATABASE := planet4_$(NRO_NAME)
+NRO_DATABASE ?= $(shell echo "planet4_${NRO_NAME}" | sed 's/-/_/g')
 NRO_DB_PROJECT ?= planet-4-151612
 NRO_DB_BUCKET ?= planet4-$(NRO_NAME)-master-db-backup
 NRO_DB_VERSION ?=
