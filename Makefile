@@ -65,7 +65,7 @@ XDEBUG_START_WITH_REQUEST ?= yes
 # Downloaded content
 
 ## Database fixtures version
-CONTENT_DB_VERSION ?= 0.2.5
+CONTENT_DB_VERSION ?= 0.2.6
 ## Images fixtures version
 CONTENT_IMAGE_VERSION ?= 1-25
 ## Dev version used for quick install
