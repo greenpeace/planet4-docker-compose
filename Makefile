@@ -394,6 +394,13 @@ fix-wflogs-permissions:
 secrets:
 	@mkdir $@
 	touch $@/wp-stateless-media-key.json
+
+admin-user:
+	if docker-compose exec php-fpm wp user get $(WP_ADMIN_USER); then \
+		docker-compose exec php-fpm wp user update $(WP_ADMIN_USER) --user_email=admin@planet4.test --user_pass=$(WP_ADMIN_PASS) --role=administrator
+	else \
+		docker-compose exec php-fpm wp user create $(WP_ADMIN_USER) admin@planet4.test --user_pass=$(WP_ADMIN_PASS) --role=administrator
+	fi
 # ============================================================================
 
 # ELASTICSEARCH
@@ -617,7 +624,7 @@ config: check-services
 	docker-compose exec -T php-fpm wp option update rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
 	docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
 	docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
-	docker-compose exec php-fpm wp user update $(WP_ADMIN_USER) --user_email=admin@planet4.test --user_pass=$(WP_ADMIN_PASS) --role=administrator
+	$(MAKE) admin-user
 	docker-compose exec php-fpm wp plugin deactivate wp-stateless
 	if [[ -z "${ELASTIC_ENABLED}" ]]; then \
 		docker-compose exec php-fpm wp option update ep_host ''
