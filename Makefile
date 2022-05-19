@@ -230,7 +230,7 @@ hosts:
 	else echo "Hosts file already configured"; fi
 
 .PHONY: build
-build: hosts run unzipimages config elastic flush
+build: hosts secrets run unzipimages config elastic flush
 
 ## Run containers. Will either start or build them first if they don't exist
 .PHONY: run
@@ -277,7 +277,7 @@ down:
 
 ## Create containers, install developer tools, build assets
 .PHONY: dev
-dev: check-before-install hosts repos run unzipimages config deps elastic flush status
+dev: check-before-install hosts secrets repos run unzipimages config deps elastic flush status
 	@if command -v xattr &> /dev/null; then \
 		$(MAKE) fix-public-permissions; \
 	fi
@@ -391,6 +391,9 @@ fix-app-permissions:
 fix-wflogs-permissions:
 	@chmod -R 777 persistence/app/public/wp-content/wflogs
 
+secrets:
+	@mkdir $@
+	touch $@/wp-stateless-media-key.json
 # ============================================================================
 
 # ELASTICSEARCH
@@ -593,6 +596,7 @@ dev-from-release: $(LOCAL_DEVRELEASE) hosts
 	@tar -xf $(LOCAL_DEVRELEASE)
 	$(MAKE) fix-wflogs-permissions
 	$(MAKE) unzipimages
+	$(MAKE) secrets
 	$(MAKE) run
 	$(MAKE) fix-node-permissions
 	$(MAKE) fix-app-permissions
