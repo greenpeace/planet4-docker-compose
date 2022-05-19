@@ -708,10 +708,13 @@ flush:
 	docker-compose exec php-fpm wp cache flush
 
 ## Enter a shell in the php-fpm container
-.PHONY: php-shell
+.PHONY: php-shell mysql-console
 php-shell:
 	@docker-compose exec php-fpm bash
 
+## Enter mysql console on the current database
+mysql-console:
+	docker-compose exec db mysql -u${MYSQL_USER} -p${MYSQL_PASS} -D $(shell docker-compose exec php-fpm wp config get DB_NAME)
 ## Build master-theme and gutenberg-blocks assets
 .PHONY: assets
 assets:
