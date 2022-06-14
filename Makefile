@@ -230,7 +230,7 @@ hosts:
 	else echo "Hosts file already configured"; fi
 
 .PHONY: build
-build: hosts run unzipimages config elastic flush
+build: hosts secrets run unzipimages config elastic flush
 
 ## Run containers. Will either start or build them first if they don't exist
 .PHONY: run
@@ -277,7 +277,7 @@ down:
 
 ## Create containers, install developer tools, build assets
 .PHONY: dev
-dev: check-before-install hosts repos run unzipimages config deps elastic flush status
+dev: check-before-install hosts secrets repos run unzipimages config deps elastic flush status
 	@if command -v xattr &> /dev/null; then \
 		$(MAKE) fix-public-permissions; \
 	fi
@@ -391,18 +391,41 @@ fix-app-permissions:
 fix-wflogs-permissions:
 	@chmod -R 777 persistence/app/public/wp-content/wflogs
 
+secrets:
+	@mkdir $@
+	touch $@/wp-stateless-media-key.json
+
+admin-user:
+	if docker-compose exec php-fpm wp user get $(WP_ADMIN_USER); then \
+		docker-compose exec php-fpm wp user update $(WP_ADMIN_USER) --user_email=admin@planet4.test --user_pass=$(WP_ADMIN_PASS) --role=administrator
+	else \
+		docker-compose exec php-fpm wp user create $(WP_ADMIN_USER) admin@planet4.test --user_pass=$(WP_ADMIN_PASS) --role=administrator
+	fi
 # ============================================================================
 
 # ELASTICSEARCH
 
 .PHONY: elastic
-elastic: elastic-index flush
+elastic: elastic-run
 
 elastic-index: check-services
 	@if [[ "${ELASTIC_ENABLED}" != "" ]]; then \
 		docker-compose exec php-fpm wp elasticpress index --setup --quiet --url=www.planet4.test;\
 	fi
 
+elastic-run:
+	@echo "Starting ElasticSearch"
+	docker-compose -f docker-compose.full.yml up -d elasticsearch
+	sleep 5
+	docker-compose exec php-fpm wp option update ep_host $(ELASTICSEARCH_HOST)
+	@echo "Indexing"
+	docker-compose exec php-fpm wp elasticpress index --setup --quiet --url=www.planet4.test
+	$(MAKE) flush
+
+elastic-stop:
+	echo "Stopping ElasticSearch"
+	docker-compose -f docker-compose.full.yml stop elasticsearch
+	docker-compose exec php-fpm wp option update ep_host ''
 # ============================================================================
 
 # CONTINUOUS INTEGRATION TASKS
@@ -593,6 +616,7 @@ dev-from-release: $(LOCAL_DEVRELEASE) hosts
 	@tar -xf $(LOCAL_DEVRELEASE)
 	$(MAKE) fix-wflogs-permissions
 	$(MAKE) unzipimages
+	$(MAKE) secrets
 	$(MAKE) run
 	$(MAKE) fix-node-permissions
 	$(MAKE) fix-app-permissions
@@ -613,7 +637,7 @@ config: check-services
 	docker-compose exec -T php-fpm wp option update rt_wp_nginx_helper_options '$(NGINX_HELPER_JSON)' --format=json
 	docker-compose exec -T php-fpm wp rewrite structure $(REWRITE)
 	docker-compose exec php-fpm wp option patch insert planet4_options cookies_field "Planet4 Cookie Text"
-	docker-compose exec php-fpm wp user update $(WP_ADMIN_USER) --user_email=admin@planet4.test --user_pass=$(WP_ADMIN_PASS) --role=administrator
+	$(MAKE) admin-user
 	docker-compose exec php-fpm wp plugin deactivate wp-stateless
 	if [[ -z "${ELASTIC_ENABLED}" ]]; then \
 		docker-compose exec php-fpm wp option update ep_host ''
@@ -684,10 +708,13 @@ flush:
 	docker-compose exec php-fpm wp cache flush
 
 ## Enter a shell in the php-fpm container
-.PHONY: php-shell
+.PHONY: php-shell mysql-console
 php-shell:
 	@docker-compose exec php-fpm bash
 
+## Enter mysql console on the current database
+mysql-console:
+	docker-compose exec db mysql -u${MYSQL_USER} -p${MYSQL_PASS} -D $(shell docker-compose exec php-fpm wp config get DB_NAME)
 ## Build master-theme and gutenberg-blocks assets
 .PHONY: assets
 assets:
