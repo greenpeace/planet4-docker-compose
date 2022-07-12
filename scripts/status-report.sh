@@ -165,8 +165,9 @@ function filter_logs() {
     "NOTICE: PHP message: PHP Warning:  filectime(): stat failed"
     # Assets not ready, cf https://github.com/greenpeace/planet4-master-theme/pull/1543
     "NOTICE: PHP message: PHP Notice:  File /app/source/public/wp-content/themes/planet4-master-theme/assets/build/style.min.css does not exist or is not accessible"
-    # Warning on GS wrapper before wp-stateless is available
+    # Warning on GS wrapper before wp-stateless is available / after installation
     "NOTICE: PHP message: PHP Warning:  file_exists(): Unable to find the wrapper &quot;gs&quot;"
+    "NOTICE: PHP message: PHP Warning:  chmod(): No such file or directory"
     # Warning during NRO install
     "ssmtp: Cannot open smtp:25"
     # Xdebug running without client
