@@ -355,10 +355,11 @@ endif
 
 # Filter out docker compose V2 until full compatibility
 check-compose-version:
-	@version=$$(docker-compose --version | grep -Eo '2\.[[:digit:]]{1,3}');
-	if [[ ! -z $${version} ]]; then\
-		echo "You are using docker compose version $${version}, please use version 1.* instead.";\
-		exit 1;\
+	@version=$$(docker-compose --version | grep -o '\d.\d\+\(.\d\+\)\?'); \
+	unsupportedVersion=$$(docker-compose --version | grep -o '2.\d\+\(.\d\+\)\?'); \
+	if [[ -n $$unsupportedVersion ]]; then \
+		echo "You are using docker-compose version $$version, which is unsupported. Please use version 1.* instead."; \
+		exit 2; \
 	fi
 
 check-existing-content: envcheck
