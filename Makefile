@@ -353,14 +353,13 @@ ifndef ENVSUBST
 	$(error Command: 'envsubst' not found, please install using your package manager)
 endif
 
-# Filter out docker compose V2 until full compatibility
+# Exit if user is using docker-compose version greater than 1.*. 
 check-compose-version:
-#	@version=$$(docker-compose --version | grep -o '\d.\d\+\(.\d\+\)\?');
-	@version=$$(echo version 2.92.2 | grep -o ' \d\.\d\+\(.\d\+\)\?'); \
-	echo $$version; \
-	unsupportedVersion=$$(echo $$version | grep -o ' 2\.\d\+\(.\d\+\)\?'); \
+	@output=$$(docker-compose --version); \
+	userVersion=$$(echo $$output | grep -o '\d\.\d\+\(.\d\+\)\?'); \
+	unsupportedVersion=$$(echo $$output | grep -o ' [2-9]\.'); \
 	if [[ -n $$unsupportedVersion ]]; then \
-		echo "You are using docker-compose version $$version, which is unsupported. Please use version 1.* instead."; \
+		echo "You are using docker-compose version $$userVersion, which is unsupported. Please use version 1.* instead."; \
 		exit 2; \
 	fi
 
