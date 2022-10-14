@@ -148,7 +148,7 @@ endif
 	@find . ! -path './persistence/*' -type f -name '*.yml' | xargs yamllint
 
 lint-commit:
-	@npx commitlint -V --from master
+	@npx commitlint -V --from main
 
 # ============================================================================
 
