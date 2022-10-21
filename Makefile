@@ -294,7 +294,7 @@ deps: install-deps assets
 ## Update base, master-theme and gutenberg-blocks, rebuild assets
 .PHONY: update
 .ONESHELL:
-update: update-base update-deps
+update: update-this update-base update-deps
 	@echo "Update done."
 
 # Delete planet4 main theme and plugin
@@ -325,6 +325,10 @@ update-deps:
 update-base:
 	docker-compose exec -u "${APP_USER}" php-fpm sh -c \
 		"cd /app/source && git checkout main && git pull"
+
+.PHONY: update-this
+update-this:
+	git pull
 
 .PHONY: dev-install-xdebug xdebug-mode
 dev-install-xdebug:
