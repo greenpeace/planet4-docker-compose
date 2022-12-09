@@ -49,19 +49,9 @@ jobs:
         default: false
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - composer-v1-{{ .Branch }}-{{ .Revision }}-{{ .BuildNum }}
-            - composer-v1-{{ .Branch }}-{{ .Revision }}
-            - composer-v1-{{ .Branch }}
-            - composer-v1
       - setup_remote_docker:
           docker_layer_caching: false
       - run: make ci
-      - save_cache:
-          key: composer-v1-{{ .Branch }}-{{ .Revision }}-{{ .BuildNum }}
-          paths:
-            - defaultcontent
       - run:
           name: Run acceptance tests
           command: make test
@@ -214,7 +204,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: false
       - run: activate-gcloud-account.sh
       - run:
           name: Push dev release to cloud storage
@@ -237,7 +227,7 @@ jobs:
     <<: *defaults
     steps:
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: false
       - checkout
       - run:
           name: Lint
