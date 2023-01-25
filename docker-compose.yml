@@ -64,7 +64,7 @@ services:
       - APP_HOSTNAME=${APP_HOSTNAME:-www.planet4.test}
       - APP_HOSTPATH=${APP_HOSTPATH:-}
       # - DELETE_EXISTING_FILES=false
-      - GIT_REF=${GIT_REF:-main}
+      - GIT_REF=${GIT_REF:-upgrade-node}
       - GIT_SOURCE=https://github.com/greenpeace/planet4-base
       - INSTALL_APM_AGENT=${INSTALL_APM_AGENT:-false}
       # - MERGE_REF=develop
@@ -110,7 +110,7 @@ services:
       - "traefik.enable=true"
 
   node:
-    image: ${NODE_IMAGE:-node:14-alpine3.14}
+    image: ${NODE_IMAGE:-node:16-alpine3.16}
     user: "node"
     tty: true
     networks:
