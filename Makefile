@@ -414,7 +414,7 @@ elastic: elastic-run
 
 elastic-index: check-services
 	@if [[ "${ELASTIC_ENABLED}" != "" ]]; then \
-		docker-compose exec php-fpm wp elasticpress index --setup --quiet --url=www.planet4.test;\
+		docker-compose exec php-fpm wp elasticpress index --setup --yes --url=www.planet4.test;\
 	fi
 
 elastic-run:
@@ -423,7 +423,7 @@ elastic-run:
 	sleep 5
 	docker-compose exec php-fpm wp option update ep_host $(ELASTICSEARCH_HOST)
 	@echo "Indexing"
-	docker-compose exec php-fpm wp elasticpress index --setup --quiet --url=www.planet4.test
+	docker-compose exec php-fpm wp elasticpress index --setup --yes --url=www.planet4.test
 	$(MAKE) flush
 
 elastic-stop:
