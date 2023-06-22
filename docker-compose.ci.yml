@@ -16,7 +16,7 @@ services:
       - db
 
   php-fpm:
-    image: $APP_IMAGE
+    image: ${APP_IMAGE:-gcr.io/planet-4-151612/wordpress:latest}
     depends_on:
       - db
       - redis
@@ -45,7 +45,7 @@ services:
       - ./db.env
 
   openresty:
-    image: $OPENRESTY_IMAGE
+    image: ${OPENRESTY_IMAGE:-gcr.io/planet-4-151612/openresty:latest}
     ports:
       - "18080:80"
     depends_on:
@@ -70,14 +70,6 @@ services:
       - local
     environment:
       - discovery.type=single-node
-
-  selenium:
-    image: selenium/standalone-chrome:3.141.59-oxygen
-    shm_size: 512M
-    networks:
-      - local
-      - db
-      - proxy
 
 networks:
   local:

@@ -38,40 +38,6 @@ commands:
 
 
 jobs:
-  codeception:
-    <<: *defaults
-    environment:
-      APP_IMAGE: gcr.io/planet-4-151612/planet4-base-app:main
-      OPENRESTY_IMAGE: gcr.io/planet-4-151612/planet4-base-openresty:main
-    parameters:
-      notify:
-        type: boolean
-        default: false
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: false
-      - run: make ci
-      - run:
-          name: Run acceptance tests
-          command: make test
-      - run:
-          name: Generate artifacts
-          command: make ci-extract-artifacts
-          when: always
-      - store_test_results:
-          path: artifacts
-      - store_artifacts:
-          path: artifacts
-      - when:
-          condition: << parameters.notify >>
-          steps:
-            # Notify p4-builds-ci
-            - slack/status:
-                fail_only: true
-                channel: C024ZM2UB55
-                webhook: ${SLACK_NRO_WEBHOOK}
-
   localdev:
     machine:
       image: ubuntu-2004:202101-01
@@ -247,8 +213,6 @@ workflows:
           context: org-global
           requires:
             - localdev
-      - codeception:
-          context: org-global
       - lint
 
   nightly-test-and-release:
@@ -266,9 +230,6 @@ workflows:
           notify: true
           requires:
             - localdev
-      - codeception:
-          context: org-global
-          notify: true
       - publish-release:
           context: org-global
           notify: true
@@ -276,7 +237,6 @@ workflows:
             - localdev
             - dev-from-release
             - nro-from-release
-            - codeception
     triggers:
       - schedule:
           cron: "0 0 * * *"

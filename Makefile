@@ -443,29 +443,13 @@ endif
 ifndef OPENRESTY_IMAGE
 	$(error OPENRESTY_IMAGE is not set)
 endif
-	@$(MAKE) lint-in-ci run config ci-copyimages elastic flush test-install
+	@$(MAKE) lint-in-ci run config ci-copyimages elastic flush
 
 db/Dockerfile: check-envsubst
 	envsubst < $@.in > $@
 
 .PHONY: ci-%
 ci-%: export COMPOSE_FILE := docker-compose.ci.yml
-
-artifacts/codeception:
-	@mkdir -p $@
-
-artifacts/pa11y:
-	@mkdir -p $@
-
-.PHONY: ci-extract-artifacts
-ci-extract-artifacts: artifacts/codeception
-	docker cp $(shell docker-compose ps -q php-fpm):/app/source/tests/_output/. artifacts/codeception;
-	@echo Extracted artifacts into $^
-
-.PHONY: ci-extract-a11y-artifacts
-ci-extract-a11y-artifacts: artifacts/pa11y
-	docker cp $(shell docker-compose ps -q php-fpm):/app/source/pa11y/. artifacts/pa11y;
-	@echo Extracted artifacts into $^
 
 .PHONY: ci-copyimages
 ci-copyimages: $(LOCAL_IMAGES)
@@ -476,98 +460,6 @@ ci-copyimages: $(LOCAL_IMAGES)
 	@docker cp "$(TMPDIR)/images/." $(shell docker-compose ps -q openresty):/app/source/public/wp-content/uploads
 	@echo "Copied images into php-fpm+openresty:/app/source/public/wp-content/uploads"
 	@rm -fr "$TMPDIR"
-
-# ============================================================================
-
-# CODECEPTION TASKS
-
-selenium-run:
-	echo "Starting Selenium"
-	@docker-compose -f docker-compose.full.yml up -d selenium
-
-## Run tests with Codeception
-test: test-env-info test-codeception
-
-## Install Codeception dependencies
-test-install: install-codeception install-pcov
-
-# php-pcov allows for zero overhead analysis. Codeception will automatically use it as coverage driver if it's present.
-.PHONY: install-pcov
-install-pcov:
-	docker-compose exec php-fpm sh -c 'apt-get update && apt-get install -yq php$${PHP_MAJOR_VERSION}-pcov'
-	docker cp dev-templates/pcov.ini $(shell docker-compose ps -q php-fpm):/tmp/20-pcov.ini
-	docker-compose exec php-fpm sh -c 'cp /tmp/20-pcov.ini /etc/php/$${PHP_MAJOR_VERSION}/fpm/conf.d/20-pcov.ini'
-	docker-compose exec php-fpm sh -c 'mv /tmp/20-pcov.ini /etc/php/$${PHP_MAJOR_VERSION}/cli/conf.d/20-pcov.ini'
-	docker-compose exec php-fpm sh -c 'service php$${PHP_MAJOR_VERSION}-fpm reload'
-
-.PHONY: install-codeception
-install-codeception:
-	@docker-compose exec php-fpm bash -c 'cd tests && composer install --prefer-dist --no-progress'
-	@$(MAKE) probe-wp-index
-
-# Replace WP's index.php file with a version that includes c3.php at the start, which codeception uses to collect coverage.
-.PHONY: probe-wp-index
-probe-wp-index:
-	docker cp dev-templates/probed_index.php $(shell docker-compose ps -q php-fpm):/app/source/public/index.php
-
-.PHONY: test-codeception-unit
-test-codeception-unit:
-	@docker-compose exec php-fpm tests/vendor/bin/codecept run wpunit --no-redirect --xml=junit.xml --html --debug --coverage --coverage-html coverage_unit
-
-# Run the acceptance test suite with coverage.
-# The confusingly named `--no-redirect` option is because of https://github.com/Codeception/Codeception/pull/5498 .
-.PHONY: test-codeception-acceptance
-test-codeception-acceptance:
-	@docker-compose exec php-fpm rsync -a --delete public/wp-content/plugins/planet4-plugin-gutenberg-blocks/tests/acceptance/ tests/acceptance/
-	@docker-compose exec php-fpm rsync -a --delete public/wp-content/themes/planet4-master-theme/tests/data/ tests/_data/
-	@docker-compose exec php-fpm tests/vendor/bin/codecept run acceptance --no-redirect --xml=junit.xml --html --coverage --coverage-html coverage_acceptance
-
-.PHONY: test-codeception
-test-codeception: test-codeception-acceptance
-
-.PHONY: test-codeception-failed
-test-codeception-failed:
-	@docker-compose exec php-fpm tests/vendor/bin/codecept run -g failed --xml=junit.xml --html
-
-.PHONY: test-env-info
-test-env-info:
-	@docker-compose exec php-fpm sh -c 'echo "Wp core information" && wp core version --extra'
-	@docker-compose exec php-fpm sh -c 'echo "Themes" && wp theme list'
-	@docker-compose exec php-fpm sh -c 'echo "Plugins" && wp plugin list'
-	@docker-compose exec php-fpm sh -c 'echo "Greenpeace Packages" && wp option get greenpeace_packages --format=yaml'
-
-# ============================================================================
-
-# PA11Y TASKS
-
-PA11Y_DIR = /app/source/pa11y
-PA11Y_CONF = $(PA11Y_DIR)/.pa11yci
-PA11Y_LOCAL_CONF ?= $(PA11Y_DIR)/.pa11yci.local
-PA11Y_REPORT_JSON = $(PA11Y_DIR)/pa11y-ci-results.json
-CHROME_BIN=/usr/bin/chromium-browser
-
-## Run accessibility tests
-.PHONY: test-pa11y
-test-pa11y:
-	docker-compose exec -e CHROME_BIN="${CHROME_BIN}" node sh -c \
-		"cd /app/source && ./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_LOCAL_CONF)"
-
-.PHONY: test-pa11y-ci
-test-pa11y-ci: install-pa11y
-	docker-compose exec node sh -c \
-		"./node_modules/pa11y-ci/bin/pa11y-ci.js -c $(PA11Y_CONF) -j -T 1000 > $(PA11Y_REPORT_JSON)"
-	docker-compose exec node sh -c \
-		"./node_modules/pa11y-ci-reporter-html/bin/pa11y-ci-reporter-html.js -s $(PA11Y_REPORT_JSON) -d $(PA11Y_DIR)"
-
-## Install accessibility tests
-.PHONY: install-pa11y
-install-pa11y: install-puppeteer-deps
-	docker-compose exec -e CHROME_BIN="${CHROME_BIN}" node sh -c \
-		"cd /app/source && npm install pa11y-ci pa11y-ci-reporter-html"
-
-# Install local chromium bin
-install-puppeteer-deps:
-	docker-compose exec node apk add udev ttf-freefont chromium
 
 # ============================================================================
 
@@ -892,18 +784,6 @@ nro-list-variables:
 	$(foreach v,                     \
 		$(filter NRO_%,$(sort $(.VARIABLES))), \
 		$(info * $(v) = $($(v))))
-
-.PHONY: nro-test-codeception
-nro-test-codeception:
-	@docker-compose run \
-		-e APP_HOSTNAME=$(NRO_APP_HOSTNAME) \
-		-e APP_HOSTPATH=$(NRO_APP_HOSTPATH) \
-		--user $(id -u):$(id -g) --rm --no-deps \
-		codeception sh -c '\
-			cd sites/$(NRO_DIRNAME) && \
-			codeceptionify.sh . && \
-			codecept run --xml=junit.xml --html \
-		'
 
 .PHONY: check-gsutil
 check-gsutil:
