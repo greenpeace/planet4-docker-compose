@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 
-GSUTIL=$(command -v gsutil)
+GCLOUD=$(command -v gcloud)
 DUMP_URL=
 
 while [ $# -gt 0 ]; do
@@ -98,13 +98,13 @@ function find_db() {
 
   # Sort results by date and extract last filename only
   if [[ -n "${DUMP_NAME}" ]]; then
-    DUMP_URL=$(gsutil ls -r "gs://${DB_BUCKET}/**/${DUMP_NAME}")
+    DUMP_URL=$(gcloud storage ls -r "gs://${DB_BUCKET}/**/${DUMP_NAME}")
   elif [[ "${DB_VERSION}" == "latest" ]]; then
-    DUMP_URL=$(gsutil ls -rl "gs://${DB_BUCKET}/**" | head -n -1 | sort -k2 | \
+    DUMP_URL=$(gcloud storage ls -r -l "gs://${DB_BUCKET}/**" | head -n -1 | sort -k2 | \
                tail -n1 | awk 'END {$1=$2=""; sub(/^[ \t]+/, ""); print }')
   else
     DUMP_PREFIX="planet4-${NRO_NAME}-master-v${DB_VERSION}"
-    DUMP_URL=$(gsutil ls -r "gs://${DB_BUCKET}/v${DB_VERSION}/${DUMP_PREFIX}-*.sql.gz")
+    DUMP_URL=$(gcloud storage ls -r "gs://${DB_BUCKET}/v${DB_VERSION}/${DUMP_PREFIX}-*.sql.gz")
   fi
 
   echo "Dump found: ${DUMP_URL}"
@@ -138,7 +138,7 @@ function download_db() {
   fi
 
   echo "Downloading database from ${DUMP_URL} ..."
-  gsutil cp "${DUMP_URL}" "${DEST_DIR}"
+  gcloud storage cp "${DUMP_URL}" "${DEST_DIR}"
 }
 
 # Import dump to database
@@ -157,11 +157,11 @@ function import_db() {
 
 #
 # Main
-# Import will work without gsutil, if --dump is a valid dump file
+# Import will work without gcloud, if --dump is a valid dump file
 #
 
 check_existing_db
-if [[ ${GSUTIL} ]]; then
+if [[ ${GCLOUD} ]]; then
   check_auth
   switch_project
   find_db

@@ -100,7 +100,7 @@ ENVSUBST := $(shell command -v envsubst 2> /dev/null)
 COMPOSER := $(shell command -v composer 2> /dev/null)
 SHELLCHECK := $(shell command -v shellcheck 2> /dev/null)
 YAMLLINT := $(shell command -v yamllint 2> /dev/null)
-GSUTIL := $(shell command -v gsutil 2> /dev/null)
+GCLOUD := $(shell command -v gcloud 2> /dev/null)
 
 # ============================================================================
 
@@ -785,10 +785,10 @@ nro-list-variables:
 		$(filter NRO_%,$(sort $(.VARIABLES))), \
 		$(info * $(v) = $($(v))))
 
-.PHONY: check-gsutil
-check-gsutil:
-ifndef GSUTIL
-	$(error Command: 'gsutil' not found, please check <https://cloud.google.com/storage/docs/gsutil_install>)
+.PHONY: check-gcloud
+check-gcloud:
+ifndef GCLOUD
+	$(error Command: 'gcloud' not found, please check <https://cloud.google.com/storage/docs/discover-object-storage-gcloud>)
 endif
 
 # ============================================================================
