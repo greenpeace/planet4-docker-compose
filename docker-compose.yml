@@ -56,7 +56,6 @@ services:
     volumes:
       - ./persistence/app:/app/source:cached
       - excluded-theme:/app/source/public/wp-content/themes/planet4-master-theme/node_modules/
-      - excluded-plugin:/app/source/public/wp-content/plugins/planet4-plugin-gutenberg-blocks/node_modules/
       - excluded:/app/source/node_modules/
       - ./secrets/wp-stateless-media-key.json:/app/secrets/wp-stateless-media-key.json:ro
     environment:
@@ -93,7 +92,6 @@ services:
     volumes:
       - ./persistence/app:/app/source:cached
       - excluded-theme:/app/source/public/wp-content/themes/planet4-master-theme/node_modules/
-      - excluded-plugin:/app/source/public/wp-content/plugins/planet4-plugin-gutenberg-blocks/node_modules/
       - excluded:/app/source/node_modules/
     environment:
       - APP_ENV=${APP_ENV:-develop}
@@ -121,7 +119,6 @@ services:
     volumes:
       - ./persistence/app:/app/source:cached
       - excluded-theme:/app/source/public/wp-content/themes/planet4-master-theme/node_modules/
-      - excluded-plugin:/app/source/public/wp-content/plugins/planet4-plugin-gutenberg-blocks/node_modules/
       - excluded:/app/source/node_modules/
     environment:
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=${PUPPETEER_SKIP_CHROMIUM_DOWNLOAD:-true}

@@ -9,5 +9,3 @@ else
 fi
 
 git clone ${GIT_DOMAIN}greenpeace/planet4-master-theme.git persistence/app/public/wp-content/themes/planet4-master-theme
-
-git clone --recurse-submodules --shallow-submodules ${GIT_DOMAIN}greenpeace/planet4-plugin-gutenberg-blocks.git persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks

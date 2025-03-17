@@ -9,10 +9,3 @@ docker-compose exec -u "${APP_USER}" php-fpm bash -c \
 	git checkout main && \
 	git pull && \
 	git submodule update"
-
-echo "Updating gutenberg blocks..."
-docker-compose exec -u  "${APP_USER}" php-fpm bash -c \
-	"cd /app/source/public/wp-content/plugins/planet4-plugin-gutenberg-blocks && \
-	git checkout main && \
-	git pull && \
-	git submodule update"

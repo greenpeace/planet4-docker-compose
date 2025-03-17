@@ -284,24 +284,23 @@ dev: check-before-install hosts secrets repos run unzipimages config deps elasti
 	@echo "Ready"
 
 
-## Delete and rebuild planet4 main theme and plugin
+## Delete and rebuild planet4 theme
 .PHONY: repos
 repos: clean-repos clone-repos
 
 .PHONY: deps
 deps: install-deps assets
 
-## Update base, master-theme and gutenberg-blocks, rebuild assets
+## Update base, theme, rebuild assets
 .PHONY: update
 .ONESHELL:
 update: update-this update-base update-deps
 	@echo "Update done."
 
-# Delete planet4 main theme and plugin
+# Delete planet4 theme
 .PHONY: clean-repos
 clean-repos:
 	@rm -fr persistence/app/public/wp-content/themes/planet4-master-theme
-	rm -fr persistence/app/public/wp-content/plugins/planet4-plugin-gutenberg-blocks
 
 .PHONY: clone-repos
 clone-repos:
@@ -385,7 +384,6 @@ fix-public-permissions:
 
 fix-node-permissions:
 	@docker-compose exec -u root node sh -c 'chown -R node /app/source/public/wp-content/themes/planet4-master-theme/node_modules'
-	docker-compose exec -u root node sh -c 'chown -R node /app/source/public/wp-content/plugins/planet4-plugin-gutenberg-blocks/node_modules'
 
 fix-app-permissions:
 	@echo "Fixing permissions of /app ..."
@@ -611,25 +609,15 @@ php-shell:
 ## Enter mysql console on the current database
 mysql-console:
 	docker-compose exec db mysql -u${MYSQL_USER} -p${MYSQL_PASS} -D $(shell docker-compose exec php-fpm wp config get DB_NAME)
-## Build master-theme and gutenberg-blocks assets
+## Build theme assets
 .PHONY: assets
 assets:
 	./scripts/build-assets.sh
 
-## Watch and rebuild plugin and theme assets on modification
+## Watch and rebuild theme assets on modification
 .PHONY: watch
 watch:
 	./scripts/watch.sh
-
-# Watch and rebuild theme assets on modification
-.PHONY: watch-theme
-watch-theme:
-	./scripts/watch.sh --theme-only
-
-# Watch and rebuild plugin assets on modification
-.PHONY: watch-plugin
-watch-plugin:
-	./scripts/watch.sh --plugin-only
 
 .PHONY: revertdb
 revertdb:
